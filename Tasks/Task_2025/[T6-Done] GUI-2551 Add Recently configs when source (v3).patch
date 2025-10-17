@@ -1,0 +1,60 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 10 +++++-----
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 10 +++++-----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 9a978afcccf..5d0c18bc4d0 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -6360,6 +6360,11 @@ void MainWindow::enableControls(bool enable, bool hostCreation)
+         instrumentsActMap[DEL_UNIFIED_DOMAIN]->setEnabled(enable);
+ 
+         instrumentsActMap[LOAD_STAT]->setEnabled(state);
++        if (recentlySourcedMenu->actions().empty()) {
++            recentlySourcedAction->setEnabled(false);
++        } else {
++            recentlySourcedAction->setEnabled(enable);
++        }
+ 
+         const bool partial_command =
+             (console != nullptr && console->getConsole()->is_partial_command_buffered());
+@@ -8820,11 +8825,6 @@ void MainWindow::grayOutDomainViewAndAddList()
+         delActionsOnSpecifyMenu->setEnabled(false);
+         addActionsOnSpecifyMenu->setEnabled(false);
+     }
+-    if (recentlySourcedMenu->actions().empty()) {
+-        recentlySourcedAction->setEnabled(false);
+-    } else {
+-        recentlySourcedAction->setEnabled(true);
+-    }
+ }
+ 
+ void MainWindow::limitNameSize(QString & name)
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 9eb1055bda0..fc34ff5bc46 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -6353,6 +6353,11 @@ void MainWindow::enableControls(bool enable, bool hostCreation)
+         instrumentsActMap[DEL_UNIFIED_DOMAIN]->setEnabled(enable);
+ 
+         instrumentsActMap[LOAD_STAT]->setEnabled(state);
++        if (recentlySourcedMenu->actions().empty()) {
++            recentlySourcedAction->setEnabled(false);
++        } else {
++            recentlySourcedAction->setEnabled(enable);
++        }
+ 
+         const bool partial_command =
+             (console != nullptr && console->getConsole()->is_partial_command_buffered());
+@@ -8794,11 +8799,6 @@ void MainWindow::grayOutDomainViewAndAddList()
+         delActionsOnSpecifyMenu->setEnabled(false);
+         addActionsOnSpecifyMenu->setEnabled(false);
+     }
+-    if (recentlySourcedMenu->actions().empty()) {
+-        recentlySourcedAction->setEnabled(false);
+-    } else {
+-        recentlySourcedAction->setEnabled(true);
+-    }
+ }
+ 
+ void MainWindow::limitNameSize(QString & name)

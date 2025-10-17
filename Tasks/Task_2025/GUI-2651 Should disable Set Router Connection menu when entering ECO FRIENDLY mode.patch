@@ -1,0 +1,46 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     | 8 ++------
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp | 8 ++------
+ 2 files changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 7cd11f82516..08b6bb5f303 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -281,14 +281,10 @@ void bridgeContextMenu(QGraphicsItem* guiBridge, NetSpeed::Bridge* b, Qt::Layout
+     action->setProperty(TITLE_TYPE, ADD_ROUTER_CONN);
+     action->setProperty(TEXT_HELP, "router_conn");
+     contextMenu.addAction(action);
+-    if (mw->allowPropInEcoMode("router_conn")) {
++    if (mw->allowPropInEcoMode("router_conn") || b->get_pos().is_null()) {
+         action->setEnabled(false);
+-    }
++    } else action->setEnabled(true);
+ 
+-    action->setEnabled(true);
+-    if (b->get_pos().is_null()) {
+-        action->setEnabled(false);
+-    }
+     mw->getInstrumentsActMap()[RESET_ROUTER_CONN]->setProperty(TITLE_BRIDGE_DATA_TYPE, briName);
+     mw->getInstrumentsActMap()[RESET_ROUTER_CONN]->setProperty(TEXT_HELP, "router_conn");
+     contextMenu.addAction(mw->getInstrumentsActMap()[RESET_ROUTER_CONN]);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+index aaae88651c3..ca889a2fb58 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+@@ -281,14 +281,10 @@ void bridgeContextMenu(QGraphicsItem* guiBridge, NetSpeed::Bridge* b, Qt::Layout
+     action->setProperty(TITLE_TYPE, ADD_ROUTER_CONN);
+     action->setProperty(TEXT_HELP, "router_conn");
+     contextMenu.addAction(action);
+-    if (mw->allowPropInEcoMode("router_conn")) {
++    if (mw->allowPropInEcoMode("router_conn") || b->get_pos().is_null()) {
+         action->setEnabled(false);
+-    }
++    } else action->setEnabled(true);
+ 
+-    action->setEnabled(true);
+-    if (b->get_pos().is_null()) {
+-        action->setEnabled(false);
+-    }
+     mw->getInstrumentsActMap()[RESET_ROUTER_CONN]->setProperty(TITLE_BRIDGE_DATA_TYPE, briName);
+     mw->getInstrumentsActMap()[RESET_ROUTER_CONN]->setProperty(TEXT_HELP, "router_conn");
+     contextMenu.addAction(mw->getInstrumentsActMap()[RESET_ROUTER_CONN]);

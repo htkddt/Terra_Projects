@@ -1,0 +1,164 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp  | 61 +++++++++++-----------
+ .../noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp | 61 +++++++++++-----------
+ 2 files changed, 62 insertions(+), 60 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+index 61f5b455b51..5d8ebebb0a6 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+@@ -184,37 +184,9 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+     else if(iFCE) propertyPanel->showInterfacePropertyOnSelectionTab(iFCE);
+     propertyPanel->raiseSelectionTab();
+     mw->raiseTooltipTab();
+-    auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(this->parentItem());
+-    if (!rssbDiagram) {
+-        if (auto nsLinkDiagram = dynamic_cast<NsLinkDiagram*>(this->parentItem())) {
+-            if (auto arrowItem = dynamic_cast<NsArrowItem*>(nsLinkDiagram->parentItem())) {
+-                if (rssbDiagram = dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem())) {
+-                    qreal zVal = 0;
+-                    for (auto& child : rssbDiagram->childItems()) {
+-                        auto arrow = dynamic_cast<NsArrowItem*>(child);
+-                        if (arrow && (arrow->zValue() > zVal)) zVal = arrow->zValue();
+-                    }
+-                    arrowItem->setZValue(++zVal);
+-                    if (auto guiBridge = rssbDiagram->getGuiBridge()) {
+-                        if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
+-                            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
+-                                if (diagram->getMulBris()) {
+-                                    mw->updateZValueOfListDiagrams(diagram->getMulBris());
+-                                    diagram->getMulBris()->updateZValueOfListBridgeDiagram(arrowItem->parentItem());
+-                                }
+-                            }
+-                        } else {
+-                            mw->updateZValueOfListDiagrams(arrowItem->parentItem());
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-    }
+-    if (rssbDiagram) {
++    if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(this->parentItem())) {
+         if (auto arrow = rssbDiagram->arrowSelected) {
+-            auto nsArrowItem = dynamic_cast<NsArrowItem*>(arrow);
+-            if (nsArrowItem) {
++            if (auto nsArrowItem = dynamic_cast<NsArrowItem*>(arrow)) {
+                 nsArrowItem->choice = false;
+                 nsArrowItem->update();
+             }
+@@ -239,6 +211,35 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+                 mw->updateZValueOfListDiagrams(this->parentItem());
+             }
+         }
++    } else if (auto nsLinkDiagram = dynamic_cast<NsLinkDiagram*>(this->parentItem())) {
++        if (auto arrowItem = dynamic_cast<NsArrowItem*>(nsLinkDiagram->parentItem())) {
++            if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem())) {
++                if (auto arrow = rssbDiagram->arrowSelected) {
++                    if (auto nsArrowItem = dynamic_cast<NsArrowItem*>(arrow)) {
++                        nsArrowItem->choice = false;
++                        nsArrowItem->update();
++                    }
++                }
++                qreal zVal = 0;
++                for (auto& child : rssbDiagram->childItems()) {
++                    auto arrow = dynamic_cast<NsArrowItem*>(child);
++                    if (arrow && (arrow->zValue() > zVal)) zVal = arrow->zValue();
++                }
++                arrowItem->setZValue(++zVal);
++                if (auto guiBridge = rssbDiagram->getGuiBridge()) {
++                    if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++                        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
++                            if (diagram->getMulBris()) {
++                                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                                diagram->getMulBris()->updateZValueOfListBridgeDiagram(arrowItem->parentItem());
++                            }
++                        }
++                    } else {
++                        mw->updateZValueOfListDiagrams(arrowItem->parentItem());
++                    }
++                }
++            }
++        }
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
+index 7be7155d56b..88d94345a57 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
+@@ -184,37 +184,9 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+     else if(iFCE) propertyPanel->showInterfacePropertyOnSelectionTab(iFCE);
+     propertyPanel->raiseSelectionTab();
+     mw->raiseTooltipTab();
+-    auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(this->parentItem());
+-    if (!rssbDiagram) {
+-        if (auto nsLinkDiagram = dynamic_cast<NsLinkDiagram*>(this->parentItem())) {
+-            if (auto arrowItem = dynamic_cast<NsArrowItem*>(nsLinkDiagram->parentItem())) {
+-                if ((rssbDiagram = dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem()))) {
+-                    qreal zVal = 0;
+-                    for (auto& child : rssbDiagram->childItems()) {
+-                        auto arrow = dynamic_cast<NsArrowItem*>(child);
+-                        if (arrow && (arrow->zValue() > zVal)) zVal = arrow->zValue();
+-                    }
+-                    arrowItem->setZValue(++zVal);
+-                    if (auto guiBridge = rssbDiagram->getGuiBridge()) {
+-                        if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
+-                            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
+-                                if (diagram->getMulBris()) {
+-                                    mw->updateZValueOfListDiagrams(diagram->getMulBris());
+-                                    diagram->getMulBris()->updateZValueOfListBridgeDiagram(arrowItem->parentItem());
+-                                }
+-                            }
+-                        } else {
+-                            mw->updateZValueOfListDiagrams(arrowItem->parentItem());
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-    }
+-    if (rssbDiagram) {
++    if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(this->parentItem())) {
+         if (auto arrow = rssbDiagram->arrowSelected) {
+-            auto nsArrowItem = dynamic_cast<NsArrowItem*>(arrow);
+-            if (nsArrowItem) {
++            if (auto nsArrowItem = dynamic_cast<NsArrowItem*>(arrow)) {
+                 nsArrowItem->choice = false;
+                 nsArrowItem->update();
+             }
+@@ -239,6 +211,35 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+                 mw->updateZValueOfListDiagrams(this->parentItem());
+             }
+         }
++    } else if (auto nsLinkDiagram = dynamic_cast<NsLinkDiagram*>(this->parentItem())) {
++        if (auto arrowItem = dynamic_cast<NsArrowItem*>(nsLinkDiagram->parentItem())) {
++            if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem())) {
++                if (auto arrow = rssbDiagram->arrowSelected) {
++                    if (auto nsArrowItem = dynamic_cast<NsArrowItem*>(arrow)) {
++                        nsArrowItem->choice = false;
++                        nsArrowItem->update();
++                    }
++                }
++                qreal zVal = 0;
++                for (auto& child : rssbDiagram->childItems()) {
++                    auto arrow = dynamic_cast<NsArrowItem*>(child);
++                    if (arrow && (arrow->zValue() > zVal)) zVal = arrow->zValue();
++                }
++                arrowItem->setZValue(++zVal);
++                if (auto guiBridge = rssbDiagram->getGuiBridge()) {
++                    if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++                        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
++                            if (diagram->getMulBris()) {
++                                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                                diagram->getMulBris()->updateZValueOfListBridgeDiagram(arrowItem->parentItem());
++                            }
++                        }
++                    } else {
++                        mw->updateZValueOfListDiagrams(arrowItem->parentItem());
++                    }
++                }
++            }
++        }
+     }
+ }
+ 

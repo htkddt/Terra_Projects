@@ -1,0 +1,227 @@
+ src/sw/noc_dev/GUICore/NsTypes.cpp                 | 47 +++++++++++++++++++++-
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 39 ++++++++++++++----
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp       |  1 +
+ .../prototype/Gui/Item/NsMultipleBridges.cpp       |  4 +-
+ 4 files changed, 80 insertions(+), 11 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/NsTypes.cpp b/src/sw/noc_dev/GUICore/NsTypes.cpp
+index ae3f0e37169..c8655ac6028 100644
+--- a/src/sw/noc_dev/GUICore/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore/NsTypes.cpp
+@@ -95,7 +95,52 @@ QString toolTip2Html(QString toolTipString)
+ 
+ QString toolTip2Html(std::string toolTipString)
+ {
+-    return toolTip2Html(QString::fromStdString(toolTipString));
++    QString toolTip = QString::fromStdString(toolTipString);
++    QString listOfBridgeText = "List of bridges:<br>";
++    QString interfaceNameOfBridgeText = " of bridge: ";
++    QString keyBreak = "<br>";
++    QString keyClose = "</b>";
++
++    auto listName = toolTip.split(QRegularExpression(keyClose), QString::SplitBehavior::SkipEmptyParts);
++    auto name = listName.at(0).split(QRegularExpression("/"), QString::SplitBehavior::SkipEmptyParts);
++    auto firstName = name.at(0);
++    if (name.size() > 1) {
++        auto lastName = name.at(1);
++        if (name.size() > 2) {
++            auto ifceBrLastName = name.at(2);
++            limitNameSize(ifceBrLastName);
++            toolTip.replace(QRegularExpression(name.at(2)), ifceBrLastName);
++
++            auto ifceNameOfBridge = name.at(1).split(QRegularExpression(interfaceNameOfBridgeText),
++                                                     QString::SplitBehavior::SkipEmptyParts);
++            lastName = ifceNameOfBridge.at(0);
++            limitNameSize(lastName);
++            toolTip.replace(QRegularExpression(ifceNameOfBridge.at(0)), lastName);
++
++            if (ifceNameOfBridge.size() > 1) {
++                auto ifceBrFirstName = ifceNameOfBridge.at(1);
++                limitNameSize(ifceBrFirstName);
++                toolTip.replace(QRegularExpression(ifceNameOfBridge.at(1)), ifceBrFirstName);
++            }
++        } else {
++            limitNameSize(lastName);
++            toolTip.replace(QRegularExpression(name.at(1)), lastName);
++        }
++    }
++    limitNameSize(firstName);
++    toolTip.replace(QRegularExpression(name.at(0)), firstName);
++
++    auto listOfBridge = toolTip.split(QRegularExpression(listOfBridgeText), QString::SplitBehavior::SkipEmptyParts);
++    if (listOfBridge.size() > 1) {
++        auto bridges = listOfBridge.at(1).split(QRegularExpression(keyBreak), QString::SplitBehavior::SkipEmptyParts);
++        for (auto& br : bridges) {
++            auto brName = br;
++            limitNameSize(br);
++            toolTip.replace(QRegularExpression(brName), br);
++        }
++    }
++
++    return toolTip2Html(toolTip);
+ }
+ 
+ QPainterPath drawNormalArrow(const QLineF & line, bool in, bool uturn)
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 3b724c47471..92d5c4eb79e 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -830,14 +830,18 @@ void NsBridgeDiagram::initData()
+ 
+     // max width of vc name
+     for (const auto& vc : allVcs) {
+-        int width = fontMetrics.width(QString::fromStdString(vc->name()));
++        auto name = QString::fromStdString(vc->name());
++        limitNameSize(name);
++        int width = fontMetrics.width(name);
+         maxWidthVcName = std::max(maxWidthVcName, width);
+         maxVCsPenWidth = std::max(maxVCsPenWidth, vc->get_width());
+     }
+ 
+     //Get maximum width of ifce names
+     for (auto const& ifce : allIfces) {
+-        int width = fontMetrics.width(QString::fromStdString(ifce->if_name()));
++        auto name = QString::fromStdString(ifce->if_name());
++        limitNameSize(name);
++        int width = fontMetrics.width(name);
+         maxWidthIfceName = std::max(maxWidthIfceName, width);
+         maxIFCEPenWidth = std::max(maxIFCEPenWidth, ifce->get_if_msg_width_cached());
+     }
+@@ -867,7 +871,9 @@ void NsBridgeDiagram::initData()
+         QSizeF(bridgeWidth, maxHeight - hMargin));
+     QPainterPath rectPath;
+     rectPath.addRect(bridgeRectangle);
+-    new NsDiagramRectangle(rectPath,  QString::fromStdString(bridge->name()), bridge, this);
++    auto briName = QString::fromStdString(bridge->name());
++    limitNameSize(briName);
++    new NsDiagramRectangle(rectPath, briName, bridge, this);
+ 
+     QFont font;
+     font.setBold(true);
+@@ -918,6 +924,7 @@ void NsBridgeDiagram::initData()
+             QSizeF(maxWidthIfceName,
+                 iFCEVCTextHeight));
+         QString interfaceName = QString::fromStdString(it->if_name());
++        limitNameSize(interfaceName);
+         interfaceNameRect = iFMetric.boundingRect(interfaceNameRect,
+             Qt::AlignVCenter |
+             Qt::AlignRight, interfaceName);
+@@ -954,6 +961,7 @@ void NsBridgeDiagram::initData()
+             lineWidth,
+             iFCEVCTextHeight));
+         QString vcName = QString::fromStdString(vc->name());
++        limitNameSize(vcName);
+         vcNameRect = iFMetric.boundingRect(vcNameRect, Qt::AlignVCenter |
+             Qt::AlignLeft, vcName);
+         auto font = iFVCFont;
+@@ -2876,19 +2884,26 @@ void NsRSSBDiagram::initRssbBridgeData()
+ 
+     // max width of ifce names
+     for (auto const& ifce : allIfces) {
+-        int width = fontMetrics.width(QString::fromStdString(ifce->if_name()));
++        auto name = QString::fromStdString(ifce->if_name());
++        limitNameSize(name);
++        int width = fontMetrics.width(name);
+         maxWidthIfceName = std::max(maxWidthIfceName, width);
+         maxIFCEPenWidth = std::max(maxIFCEPenWidth, ifce->get_if_msg_width_cached());
+     }
+ 
+     // max width of VcPhys name
+     for (const auto& vc : allVcPhys2Rssb) {
+-        int width      = fontMetrics.width(QString::fromStdString(vc->name()));
++        auto name = QString::fromStdString(vc->name());
++        limitNameSize(name);
++        int width = fontMetrics.width(name);
+         maxWidthVcName = std::max(maxWidthVcName, width);
+         maxVcPhys2RssbPenWidth = std::max(maxVcPhys2RssbPenWidth, vc->get_width());
+     }
++
+     for (const auto& vc : allVcPhys2Br) {
+-        int width      = fontMetrics.width(QString::fromStdString(vc->name()));
++        auto name = QString::fromStdString(vc->name());
++        limitNameSize(name);
++        int width = fontMetrics.width(name);
+         maxWidthVcName = std::max(maxWidthVcName, width);
+         maxVcPhys2BrPenWidth = std::max(maxVcPhys2BrPenWidth, vc->get_width());
+     }
+@@ -2926,7 +2941,9 @@ void NsRSSBDiagram::initRssbBridgeData()
+     QPainterPath rectPath;
+     rectPath.addRect(bridgeRectangle);
+ 
+-    m_BrRect = new NsDiagramRectangle(rectPath,  QString::fromStdString(bridge->name()), bridge, this);
++    auto briName = QString::fromStdString(bridge->name());
++    limitNameSize(briName);
++    m_BrRect = new NsDiagramRectangle(rectPath, briName, bridge, this);
+     if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty())
+         m_BrRect->setToolTip(toolTip2Html(bridge->get_tooltip()));
+     int maxVcPhys2BrHeight = hasVcPhysical2Bridge ? isize(allVcPhys2Br) * distanceBetweenGroups + containerMargin : 0;
+@@ -2935,7 +2952,10 @@ void NsRSSBDiagram::initRssbBridgeData()
+     if (!allVcPhys2Rssb.isEmpty() && !allVCRssb2Br.empty()) {
+         QPainterPath rectRssbPath;
+         rectRssbPath.addRect(bridgeRssbRectangle);
+-        m_RSSBRect = new NsDiagramRectangle(rectRssbPath,  QString::fromStdString(bridge->get_switch()->name()), bridge->get_switch(), this);
++
++        auto briRssbName = QString::fromStdString(bridge->get_switch()->name());
++        limitNameSize(briRssbName);
++        m_RSSBRect = new NsDiagramRectangle(rectRssbPath, briRssbName, bridge->get_switch(), this);
+         if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty())
+             m_RSSBRect->setToolTip(toolTip2Html(bridge->get_switch()->get_tooltip()));
+     }
+@@ -3004,6 +3024,7 @@ void NsRSSBDiagram::initRssbBridgeData()
+             QSizeF(maxWidthIfceName,
+                 iFCEVCTextHeight));
+         QString interfaceName = QString::fromStdString(it->if_name());
++        limitNameSize(interfaceName);
+         interfaceNameRect = iFMetric.boundingRect(interfaceNameRect,
+             Qt::AlignVCenter |
+             Qt::AlignRight, interfaceName);
+@@ -3082,6 +3103,7 @@ void NsRSSBDiagram::initRssbBridgeData()
+                 
+             QRectF vcNameRect = QRectF(startText, QSizeF(maxWidthVcName - lineWidth, iFCEVCTextHeight));
+             QString vcName    = QString::fromStdString(vc->name());
++            limitNameSize(vcName);
+             vcNameRect = iFMetric.boundingRect(vcNameRect, Qt::AlignVCenter | Qt::AlignLeft, vcName);
+             auto font  = iFVCFont;
+             if (vc->get_layer() == m_layerId) font.setBold(true);
+@@ -3122,6 +3144,7 @@ void NsRSSBDiagram::initRssbBridgeData()
+             lineWidth,
+             iFCEVCTextHeight));
+         QString vcName = QString::fromStdString(vc->name());
++        limitNameSize(vcName);
+         vcNameRect = iFMetric.boundingRect(vcNameRect, Qt::AlignVCenter |
+             Qt::AlignLeft, vcName);
+         auto font = iFVCFont;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index 7e6b835c47a..caf98042796 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -46,6 +46,7 @@ void NsHost::hostContextMenu(const NetSpeed::Host* host, QMenu* menu)
+         }
+     }
+     QString name = QString::fromStdString(host->name());
++    limitNameSize(name);
+     if (host->is_config_slave_host()) {
+         auto add = menu->addAction("Add Storage Component");
+         add->setIcon(QIcon(ICON_ADD_CIRCLE));
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index e0d5a3e0f46..bc900e0cee1 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -58,6 +58,7 @@ NsMultipleBridges::NsMultipleBridges(const QPoint pos, const QVector<NetSpeed::B
+     QPoint start(STRECH_MUL_BRI / 2, HEADER_MUL_BRI_HIG + STRECH_MUL_BRI / 2 + DIAGRAM_NAME_SIZE);
+     for (auto const& br : br_temp) {
+         QString name = QString::fromStdString(br->name());
++        limitNameSize(name);
+         int w = fm.width(name) + BRIDGE_SIZE + 2;
+         width = width > w ? width : w;
+         /* Create Bridge item */
+@@ -71,8 +72,7 @@ NsMultipleBridges::NsMultipleBridges(const QPoint pos, const QVector<NetSpeed::B
+         //bridge->setPos(diagram->mapFromScene(start));
+         diagram->bridgeList.append(bridge);
+         /* Create Bridge Name item */
+-        QString briName = QString::fromStdString(br->name());
+-        NsBridgeLabel* bridgeName = new NsBridgeLabel(br, briName);
++        NsBridgeLabel* bridgeName = new NsBridgeLabel(br, name);
+         bridgeName->setParentItem(diagram);
+         //bridgeName->setPos(diagram->mapFromScene(start + QPointF(BRIDGE_SIZE + 2 + STRECH_MUL_BRI / 2, 0)));
+         diagram->bridgeNameList.append(bridgeName);

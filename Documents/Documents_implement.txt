@@ -1,0 +1,67 @@
+##################################################################################################
+Python:
+	# Cài dependencies
+	pip install -r requirements.txt
+
+	# Run
+	python main.py
+	# hoặc
+	python -m package_name
+##################################################################################################
+C++
+	- g++:
+		# Build (compile thành file thực thi)
+		g++ -std=c++17 -O2 -o app main.cpp
+
+		# Run
+		./app
+	- CMake hoặc Makefile
+		mkdir build && cd build
+		cmake ..
+		make
+		./app
+##################################################################################################
+React:
+	# Cài dependencies
+	npm install
+
+	# Build
+	npm run build
+
+	# Run dev (development mode)
+	npm start
+
+	# Run production (serve bản build)
+	npm install -g serve
+	serve -s build
+##################################################################################################
+Vue:
+	# Cài dependencies
+	npm install
+
+	# Build
+	npm run build
+
+	# Run dev
+	npm run serve   # (Vue CLI)
+	npm run dev     # (Vite)
+
+	# Run production
+	npm install -g serve
+	serve -s dist
+##################################################################################################
+Node:
+	# Cài dependencies
+	npm install
+
+	# Run dev
+	node index.js
+	# hoặc
+	npm run dev
+
+	# Build (nếu dùng TypeScript hoặc framework như NestJS, NextJS)
+	npm run build
+
+	# Run production
+	npm start
+##################################################################################################

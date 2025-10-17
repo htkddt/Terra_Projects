@@ -1,0 +1,58 @@
+ src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp     | 2 +-
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp               | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp           | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+index a935f43d1b0..2f1118e930d 100644
+--- a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -380,7 +380,7 @@ CustomHighLightDialog::CustomHighLightDialog(QWidget* parent, const NetSpeed::Gr
+     mainLayout->addSpacing(10);
+     mainLayout->addWidget(groupButton);
+     // Set title
+-    setWindowFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint | Qt::Window);
++    setWindowFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint | Qt::Window | Qt::Tool);
+     setWindowTitle("Custom highlight...");
+     // set main layout
+     setLayout(mainLayout);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index d450e03706f..32e862ea590 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1074,7 +1074,7 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         qDeleteAll(to_be_deleted);
+ 
+         /* Deleting huge router diagrams only */
+-        for (auto& hugeDialog : mw->findChildren<customDialog*>()) {
++        for (auto& hugeDialog : mw->findChildren<QDialog*>("hugeDialogs")) {
+             hugeDialog->close(); /* The huge dialog will be destroyed by itselft */
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+index c4cbefcea08..679f08ac700 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -404,7 +404,7 @@ CustomHighLightDialog::CustomHighLightDialog(QWidget* parent, const NetSpeed::Gr
+     mainLayout->addSpacing(10);
+     mainLayout->addWidget(groupButton);
+     // Set title
+-    setWindowFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint | Qt::Window);
++    setWindowFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint | Qt::Window | Qt::Tool);
+     setWindowTitle("Custom highlight...");
+     // set main layout
+     setLayout(mainLayout);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index bc170686e28..47dae899787 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -1079,7 +1079,7 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         qDeleteAll(to_be_deleted);
+ 
+         /* Deleting huge router diagrams only */
+-        for (auto& hugeDialog : mw->findChildren<customDialog*>("hugeDialogs")) {
++        for (auto& hugeDialog : mw->findChildren<QDialog*>("hugeDialogs")) {
+             hugeDialog->close(); /* The huge dialog will be destroyed by itselft */
+         }
+     }

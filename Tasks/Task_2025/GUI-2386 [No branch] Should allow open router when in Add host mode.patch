@@ -1,0 +1,118 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp       | 20 ++++++++++++--------
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.h           |  1 +
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp | 16 ++++++++++++++++
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp        |  7 ++++++-
+ 4 files changed, 35 insertions(+), 9 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index e4eff5935b4..5e11338e2d5 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -11,6 +11,7 @@
+  */
+ 
+ #include "NsBridge.h"
++#include "NsMultipleBridges.h"
+ #include "global.h"
+ #include "Bridge.h"
+ #include "Host.h"
+@@ -426,6 +427,8 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+             event->accept();
+             auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+             if (!mw) return;
++            auto host = getFirst<NsNormalHost>(meshScene->items(event->scenePos()), HOST);
++            auto mulBris = getFirst<NsMultipleBridges>(meshScene->items(event->scenePos()), MULTIPLE_BRIDGE);
+             auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
+             if (diagramOpenning) {
+                 mw->updateZValueOfListDiagrams(diagramOpenning);
+@@ -451,17 +454,18 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+                     }
+                 }
+             } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() &&
+-                       !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked() &&
+                        !mw->getInstrumentsActMap()[ADD_CONNECT]->isChecked() &&
+                        !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked()) {
+-                if (bridgeHasRSSB) {
+-                    auto diagram = new NsRSSBDiagram(bridge, this);
+-                    mw->appendListDiagrams(diagram);
+-                } else {
+-                    auto diagram = new NsBridgeDiagram(bridge, this);
+-                    mw->appendListDiagrams(diagram);
++                if ((host && !host->isVirtualPort) || mulBris) {
++                    if (bridgeHasRSSB) {
++                        auto diagram = new NsRSSBDiagram(bridge, this);
++                        mw->appendListDiagrams(diagram);
++                    } else {
++                        auto diagram = new NsBridgeDiagram(bridge, this);
++                        mw->appendListDiagrams(diagram);
++                    }
++                    bridgeContextMenu(this, bridge, meshScene->getMenuDirection());
+                 }
+-                bridgeContextMenu(this, bridge, meshScene->getMenuDirection());
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.h b/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
+index 6a5a1041c06..252e608c701 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
+@@ -111,6 +111,7 @@ public:
+     void updateSize(QRectF r) { highlight = true; setRect(r); }
+ 
+     bool highlight = false;
++    bool isVirtualPort = false;
+ 
+ protected:
+     friend class Test_NsHost;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 81f1150962b..d4fe02c5d84 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1166,6 +1166,22 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+                 break;
+             }
+ 
++            /*case ADD_HOST:
++            {
++                auto rou = getFirst<NsRouter>(items(event->scenePos()), ROUTER);
++                if (!mw) break;
++                if (rou) {
++                    if (event->button() == Qt::RightButton) {
++                        auto diagram = NsRouterDiagramManager::manager(rou->scene())->createDiagramFromRouter(rou);
++                        if (diagram) {
++                            mw->appendListDiagrams(diagram);
++                        }
++                    }
++                }
++                NsMeshViewScene::mousePressEvent(event);
++                break;
++            }*/
++
+             default:
+                 NsMeshViewScene::mousePressEvent(event);
+                 break;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index d23c39b9498..2944220ff02 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -2758,7 +2758,11 @@ void NsMeshViewScene::deleteCustomizeItems()
+     whenMatched(items(), { CUSTOMIZE_ITEM, ROUTER_CONNECTION }, deleteItem);
+     for (auto mesh : layers) {
+         appendCustomItem(mesh);
+-        whenMatched(mesh->childItems(), { HOST }, appendCustomItem);
++        whenMatched(mesh->childItems(), { HOST }, [&](QGraphicsItem* item) {
++            auto host = static_cast<NsNormalHost*>(item);
++            host->isVirtualPort = false;
++            appendCustomItem(item);
++            });
+     }
+     qDeleteAll(to_be_deleted);
+ }
+@@ -2812,6 +2816,7 @@ void NsMeshViewScene::createVirtualPort(NetSpeed::Host * nsHost) {
+                     auto bridge = new NsInstrumentMediator(bridgeRect, mesh);
+                     bridge->setParentItem(host);
+                     bridge->setMediatorType(NsInstrumentMediator::VIR_PORT);
++                    host->isVirtualPort = true;
+                 }
+             }
+             });

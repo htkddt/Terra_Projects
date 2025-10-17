@@ -1,0 +1,84 @@
+ src/sw/noc_dev/GUICore_qt6/genericconsole.cpp  | 16 +++++++++++++---
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp | 11 ++++++++++-
+ 2 files changed, 23 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+index 8b07badfdb6..24a3dd5b6ce 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+@@ -31,7 +31,7 @@ GenericConsole::GenericConsole(const QString& prompText, const char* textColor,
+     moveCursor(QTextCursor::End);
+     setUndoRedoEnabled(false);
+     setOverwriteMode(false);
+-    setMaximumBlockCount(1000);   
++    setMaximumBlockCount(12000);
+ }
+ 
+ 
+@@ -54,6 +54,12 @@ MainConsole::MainConsole(const QString& prompText, QWidget* parent) : GenericCon
+     errorConsole->setFont(f);
+     warningConsole->setFont(f);
+     cmdHistoryConsole->setFont(f);
++
++    connect(document(), &QTextDocument::contentsChange, this, [=]() {
++        if (document()->blockCount() > document()->maximumBlockCount()) {
++            deletedBlockCnt += (document()->blockCount() - document()->maximumBlockCount());
++        }
++    });
+ }
+ 
+ MainConsole::~MainConsole()
+@@ -162,7 +168,10 @@ void MainConsole::processMouseDoubleClick(QMouseEvent* e)
+ void MainConsole::processFindLink(const QUrl& link)
+ {
+     auto block = document()->findBlockByNumber(link.toString().toULongLong() - deletedBlockCnt);
+-    if (!block.isValid()) return;
++    if (!block.isValid()) {
++        moveCursor(QTextCursor::End);
++        return;
++    }
+     int pos = block.position();
+     auto cursor = textCursor();
+     cursor.setPosition(pos);
+@@ -256,9 +265,10 @@ void MainConsole::setLineLimit()
+ {
+     bool ok;
+     int requestedNumber = QInputDialog::getInt(this, tr("Input Limitation Number:"),
+-        tr("Please give a number[1000-1000000]:"), 100000, 1000, 1000000, 1, &ok, Qt::WindowStaysOnTopHint);
++        tr("Please give a number[1000-1000000]:"), lineLimit, 1000, 1000000, 1, &ok, Qt::WindowStaysOnTopHint);
+     if (ok) {
+         lineLimit = requestedNumber;
++        setMaximumBlockCount(requestedNumber + requestedNumber * 0.2);
+         limitLinesCount();
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 3b56afe2943..394d1a255fb 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -3489,7 +3489,9 @@ void INIConsole::preCommandDeclaration()
+         if (!args.empty()) {
+             fileSourcePath = QString::fromStdString(args[0]);
+         }
+-            
++        /*clear();
++        setBeginOfCurrentTyping();
++        deletedBlockCnt = 0;*/
+         updateProgress = true;
+         return true;
+     });
+@@ -3498,7 +3500,14 @@ void INIConsole::preCommandDeclaration()
+         emit mainWindow->showWaypointInGridView("", "", false);
+         mainWindow->destroyAllStatTabPlots();
+         mainWindow->resetPreLiveId();
++        /*if (!updateProgress) {
++            clear();
++            setBeginOfCurrentTyping();
++            deletedBlockCnt = 0;
++        }
+         mainWindow->clearErrorConsole();
++        mainWindow->clearWarningConsole();
++        mainWindow->clearCmdConsole();*/
+         /* Related to RTL Group mode view */
+         auto nsWorkArea = mainWindow->getNsWorkArea();
+         if (nsWorkArea) {

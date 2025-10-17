@@ -1,0 +1,220 @@
+NS-66703:
+Update code:
+	/noc_dev/NocCore/include/Constants.h	--------> Modified line 204: const int MAX_SUPPORTED_NUM_VCS = 16;   //NS-65626
+	/noc_dev/NocCore/include/Types.scalar.h	--------> Modified line 733: IDTYPE(VC_id, 16) //! VCs. Max 16 (NS-65626)
+Handle ticket (Upgrade feature VCs):
+**Version 1:
+	- Command in config:	prop_default max_num_vcs {max_vcs_value}
+	- Set width of pen to draw line VCs is 0.3.
+	- Decrease eastMargin variable and westMargin variable by half.
+	- Error display arrow in router diagram. I have 2 solution for this issue:
+		+ Handle again start point and end point of VC line in router diagram (/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp: NsRouterDiagram::initData)
+			QLineF line(startL, endL);
+            if (!out) in_vcs.push_back(qMakePair(line, &vc));
+            else out_vcs.push_back(qMakePair(line, &vc));
+			
+		+ Skip checking the value of arrowP1.x() (/noc_dev/GUICore/NsTypes.cpp: QPainterPath drawNormalArrow)
+			if (arrowP1.x() < 0) {
+				arrowP1 = end - QPointF(arrowSize / 2, arrowSize / 2);
+				arrowP2.setX(arrowP1.x());
+				arrowP2.setY(end.y() + arrowSize / 2);
+			}
+	---> Fixed: Improve checking the value of arrowP1.x() function
+
+**Version 2:
+	- Improve layout Router Diagram
+	- Handle size text Vc label in Router diagram
+
+DEBUG:
+"R0.21E.0.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,275)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -20.6299
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -201.035
+##########################################################################################
+"R0.21E.1.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,300)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -18.1311
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -174.859
+##########################################################################################
+"R0.21E.2.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,325)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -15.5589
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -148.682
+##########################################################################################
+"R0.21E.3.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,350)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -12.9208
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -122.506
+##########################################################################################
+"R0.21E.4.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,375)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -10.2257
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -96.3294
+##########################################################################################
+"R0.21E.5.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,400)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -7.48424
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -70.1529
+##########################################################################################
+"R0.21E.6.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,425)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -4.70786
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -43.9765
+##########################################################################################
+"R0.21E.7.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,450)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -1.90915
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -17.8
+##########################################################################################
+"R0.21E.8.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,475)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 0.898684
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 8.37647
+##########################################################################################
+"R0.21E.9.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,500)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 3.70222
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 34.5529
+##########################################################################################
+"R0.21E.10.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,525)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 6.48812
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 60.7294
+##########################################################################################
+"R0.21E.11.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,550)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 9.24358
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 86.9059
+##########################################################################################
+"R0.21E.12.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,575)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 11.9566
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 113.082
+##########################################################################################
+"R0.21E.13.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,600)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 14.6163
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 139.259
+##########################################################################################
+"R0.21E.14.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,625)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 17.2132
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 165.435
+##########################################################################################
+"R0.21E.15.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,650)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 19.7392
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 191.612
+##########################################################################################
+"R0.28W.0.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,287)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -19.4401
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -188.471
+##########################################################################################
+"R0.28W.1.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,312)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -16.9052
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -162.294
+##########################################################################################
+"R0.28W.2.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,337)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -14.3003
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -136.118
+##########################################################################################
+"R0.28W.3.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,362)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -11.6336
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -109.941
+##########################################################################################
+"R0.28W.4.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,387)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -8.91493
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -83.7647
+##########################################################################################
+"R0.28W.5.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,412)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -6.15517
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -57.5882
+##########################################################################################
+"R0.28W.6.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,437)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -3.36646
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -31.4118
+##########################################################################################
+"R0.28W.7.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,462)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = -0.561706
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = -5.23529
+##########################################################################################
+"R0.28W.8.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,487)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 2.24574
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 20.9412
+##########################################################################################
+"R0.28W.9.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,512)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 5.04246
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 47.1176
+##########################################################################################
+"R0.28W.10.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,537)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 7.8153
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 73.2941
+##########################################################################################
+"R0.28W.11.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,562)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 10.5518
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 99.4706
+##########################################################################################
+"R0.28W.12.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,587)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 13.2405
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 125.647
+##########################################################################################
+"R0.28W.13.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,612)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 15.8712
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 151.824
+##########################################################################################
+"R0.28W.14.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,637)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 18.435
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 178
+##########################################################################################
+"R0.28W.15.in"
+Octagon center = QPointF(690,467)
+Line end = QPoint(1200,662)
+Angle = arctan((end.y() - center.y()) / (end.x() - center.x())) = 20.9245
+Offset = tan(alpha) * (end.x() + xMargin - center.x()) = 204.176
+##########################################################################################

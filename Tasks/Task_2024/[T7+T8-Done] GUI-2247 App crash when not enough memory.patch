@@ -1,0 +1,25 @@
+ src/sw/noc_dev/prototype/Gui/View/NsChipViewScene.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChipViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsChipViewScene.cpp
+index 2b453b9e787..1c600b8933a 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChipViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChipViewScene.cpp
+@@ -129,6 +129,9 @@ void NsChipViewScene::genHeatMapImage(const NetSpeed::generic_draw_tab_t& gdt, N
+ 
+     painter.end();
+ 
++    qDeleteAll(bgPix);
++    qDeleteAll(topPix);
++
+     /* Save image */
+     QString projectName = QString::fromStdString(c->get_container().get_grid()->project_name);
+     if (projectName.isEmpty()) projectName = "no_project";
+@@ -142,4 +145,7 @@ void NsChipViewScene::genHeatMapImage(const NetSpeed::generic_draw_tab_t& gdt, N
+ 
+     auto image = result->toImage();
+     imgSave(&image, absFilePath, extension);
++
++    delete result;
++    result = nullptr;
+ }

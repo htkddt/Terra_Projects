@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp     | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsPlusItem.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+index bb3f2a089a6..a8b2d36d836 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+@@ -195,7 +195,7 @@ QVariant NsPlusItem::itemChange(QGraphicsItem::GraphicsItemChange change, const
+             emit plusPositionChange(sceneBoundingRect().center().toPoint());
+             break;
+         case GraphicsItemChange::ItemVisibleHasChanged:
+-            if (mulBris) {
++            if (mulBris && isChecked()) {
+                 mulBris->visibleChanged(isVisible());
+             }
+             break;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsPlusItem.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsPlusItem.cpp
+index 6abb04a1a5e..0da048bc34f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsPlusItem.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsPlusItem.cpp
+@@ -196,7 +196,7 @@ QVariant NsPlusItem::itemChange(QGraphicsItem::GraphicsItemChange change, const
+             emit plusPositionChange(sceneBoundingRect().center().toPoint());
+             break;
+         case GraphicsItemChange::ItemVisibleHasChanged:
+-            if (mulBris) {
++            if (mulBris && isChecked()) {
+                 mulBris->visibleChanged(isVisible());
+             }
+             break;

@@ -1,0 +1,47 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a3b97d5fe85..578d399c654 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -5409,16 +5409,38 @@ bool MainWindow::isViewValidForAddAction(QAction* action) {
+ 
+ void MainWindow::toggleAddHost(bool state) {
+     if (state && !isViewValidForAddAction(dynamic_cast<QAction*>(sender()))) return;
++    QAction* currentAction = static_cast<QAction*>(sender());
+ 
+     // raise property panel
+     raiseSelectionTab();
+ 
++    if (currentAction == getInstrumentsActMap()[ADD_BRIDGE] && !instrumentsActMap[SHOW_HOSTS]->isChecked())
++    {
++        QMessageBox msgBox;
++        msgBox.setWindowTitle(TEXT_ADD_BRIDGE);
++        msgBox.setIcon(QMessageBox::Information);
++        msgBox.setText("This feature requires to enable Show Host.\nWould you like to enable it?");
++        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
++        int ret = msgBox.exec();
++        switch (ret) {
++        case QMessageBox::Yes:
++            instrumentsActMap[SHOW_HOSTS]->setChecked(true);
++            emit instrumentsActMap[SHOW_HOSTS]->triggered(true);
++            break;
++        case QMessageBox::No:
++            instrumentsActMap[ADD_BRIDGE]->setChecked(false);
++            state = false;
++            break;
++        default:
++            break;
++        }
++    }
++
+     // toggle add host for floorplan view
+     if (isDisplayingSocView()) {
+         toggleAddHostSocView(state);
+     }
+     // get instrument type
+-    QAction* currentAction = static_cast<QAction*>(sender());
+     auto ins = getInstrumentsEnum(currentAction);
+     if (state) {
+         propPanel->setShowButtonProperty(PropertyPanel::PropertyButton::Cancel);

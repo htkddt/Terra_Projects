@@ -1,0 +1,68 @@
+ src/sw/noc_dev/prototype/Gui/statdashboard.cpp     | 12 ++++++------
+ src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp | 12 ++++++------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/statdashboard.cpp b/src/sw/noc_dev/prototype/Gui/statdashboard.cpp
+index 706d25e9dba..ede4997ca3a 100644
+--- a/src/sw/noc_dev/prototype/Gui/statdashboard.cpp
++++ b/src/sw/noc_dev/prototype/Gui/statdashboard.cpp
+@@ -398,10 +398,10 @@ void StatDashboard::statCompareAct()
+     // Main layout
+     QVBoxLayout* mainLayout = new QVBoxLayout(dialog);
+     // Line edit layout
+-    QGridLayout* layout = new QGridLayout(dialog);
++    QGridLayout* layout = new QGridLayout();
+     mainLayout->addLayout(layout);
+     layout->addWidget(new QLabel("Specify comparision name:"), 0, 0);
+-    QLineEdit* textInput = new QLineEdit(dialog);
++    QLineEdit* textInput = new QLineEdit();
+     textInput->setPlaceholderText("Comparison name");
+     textInput->setMaxLength(MAX_LENGHT_OF_TITLE);
+     layout->addWidget(textInput, 0, 1);
+@@ -414,10 +414,10 @@ void StatDashboard::statCompareAct()
+     });
+ 
+     // push button layout
+-    QGridLayout* layout1 = new QGridLayout(dialog);
+-    layout1->addWidget(okButton, 0, 0);
+-    layout1->addWidget(cancelButton, 0, 1);
+-    mainLayout->addLayout(layout1);
++    QGridLayout* layoutButton = new QGridLayout();
++    layoutButton->addWidget(okButton, 0, 0);
++    layoutButton->addWidget(cancelButton, 0, 1);
++    mainLayout->addLayout(layoutButton);
+     dialog->setLayout(mainLayout);
+ 
+     if (dialog->exec()) {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp b/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
+index 706d25e9dba..ede4997ca3a 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
+@@ -398,10 +398,10 @@ void StatDashboard::statCompareAct()
+     // Main layout
+     QVBoxLayout* mainLayout = new QVBoxLayout(dialog);
+     // Line edit layout
+-    QGridLayout* layout = new QGridLayout(dialog);
++    QGridLayout* layout = new QGridLayout();
+     mainLayout->addLayout(layout);
+     layout->addWidget(new QLabel("Specify comparision name:"), 0, 0);
+-    QLineEdit* textInput = new QLineEdit(dialog);
++    QLineEdit* textInput = new QLineEdit();
+     textInput->setPlaceholderText("Comparison name");
+     textInput->setMaxLength(MAX_LENGHT_OF_TITLE);
+     layout->addWidget(textInput, 0, 1);
+@@ -414,10 +414,10 @@ void StatDashboard::statCompareAct()
+     });
+ 
+     // push button layout
+-    QGridLayout* layout1 = new QGridLayout(dialog);
+-    layout1->addWidget(okButton, 0, 0);
+-    layout1->addWidget(cancelButton, 0, 1);
+-    mainLayout->addLayout(layout1);
++    QGridLayout* layoutButton = new QGridLayout();
++    layoutButton->addWidget(okButton, 0, 0);
++    layoutButton->addWidget(cancelButton, 0, 1);
++    mainLayout->addLayout(layoutButton);
+     dialog->setLayout(mainLayout);
+ 
+     if (dialog->exec()) {

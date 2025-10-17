@@ -1,0 +1,62 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 11 +++++++----
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 11 +++++++----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 82877847135..ec4395c247f 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2153,10 +2153,8 @@ void MainWindow::toggleDomainAct(bool state)
+         }
+     }
+ 
+-    for (auto& dialog : findChildren<QDialog*>()) {
+-        if (dialog->windowTitle().contains(QString("Router Diagram"))) { /* huge dialog */
+-            dialog->close();
+-        }
++    for (auto& dialog : findChildren<QDialog*>("hugeDialogs")) {
++        dialog->close();
+     }
+ 
+     setEnableAddButton(ins == TOGGLE_CLOCK_DOMAIN_VIEW ? vector<InstrumentsEnum>{ADD_CLOCK_DOMAIN} :
+@@ -2255,6 +2253,11 @@ void MainWindow::toggleLinkBlockageAct(bool state)
+             }
+         }
+     }
++
++    for (auto& dialog : findChildren<QDialog*>("hugeDialogs")) {
++        dialog->close();
++    }
++
+     displayBlockageColorLegend(isCurrentBlockageView());
+ 
+     instrumentsActMap[ADD_BLOCKAGE]->setVisible(true);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 8d3fbdc2f30..0730069e550 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -2153,10 +2153,8 @@ void MainWindow::toggleDomainAct(bool state)
+         }
+     }
+ 
+-    for (auto& dialog : findChildren<QDialog*>()) {
+-        if (dialog->windowTitle().contains(QString("Router Diagram"))) { /* huge dialog */
+-            dialog->close();
+-        }
++    for (auto& dialog : findChildren<QDialog*>("hugeDialogs")) {
++        dialog->close();
+     }
+ 
+     setEnableAddButton(ins == TOGGLE_CLOCK_DOMAIN_VIEW ? vector<InstrumentsEnum>{ADD_CLOCK_DOMAIN} :
+@@ -2255,6 +2253,11 @@ void MainWindow::toggleLinkBlockageAct(bool state)
+             }
+         }
+     }
++
++    for (auto& dialog : findChildren<QDialog*>("hugeDialogs")) {
++        dialog->close();
++    }
++
+     displayBlockageColorLegend(isCurrentBlockageView());
+ 
+     instrumentsActMap[ADD_BLOCKAGE]->setVisible(true);

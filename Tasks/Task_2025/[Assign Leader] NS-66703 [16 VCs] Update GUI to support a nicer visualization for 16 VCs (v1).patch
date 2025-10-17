@@ -1,0 +1,113 @@
+ src/sw/noc_dev/GUICore/NsTypes.cpp                  | 21 +++++++++++++++++----
+ src/sw/noc_dev/NocCore/include/Constants.h          |  2 +-
+ src/sw/noc_dev/NocCore/include/Types.scalar.h       |  2 +-
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp  |  2 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp          |  5 +++--
+ 5 files changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/NsTypes.cpp b/src/sw/noc_dev/GUICore/NsTypes.cpp
+index ae3f0e37169..6e83dc0a494 100644
+--- a/src/sw/noc_dev/GUICore/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore/NsTypes.cpp
+@@ -98,6 +98,21 @@ QString toolTip2Html(std::string toolTipString)
+     return toolTip2Html(QString::fromStdString(toolTipString));
+ }
+ 
++bool checkArrowPoint(QPointF start, QPointF end, QPointF p1, QPointF p2)
++{
++    if (start.x() == end.x()) {
++        auto yP1ToStart = p1.y() - start.y();
++        auto yP1ToEnd   = p1.y() - end.y();
++        if ((yP1ToStart * yP1ToEnd) < 0) return true;
++        return false;
++    } else {
++        auto xP1ToStart = p1.x() - start.x();
++        auto xP1ToEnd   = p1.x() - end.x();
++        if ((xP1ToStart * xP1ToEnd) < 0) return true;
++        return false;
++    }
++}
++
+ QPainterPath drawNormalArrow(const QLineF & line, bool in, bool uturn)
+ {
+     QPainterPath path;
+@@ -112,15 +127,13 @@ QPainterPath drawNormalArrow(const QLineF & line, bool in, bool uturn)
+         end = end - start;
+         angle += PI;
+     }
+-    if (line.dy() >= 0)
+-        angle = (PI * 2) - angle;
++    if (line.dy() >= 0) angle = (PI * 2) - angle;
+ 
+     QPointF arrowP1 = end - QPointF(sin(angle + PI / 3) * arrowSize,
+         cos(angle + PI / 3) * arrowSize);
+     QPointF arrowP2 = end - QPointF(sin(angle + PI - PI / 3) * arrowSize,
+         cos(angle + PI - PI / 3) * arrowSize);
+-    if (arrowP1.x() < 0)
+-    {
++    if (!checkArrowPoint(start, end, arrowP1, arrowP2)) {
+         arrowP1 = end - QPointF(arrowSize / 2, arrowSize / 2);
+         arrowP2.setX(arrowP1.x());
+         arrowP2.setY(end.y() + arrowSize / 2);
+diff --git a/src/sw/noc_dev/NocCore/include/Constants.h b/src/sw/noc_dev/NocCore/include/Constants.h
+index e79280f74ae..69a41835c4c 100644
+--- a/src/sw/noc_dev/NocCore/include/Constants.h
++++ b/src/sw/noc_dev/NocCore/include/Constants.h
+@@ -201,7 +201,7 @@ const int DEFAULT_EXTRA_VC_FIFO_DEPTH = 0;
+ const int DEFAULT_EXTRA_IFCE_FIFO_DEPTH = 0;
+ 
+ const int DEFAULT_MAX_NUM_VCS = 4;
+-const int MAX_SUPPORTED_NUM_VCS = 8;
++const int MAX_SUPPORTED_NUM_VCS = 16;   //NS-65626
+ //const int MAX_NUM_VCS_RBM = 4;
+ 
+ const int MIN_VC_DEPTH = 1;  //!< VCs have min depth 2 for width conversion (need not be 4 flits to upsize x4 as upsizing fifo is present).
+diff --git a/src/sw/noc_dev/NocCore/include/Types.scalar.h b/src/sw/noc_dev/NocCore/include/Types.scalar.h
+index 88a8856cccd..5478669d539 100644
+--- a/src/sw/noc_dev/NocCore/include/Types.scalar.h
++++ b/src/sw/noc_dev/NocCore/include/Types.scalar.h
+@@ -730,7 +730,7 @@ IDTYPE(Bridge_id, 1 << (MAX_AGN_ID_WIDTH + EXTRA_BRIDGE_ID_BITS)) //! unique id
+ IDTYPE(Port_id, DIRECTION_PORTS + MAX_HOST_PORTS) //! 4 direction ports + MAX_HOST_PORTS ports for host bridges; per-router
+ IDTYPE(VPort_id, DIRECTION_PORTS + 1); //! 4 direction ports + 1 port for host direction; per-router, used in Dijkstra_route
+ //IDTYPE(VC_id, 4)  //! maximum of 4 virtual channels (VCs) per port; per-port
+-IDTYPE(VC_id, 8) //! VCs
++IDTYPE(VC_id, 16) //! VCs. Max 16 (NS-65626)
+ IDTYPEVAR(NocVC_id) //! VCs
+ IDTYPE(BrPort_id, 9) //! 9 switch side ports for the bridge
+ IDTYPE(SwNocPort_id, 16) //! 16 NoC ports for the switch
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index c7d6405bf4c..11d2d302749 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -14,7 +14,7 @@ NsRouterDiagramManager* NsRouterDiagramManager::m_manager = nullptr;
+ 
+ int getRouterPolygonSize(NetSpeed::Router* router){
+     const int mininum_size = 230;
+-    const int offset = 58;
++    const int offset = 60;
+     int count = 0, maxVcOnPort = 0;
+     vector<NetSpeed::Rx_Port*> rx_ports = router->get_rx_noc_ports(true);
+     vector<NetSpeed::Tx_Port*> tx_ports = router->get_tx_noc_ports(true);
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp
+index 66bc9d8bdb3..747383709f5 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp
+@@ -302,8 +302,8 @@ void NsVC::addVC()
+     lineStart.setY(in.y() * NODE_SIZE);
+     lineEnd.setX(out.x() * NODE_SIZE);
+     lineEnd.setY(out.y() * NODE_SIZE);
+-    const qreal eastMargin = 2.5;
+-    const qreal westMargin = 5;
++    const qreal eastMargin = 1.25;
++    const qreal westMargin = 2.5;
+     const int topMargin = 1;
+     switch (directionVC.id)
+     {
+@@ -385,6 +385,7 @@ void NsVC::initData()
+     /* Set line width */
+     QPen pen = this->pen();
+     pen.setColor(convertVCColor(vc->get_color()));
++    pen.setWidthF(0.3);
+     setPen(pen);
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     if(meshScene && meshScene->getNsWorkArea()){

@@ -1,0 +1,18 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 567189f1583..260fcd451ca 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3386,7 +3386,9 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+             connect(customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(handleMouseRelease(QMouseEvent*)));
+ 
+             namePlotMap->insert(name, customPlot);
+-            initNormalPlot(name, customPlot);
++            QtConcurrent::run([&]() {
++                initNormalPlot(name, customPlot);
++            });
+ 
+             // Create widget which include buttons and plot
+             auto* plotSplitter = createButtonPlotWidget(customPlot, gl, name, statTab);

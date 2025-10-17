@@ -1,0 +1,38 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 6 +++---
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index b8247004381..ea13c597d1a 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5254,9 +5254,9 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+         argument = QString(" -map2_utm_edge");
+     });
+ 
+-    connect(cbAll, &QCheckBox::clicked, this, [&]() {
+-        addButton->setEnabled(!cbAll->isChecked());
+-        if (cbAll->isChecked()) {
++    connect(cbAll, &QCheckBox::clicked, this, [&](bool checked) {
++        addButton->setEnabled(!checked);
++        if (checked) {
+             for (int i = 0; i < layoutOfLayers->count(); i++) {
+                 auto item = layoutOfLayers->itemAt(i);
+                 if (!item) continue;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index d5f199f56af..84b3dfa632e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5273,9 +5273,9 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+         argument = QString(" -map2_utm_edge");
+     });
+ 
+-    connect(cbAll, &QCheckBox::clicked, this, [&]() {
+-        addButton->setEnabled(!cbAll->isChecked());
+-        if (cbAll->isChecked()) {
++    connect(cbAll, &QCheckBox::clicked, this, [&](bool checked) {
++        addButton->setEnabled(!checked);
++        if (checked) {
+             for (int i = 0; i < layoutOfLayers->count(); i++) {
+                 auto item = layoutOfLayers->itemAt(i);
+                 if (!item) continue;

@@ -1,0 +1,39 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index de903c6da3d..ffceb5c403c 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -4584,10 +4584,14 @@ void PropertyPanel::movePlotUp()
+         auto plot = generateNormalPlot(gname);
+         plot->initVerticalLine();
+         plot->initMagnifyingFrame();
++        auto g = statTab->groups.at(gname.toStdString());
++        plot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
++            g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
++            g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+         plotMap->insert(gname, plot);
+         plotMap->insert(QString::fromStdString(beforeidx.name), plotAbove);
+         auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+-        updateNormalPlot(statTab, statTab->groups.at(gname.toStdString()), plot, true);
++        updateNormalPlot(statTab, g, plot, true);
+         plot->zoomFull();
+ 
+         //Add to display
+@@ -4689,10 +4693,14 @@ void PropertyPanel::movePlotDown()
+         auto plot = generateNormalPlot(gname);
+         plot->initVerticalLine();
+         plot->initMagnifyingFrame();
++        auto g = statTab->groups.at(gname.toStdString());
++        plot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
++            g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
++            g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+         plotMap->insert(QString::fromStdString(afteridx.name), plotBelow);
+         plotMap->insert(gname, plot);
+         auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+-        updateNormalPlot(statTab, statTab->groups.at(gname.toStdString()), plot, true);
++        updateNormalPlot(statTab, g, plot, true);
+         plot->zoomFull();
+ 
+         //Add to display

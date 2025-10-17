@@ -1,0 +1,115 @@
+#################################################################################
+# NetSpeed Spyglass Waivers
+#################################################################################
+#############################################
+# Global NoC Waivers - Not related to a block
+#############################################
+
+waive -rule "ComplexExpr-ML" -comment "NS - Long expression"
+waive -rule "LineLength" -comment "NS - Line-length exceeds defined limit"
+waive -rule "FlopEConst" -comment "NS - Waived as some of coarse clock gaters are turned off"
+waive -rule "NoBusPartClock-ML" -comment "NS - RX clock signals are implemented as a bus"
+waive -rule "STARC-2.1.1.1" -comment "NS - 'function+assign' construct used to describe combinational logic rather than 'always' construct"
+waive -rule "STARC-2.6.2.2" -comment "NS - Signal (or some of its bits) is set and read in the same always block"
+waive -rule WRN_47 -comment "NS - Zero or negative repetition multiplier used in multiple concatenation"
+waive -rule W111 -comment "NS - Not all elements of an array are read"
+waive -rule W121 -comment "NS - A variable names collides with and may shadow another variable"
+waive -rule W120 -comment "NS - Declared but not used"
+waive -rule W159 -comment "NS - Condition contains a constant expression"
+waive -rule W163 -comment "NS - Truncation of bits in constant integer conversion"
+waive -rule W175 -comment "NS - A parameter/generic has been defined but is not used"
+waive -rule W191 -comment "NS - Function declared but not used"
+waive -rule W216 -comment "NS - Inappropriate range select for integer or time variable"
+waive -rule W240 -comment "NS - An input has been declared but is not read"
+waive -rule W241 -comment "NS - Output is never set"
+waive -rule W287b -comment "NS - Output port of an instance is not connected"
+waive -rule W328 -comment "NS - Truncation in constant conversion, without loss of data"
+waive -rule W456 -comment "NS - A signal is included in the sensitivity list of a process/always block but not all of its bits are read in that block"
+waive -rule W488 -comment "NS - A bus/array appears in the sensitivity list but not all bits of it are read in the contained block/process"
+waive -rule W490 -comment "NS - A control expression/sub-expression is a constant"
+waive -rule W497 -comment "NS - Not all bits of a bus are set"
+waive -rule W498 -comment "NS - Not all bits of a bus are read"
+waive -rule W528 -comment "NS - A signal or variable is set but never read"
+waive -rule W563 -comment "NS - Reduction of a single-bit expression is redundant"
+
+#################################################################################
+# NoC Waivers - For threshold values
+#################################################################################
+waive -du "ns_demet" -rule "FlopClockConstant" -comment "NS - Waived as some of the clocks are tied off"
+waive -du "ns_strrxbrdg_hstiflogic" -rule "SYNTH_5165" -comment "NS - Trying to shift by too many bits"
+
+#################################################################################
+# NoC Waivers - Regbus
+#################################################################################
+waive -du "ns_regbus_ring_master_guts" -rule "W162" -comment "NS - Extension of bits in constant integer conversion"
+waive -du "ns_regbus_ring_slv_native_core" -rule "W481a" -comment "NS - Possibly unsynthesizable loop: step variable differs from variable used in condition"
+waive -du "ns_axiregbusmstr_2ring" -rule "ParamWidthMismatch-ML" -comment "NS - Parameter width does not match with the value assigned"
+
+#################################################################################
+# NoC Waivers - Ace Master
+#################################################################################
+waive -du "ns_acemstrbrdg_core" -rule "W162" -comment "NS - Extension of bits in constant integer conversion"
+waive -du "ns_acemstrbrdg_core" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_acemstrbrdg_core" -rule "ParamWidthMismatch-ML" -comment "NS - Parameter width does not match with the value assigned"
+waive -du "ns_acmb_R_ch" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_acmb_AW_W_ch" -rule "W310" -comment "NS - Converting integer to unsigned (reg type)"
+waive -du "ns_aximstrbrdg" -rule "ParamWidthMismatch-ML" -comment "NS - Parameter width does not match with the value assigned"
+waive -du "ns_axi3mstrbrdg" -rule "ParamWidthMismatch-ML" -comment "NS - Parameter width does not match with the value assigned"
+waive -du "ns_axi_lite_mbrdg" -rule "ParamWidthMismatch-ML" -comment "NS - Parameter width does not match with the value assigned"
+waive -du "ns_rbm_tunnel_RO_chs" -rule "STARC05-2.2.3.3" -comment "NS - Flipflop is assigned over the same signal in an always construct for sequential circuits"
+
+#################################################################################
+# NoC Waivers - Router
+#################################################################################
+waive -du "ns_router" -rule "W171" -comment "NS - Case label is not constant"
+waive -du "ns_router" -rule "W226" -comment "NS - Case select expression is constant"
+waive -du "ns_ovcsts" -rule "W162" -comment "NS - Extension of bits in constant integer conversion"
+
+#################################################################################
+# NoC Waivers - AHB
+#################################################################################
+waive -du "ns_ahb2axi" -rule "W480" -comment "NS - Loop index is not of type integer"
+waive -du "ns_axi2ahb_int" -rule "W116" -comment "NS - For operator (|), left expression width should match right expression"
+waive -du "ns_axi2ahb_int" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_axi2ahb_seq" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_axi2ahb_int" -rule "W480" -comment "NS - Loop index is not of type integer"
+waive -du "ns_axi2ahb_seq" -rule "W486" -comment "NS - RHS Width shift is more than bus size"
+
+#################################################################################
+# NoC Waivers - Switch
+#################################################################################
+waive -du "ns_strrxbrdg_hstiflogic" -rule "STARC05-2.1.5.3" -comment "NS - Conditional expressions should evaluate to a scalar"
+waive -du "ns_strrxbrdg_hstiflogic" -rule "W116" -comment "NS - Unequal length operands in bit wise logical/arithmetic/ternary/relational operator"
+waive -du "ns_strrxbrdg_hstiflogic" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_strrxbrdg_layeriflogic" -rule "W116" -comment "NS - Unequal length operands in bit wise logical/arithmetic/ternary/relational operator"
+waive -du "ns_strrxbrdg_layeriflogic" -rule "W552" -comment "NS - Different bits of a bus are driven in different sequential blocks"
+waive -du "ns_strtxbrdg_hstiflogic" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_strtxbrdg_hifpack" -rule "W164a" -comment "NS - LHS width is less than RHS width of assignment (Truncation)"
+waive -du "ns_strtxbrdg_layeriflogic_5p" -rule "W287a" -comment "NS - Some inputs to instance are not driven or unconnected"
+
+#################################################################################
+# NoC Waivers - Coding style issues
+#################################################################################
+waive -du "ns_acemstrbrdg_core_txlyr_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_aceslvbrdg_txlyr_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_acmb_ACK_ch_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_acmb_AC_CRCD_ch_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_acmb_RO_chs_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_acmb_WO_chs_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_acsb_AR_R_ch_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_acsb_AW_W_B_ch_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_ahb2axi" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_axi2ahb" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_axi2ahb_ahb_slave_intf_shm" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_axi2ahb_int" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_axi2ahb_seq" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_cg_idle" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_coarse_8p_cg_outblk" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_regbus_ring_slv_native_cg" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+waive -du "ns_rbm_tunnel_WO_chs" -rule "W226" -comment "NS - Case select expression '1'b1' is constant"
+
+#################################################################################
+# NoC Waivers - Yet to be categorized per block
+#################################################################################
+waive -rule W164b -comment "NS - LHS width is greater than RHS width of assignment (Extension)"
+

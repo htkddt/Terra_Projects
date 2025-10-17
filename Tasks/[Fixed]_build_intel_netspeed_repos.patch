@@ -1,0 +1,33 @@
+ src/sw/noc_dev/Infra/src/Platform.cpp | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/Infra/src/Platform.cpp b/src/sw/noc_dev/Infra/src/Platform.cpp
+index f2c35b98d87..16e0ad6e1eb 100644
+--- a/src/sw/noc_dev/Infra/src/Platform.cpp
++++ b/src/sw/noc_dev/Infra/src/Platform.cpp
+@@ -339,10 +339,24 @@ bool compute_canonical_dir_sequence(std::string::const_iterator fbegin, std::str
+     bool is_abs_path          = (fbegin != fend && *fbegin == dir_delim);
+     // get current directory path if the file path is relative.
+     auto get_current_directory_path = []() -> std::string {
++#if defined _WIN32 || defined _WIN64
++        TCHAR buffer[MAX_PATH] = {0};
++        DWORD length           = GetCurrentDirectory(MAX_PATH, buffer);
++        if (length == 0) {
++            throw std::runtime_error("Failed to get cwd.");
++        }
++        std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
++        std::wstring res            = std::wstring(buffer).substr(0, pos);
++        return std::string(res.begin(), res.end());
++#else
+         const char* buffer = NULL;
+         buffer             = getcwd(NULL, 0);
+-        if (!buffer) { std::cerr << "Failed to get cwd: " << " DESC: " << strerror(errno) << std::endl;}
++        if (!buffer) {
++            std::cerr << "Failed to get cwd: "
++                      << " DESC: " << strerror(errno) << std::endl;
++        }
+         return std::string(buffer);
++#endif
+     };
+ 
+     std::string curr_dir_path = is_abs_path ? "" : get_current_directory_path();

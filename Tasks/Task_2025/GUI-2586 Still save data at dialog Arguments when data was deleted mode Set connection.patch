@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 2 ++
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 375a7e6f11e..8cb46fbea19 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5447,6 +5447,8 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+                 }
+             }
+         }
++
++        itemComboBoxChanged();
+     });
+ 
+     layers->setFixedWidth(150);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index ae1b8af8a93..559f7873f5f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5468,6 +5468,8 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+                 }
+             }
+         }
++
++        itemComboBoxChanged();
+     });
+ 
+     layers->setFixedWidth(150);

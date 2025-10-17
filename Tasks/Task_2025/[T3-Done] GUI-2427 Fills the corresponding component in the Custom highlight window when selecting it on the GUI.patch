@@ -1,0 +1,22 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a4265c9dcc8..c7d44edfffd 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -8210,8 +8210,12 @@ void MainWindow::closeTabLint()
+ 
+ void MainWindow::showCustomHLDialog()
+ {
+-    if (!HLDialog)
+-    {
++    if (auto meshScene = nsWorkArea->getMeshViewScene()) {
++        for (auto& item : meshScene->selectedItems()) {
++            item->setSelected(false);
++        }
++    }
++    if (!HLDialog) {
+         const auto g = getGrid();
+         if (!g) return;
+         HLDialog = new CustomHighLightDialog(this, g);

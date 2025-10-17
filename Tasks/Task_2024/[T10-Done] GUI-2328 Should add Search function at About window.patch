@@ -1,0 +1,124 @@
+ src/sw/noc_dev/GUICore/dockresource.qrc  |  1 +
+ src/sw/noc_dev/GUICore/genericdialog.cpp | 46 ++++++++++++++++++++++++++++++--
+ src/sw/noc_dev/GUICore/genericdialog.h   |  1 +
+ src/sw/noc_dev/GUICore/global.h          |  1 +
+ 4 files changed, 47 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/dockresource.qrc b/src/sw/noc_dev/GUICore/dockresource.qrc
+index a5f5a93b2e6..2f99fb87610 100644
+--- a/src/sw/noc_dev/GUICore/dockresource.qrc
++++ b/src/sw/noc_dev/GUICore/dockresource.qrc
+@@ -256,5 +256,6 @@
+         <file>images/icons/float_this.png</file>
+         <file>images/icons/float_all.png</file>
+         <file>images/icons/rename.png</file>
++		<file>images/icons/clear.png</file>
+     </qresource>
+ </RCC>
+diff --git a/src/sw/noc_dev/GUICore/genericdialog.cpp b/src/sw/noc_dev/GUICore/genericdialog.cpp
+index 1a59e709f24..122a6dd45aa 100644
+--- a/src/sw/noc_dev/GUICore/genericdialog.cpp
++++ b/src/sw/noc_dev/GUICore/genericdialog.cpp
+@@ -107,7 +107,7 @@ AboutDialog::AboutDialog(const char* productName, const std::string& licenseTxt,
+     tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+     tableWidget->horizontalScrollBar()->setSingleStep(1);
+     tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+-    tableWidget->setMinimumHeight(320);
++    tableWidget->setMinimumHeight(300);
+     tableWidget->resizeColumnsToContents();
+ 
+     QString licenseAckTxt =
+@@ -125,6 +125,39 @@ AboutDialog::AboutDialog(const char* productName, const std::string& licenseTxt,
+     QLabel* licenseAck = new QLabel(licenseAckTxt, this);
+     licenseAck->setWordWrap(true);
+ 
++    QFont textFont;
++    textFont.setPointSize(10);
++
++    searchText = new QLineEdit(this);
++    searchText->setFixedHeight(30);
++    searchText->setFixedWidth(300);
++    searchText->setFont(textFont);
++    searchText->setPlaceholderText("Search License");
++    searchText->setText(QString());
++
++    QAction* newAction = new QAction(this);
++    newAction->setIcon(QIcon(ICON_FIND));
++    searchText->addAction(newAction, QLineEdit::LeadingPosition);
++
++    QAction* clearButton = new QAction(this);
++    clearButton->setIcon(QIcon(ICON_CLEAR));
++    searchText->addAction(clearButton, QLineEdit::TrailingPosition);
++    clearButton->setVisible(false);
++
++    connect(clearButton, &QAction::triggered, searchText,
++            [this]() { searchText->setText(""); });
++    connect(searchText, &QLineEdit::textChanged, this, [this, tableWidget, items, clearButton](QString text) {
++        clearButton->setVisible(!text.isEmpty());
++        for (int row = 0; row < tableWidget->rowCount(); row++) {
++            auto item = tableWidget->item(row, 0);
++            if (item && item->text().contains(text, Qt::CaseInsensitive)) {
++                tableWidget->setRowHidden(row, false);
++            } else {
++                tableWidget->setRowHidden(row, true);
++            }
++        }
++    });
++
+     QHBoxLayout* zoom = new QHBoxLayout;
+     QPushButton* zoomOut = new QPushButton("-");
+     QPushButton* zoomIn = new QPushButton("+");
+@@ -145,12 +178,20 @@ AboutDialog::AboutDialog(const char* productName, const std::string& licenseTxt,
+         font.setPixelSize(tableFont + value * 3);
+         for (auto& item : items)
+             item->setFont(font);
+-        tableWidget->resizeColumnsToContents();
++        if (searchText->text().isEmpty()) {
++            tableWidget->resizeColumnsToContents();
++        }
+         });
+ 
+     QVBoxLayout* l = new QVBoxLayout(this);
+     l->addWidget(image);
+     l->addWidget(title);
++    if (row > 7) {
++        l->addWidget(searchText);
++        l->addSpacing(10);
++    } else {
++        searchText->setVisible(false);
++    }
+     l->addWidget(tableWidget);
+     l->addSpacing(10);
+     l->addLayout(zoom);
+@@ -159,6 +200,7 @@ AboutDialog::AboutDialog(const char* productName, const std::string& licenseTxt,
+     scroll->setFrameShape(QFrame::NoFrame);
+     scroll->setWidget(licenseAck);
+     scroll->setWidgetResizable(true);
++    scroll->setMinimumHeight(200);
+     l->addWidget(scroll);
+ 
+     setModal(false);
+diff --git a/src/sw/noc_dev/GUICore/genericdialog.h b/src/sw/noc_dev/GUICore/genericdialog.h
+index 3411aa8258b..805b934c66b 100644
+--- a/src/sw/noc_dev/GUICore/genericdialog.h
++++ b/src/sw/noc_dev/GUICore/genericdialog.h
+@@ -88,6 +88,7 @@ public:
+ private:
+     QSlider* slider = nullptr;
+     const int tableFont = 18;
++    QLineEdit* searchText = nullptr;
+ };
+ 
+ class customTableWidget : public QTableWidget
+diff --git a/src/sw/noc_dev/GUICore/global.h b/src/sw/noc_dev/GUICore/global.h
+index 28602c9f5de..0f70e70a996 100644
+--- a/src/sw/noc_dev/GUICore/global.h
++++ b/src/sw/noc_dev/GUICore/global.h
+@@ -846,6 +846,7 @@ const QString ICON_ABOUT                              = "://images/cfg_1.png";
+ const QString ICON_TAB_LIST                           = "://images/icons/dropdown.png";
+ const QString ICON_MAX                                = "://images/icons/max.png";
+ const QString ICON_CLOSE                              = "://images/icons/close.png";
++const QString ICON_CLEAR                              = "://images/icons/clear.png";
+ const QString ICON_ROUTE_TABLE                        = "://images/icons/route_table.png";
+ const QString ICON_BWTABLE                            = "://images/icons/bwtable.png";
+ const QString ICON_PROP_TBLS                          = "://images/icons/prop_tbls.png";

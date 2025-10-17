@@ -1,0 +1,39 @@
+ src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp | 4 ++--
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp       | 2 --
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp b/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
+index 88f6a9714fb..e414e0140ec 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
+@@ -881,7 +881,7 @@ void NsChopViewBoundingBox::paint(QPainter* painter, const QStyleOptionGraphicsI
+ void NsChopViewBoundingBox::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+ {
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+-    if (mw && mw->isShowSectorName() && (mw->currentActiveTabName == QString(TAB_GRID_VIEW)) && (mw->getConsole()->isRunTillFinished())) {
++    if (mw && mw->isShowSectorName() && (mw->displayPanel->currentIndex() == 0) && (!mw->getConsole()->isRunTillFinished())) {
+         setRect(boundingRect());
+         chopName->show();
+         update();
+@@ -893,7 +893,7 @@ void NsChopViewBoundingBox::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+ void NsChopViewBoundingBox::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+ {
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+-    if (mw && mw->isShowSectorName() && (mw->currentActiveTabName == QString(TAB_GRID_VIEW)) && (mw->getConsole()->isRunTillFinished())) {
++    if (mw && mw->isShowSectorName() && (mw->displayPanel->currentIndex() == 0) && (!mw->getConsole()->isRunTillFinished())) {
+         chopName->hide();
+         setRect(QRectF());
+         update();
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index c30c0a9de4b..fbd31a0abad 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -1004,8 +1004,6 @@ void INIConsole::complete(bool stop, QString cmd, bool res)
+     }
+ 
+     propPanel->deletePropertiesEditor();
+-
+-    runTillFinished = true;
+ }
+ 
+ void INIConsole::setMenusStateAfterCommand()

@@ -1,0 +1,150 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp | 82 ++++++++++++++++++--------------
+ src/sw/noc_dev/prototype/Gui/dialogs.h   |  3 +-
+ 2 files changed, 47 insertions(+), 38 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 9eb65c82e75..429d55146fb 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -4696,10 +4696,9 @@ void RouteDialog::initData()
+             }
+         }
+     }
+-    routeInfoTable = new QLabel("");
+-    routeInfoTable->setFrameStyle(QFrame::Plain);
+-    routeInfoTable->setVisible(false);
+-    routeInfoTable->setAlignment(Qt::AlignVCenter);
++
++    m_pTableWidget = new QTableWidget();
++    m_pTableWidget->setVisible(false);
+ 
+     QFormLayout* layout = new QFormLayout;
+     layout->addRow(tr("&Source: "), srcBridgeComboBox);
+@@ -4712,14 +4711,7 @@ void RouteDialog::initData()
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+     mainLayout->addSpacing(10);
+-    lineSeparate = new QFrame();
+-    lineSeparate->setFrameShape(QFrame::HLine);
+-    lineSeparate->setFrameShadow(QFrame::Sunken);
+-    lineSeparate->setContentsMargins(50, 0, 50, 0);
+-    lineSeparate->setVisible(false);
+-    mainLayout->addWidget(lineSeparate);
+-    mainLayout->addWidget(routeInfoTable);
+-    mainLayout->addStretch(0);
++    mainLayout->addWidget(m_pTableWidget);
+     mainLayout->addSpacing(10);
+     mainLayout->addLayout(buttonLayout);
+     setLayout(mainLayout);
+@@ -4779,16 +4771,13 @@ void RouteDialog::routeRefresh()
+     QString srcName = srcBridgeComboBox->currentText();
+     QString dstName = destBridgeComboBox->currentText();
+     if ((srcName == "") || (dstName == "")) {
+-        routeInfoTable->setText("");
+-        routeInfoTable->setVisible(false);
+-        lineSeparate->setVisible(false);
++        m_pTableWidget->setVisible(false);
+         resetHighlight();
+     } else {
+         auto trafs = list_traf(srcName, dstName);
+         NetSpeed::DataTable dt = list_routes(trafs);
+-        routeInfoTable->setText(to_html_table(dt));
+-        routeInfoTable->setVisible(true);
+-        lineSeparate->setVisible(true);
++        createTable(dt);
++        m_pTableWidget->setVisible(true);
+         emit highlightRoutes(trafs);
+     }
+     adjustSize();
+@@ -4917,32 +4906,51 @@ void RouteDialog::resetHighlight()
+     }
+ }
+ 
+-QString RouteDialog::to_html_table(NetSpeed::DataTable dt)
+-{
++QTableWidget* RouteDialog::createTable(NetSpeed::DataTable dt) {
+     using namespace std;
+     const vector<string>& header = dt.first;
+     vector<vector<string>> data = dt.second;
+ 
+-    QString table;
+-    table += "<table cellspacing=10 align=left>";
+-    // add header
+-    table += "<tr> ";
+-    for (size_t i = 0; i < header.size(); i++) {
+-        table += "<td> " + QString::fromStdString(header.at(i)) + " </td>";
+-    }
+-    table += "</tr> ";
+-
+-    // add data
+-    for (size_t i = 0; i < data.size(); i++) {
+-        table += "<tr> ";
+-        for (int j = 0; j < (int)data.at(i).size(); j++) {
+-            table += "<td style=font-size:20px> " + QString::fromStdString(data.at(i).at(j)) + " </td>";
++    m_pTableWidget->setColumnCount(3);
++    m_pTableWidget->setRowCount(static_cast<int>(data.size() + 1));
++    m_pTableWidget->setShowGrid(false);
++    m_pTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
++    m_pTableWidget->setTextElideMode(Qt::ElideNone);
++    m_pTableWidget->verticalHeader()->setVisible(false);
++    m_pTableWidget->horizontalHeader()->setVisible(false);
++
++    m_pTableWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
++    m_pTableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
++    m_pTableWidget->verticalScrollBar()->setSingleStep(1);
++    m_pTableWidget->horizontalScrollBar()->setSingleStep(1);
++
++    QFont contentFont;
++    contentFont.setBold(true);
++    contentFont.setPointSize(15);
++
++    QFont headerFont;
++    headerFont.setBold(false);
++    headerFont.setPointSize(10);
++
++    for (int i = 0; i < static_cast<int>(header.size()); i++) {
++        QTableWidgetItem* item = new QTableWidgetItem(QString::fromStdString(header.at(i)));
++        item->setFont(headerFont);
++        m_pTableWidget->setItem(0, i, item);
++    }
++    for (int i = 0; i < static_cast<int>(data.size()); i++) {
++        for (int j = 0; j < static_cast<int>(data.at(i).size()); j++)
++        {
++            QFontMetrics metrics(contentFont);
++            int stringWidth = metrics.horizontalAdvance(QString::fromStdString(data.at(i).at(j)));
++            m_pTableWidget->setColumnWidth(j, stringWidth + 10);
++            QTableWidgetItem* item = new QTableWidgetItem(QString::fromStdString(data.at(i).at(j)));
++            item->setFont(contentFont);
++            m_pTableWidget->setItem(i + 1, j, item);
+         }
+-        table += "</tr> ";
+     }
+ 
+-    table += "</table>";
++    setMinimumWidth(m_pTableWidget->width());
+ 
+-    return table;
++    return m_pTableWidget;
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index 1a6b22cd9af..738de7653d7 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -211,7 +211,7 @@ private:
+     NetSpeed::DataTable list_routes(std::vector<const NetSpeed::traffic_flow_t*> trafs);
+     QStringList get_route_nodes(const std::string& src_vifce_name, const std::string& dest_vifce_name);
+     void resetHighlight();
+-    QString to_html_table(NetSpeed::DataTable dt);
++    QTableWidget* createTable(NetSpeed::DataTable dt);
+     friend class Test_Dialog;
+     QComboBox* srcBridgeComboBox;
+     QComboBox* destBridgeComboBox;
+@@ -220,6 +220,7 @@ private:
+     QPushButton* closeButton;
+     QFrame* lineSeparate;
+     QLabel* routeInfoTable;
++    QTableWidget* m_pTableWidget;
+ };
+ 
+ //////////////////////////////////////

@@ -1,0 +1,25 @@
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+index 0b79332b721..80fc8e3c291 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+@@ -1991,11 +1991,16 @@ QImage NsMeshViewScene::makeColorLegend()
+         auto calculateWorkPage = [&](auto& domains) {
+             maxHeight += headerMargin.y() + metric.height();
+             for (auto const& it : domains) {
++                qDebug() << QString::fromStdString(it.first);
++                qDebug() << "metric.tightBoundingRect(QString::fromStdString(it.first)).width())"
++                         << metric.tightBoundingRect(QString::fromStdString(it.first)).width();
++                qDebug() << "metric.horizontalAdvance(QString::fromStdString(it.first))"
++                         << metric.horizontalAdvance(QString::fromStdString(it.first));
++                qDebug() << "-----------------------------------------------------------------------------------------";
+                 maxWidth = std::max(maxWidth, rectangleSize.width() + textPadding + metric.tightBoundingRect(QString::fromStdString(it.first)).width());
+                 maxHeight += (metric.height() + legendMargin.y());
+             }
+         };
+-
+         auto constructWorkPage = [&]() {
+             workPage = QImage(std::max(1000, maxWidth), std::max(1000, maxHeight), QImage::Format_ARGB32_Premultiplied);
+             painter = std::move(std::make_unique<QPainter>(&workPage));

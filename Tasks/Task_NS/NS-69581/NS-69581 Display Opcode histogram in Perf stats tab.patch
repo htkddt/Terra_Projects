@@ -1,0 +1,391 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 213 +++++++++++++++++++--
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h   |  18 +-
+ 2 files changed, 216 insertions(+), 15 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index de903c6da3d..647c3cfb578 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3881,6 +3881,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     QPushButton* DwBtn = new QPushButton;
+     QPushButton* ShowLatBtn = new QPushButton;
+     QPushButton* ShowAllLatBtn = new QPushButton;
++    QPushButton* ShowOpcode = new QPushButton;
+     QFrame* line = new QFrame;
+     line->setFrameShape(QFrame::HLine);
+     line->setFrameShadow(QFrame::Sunken);
+@@ -3902,8 +3903,14 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     ShowAllLatBtn->setMaximumSize(maxBttSize);
+     ShowAllLatBtn->setToolTip("Show/Hide all latency histograms");
+ 
++    ShowOpcode->setStyleSheet("QPushButton{background: transparent;border: 0px;margin:0px}");
++    ShowOpcode->setIcon(QIcon("://images/icons/show_all_lat_histogram.png"));
++    ShowOpcode->setMaximumSize(maxBttSize);
++    ShowOpcode->setToolTip("Show/Hide opcode histogram");
++
+     reOrderLayout->setAlignment(Qt::AlignTop);
+     reOrderLayout->setContentsMargins(contentsMargin);
++    reOrderLayout->addWidget(ShowOpcode);
+     reOrderLayout->addWidget(ShowAllLatBtn);
+     reOrderLayout->addWidget(ShowLatBtn);
+     reOrderLayout->addWidget(line);
+@@ -3980,6 +3987,8 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     ShowLatBtn->setDefault(false);
+     ShowAllLatBtn->setAutoDefault(false);
+     ShowAllLatBtn->setDefault(false);
++    ShowOpcode->setAutoDefault(false);
++    ShowOpcode->setDefault(false);
+ 
+     QString tooltip = "Start time is the time at which the performance stats currently displayed in the plot begins. If start time is 109 and zoom level is for 1000ns, then performance stats between 109ns and 1109ns would be displayed.";
+     INILineEdit* startTime = new INILineEdit(QString::number((long)eg.zoomLower), QString::fromStdString(gl), fullName, INILineEdit::StartTime);
+@@ -4047,6 +4056,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     connect(DwBtn, SIGNAL(clicked()), this, SLOT(movePlotDown()));
+     connect(ShowLatBtn, SIGNAL(clicked()), this, SLOT(showLatencyButtonSlot()));
+     connect(ShowAllLatBtn, SIGNAL(clicked()), this, SLOT(showAllLatencyHistogram()));
++    connect(ShowOpcode, SIGNAL(clicked()), this, SLOT(showOpcodeButtonSlot()));
+     connect(customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0), SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphRangeChange()));
+     connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(wheelOnCustomPlot(QWheelEvent*)));
+ 
+@@ -4244,7 +4254,7 @@ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot *
+         // Find child with class name is QCustomPlot
+         if (QCustomPlot * cusplot = qobject_cast<QCustomPlot*>(it)) {
+             // If that child is a Latency historam
+-            if (cusplot && cusplot->windowTitle() == histogramName) {
++            if (cusplot && cusplot->windowTitle() == latencyHistogramName) {
+                 latencyhistogram = qobject_cast<QCustomPlot*>(it);
+                 if (latencyhistogram) updateLatencyData(eg, latencyhistogram, st);
+                 break;
+@@ -4253,7 +4263,8 @@ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot *
+     }
+ }
+ 
+-void PropertyPanel::updateLatencyData(const EventGroup & eg, QCustomPlot * customPlot, QSharedPointer<StatTab> statTab) {
++void PropertyPanel::updateLatencyData(const EventGroup & eg, QCustomPlot * customPlot, QSharedPointer<StatTab> statTab)
++{
+     //Get latency events
+     const QMap<long, long> latency_events = eg.compute_latency_events(statTab, eg.zoomLower, eg.zoomUpper);
+     if (latency_events.empty()) return;
+@@ -4302,16 +4313,14 @@ void PropertyPanel::updateLatencyData(const EventGroup & eg, QCustomPlot * custo
+     yAxis->setAutoTickCount(std::min(max_cnt, 5));
+     yAxis->setAutoTicks(true);
+     yAxis->grid()->setVisible(true);
+-    //    yAxis->rescale();
+ 
+     int plotCount = customPlot->plottableCount();
+     for (int count = 0; count < plotCount; ++count) {
+         auto plottable = dynamic_cast<QCPBars*>(customPlot->plottable(count));
+         if (!plottable) continue;
+-        if (plottable->name() != histogramName) continue;
++        if (plottable->name() != latencyHistogramName) continue;
+         plottable->setWidth(delta);
+         plottable->setData(bar_centers, bucketed_latencies);
+-        //        plottable->rescaleKeyAxis();
+         break;
+     }
+     customPlot->rescaleAxes();
+@@ -4322,7 +4331,7 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
+ {
+     //Create container
+     QCustomPlot* customPlot = new QCustomPlot;
+-    QCPPlotTitle* title = new QCPPlotTitle(customPlot, histogramName);
++    QCPPlotTitle* title     = new QCPPlotTitle(customPlot, latencyHistogramName);
+     title->setTextColor(Qt::blue);
+     customPlot->setToolTip("Latency histogram for " + QString::fromStdString(eg.name));
+     customPlot->plotLayout()->insertRow(0);
+@@ -4331,13 +4340,13 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
+     customPlot->xAxis->setLabelColor(Qt::blue);
+     customPlot->yAxis->setLabel("Frequency");
+     customPlot->yAxis->setLabelColor(Qt::blue);
+-    customPlot->setWindowTitle(histogramName);
++    customPlot->setWindowTitle(latencyHistogramName);
+     customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
+     connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showLatencyFrequencyToolTip(QMouseEvent*)));
+ 
+     //Create plottable
+     QCPBars * bar = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+-    bar->setName(histogramName);
++    bar->setName(latencyHistogramName);
+     bar->setVisible(true);
+     bar->setPen(QPen(Qt::red));
+     bar->setBrush(QBrush(Qt::blue));
+@@ -4369,7 +4378,7 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
+     for (int i = 0; i < horizontalSplitter->count(); ++i) {
+         auto child = horizontalSplitter->widget(i);
+         if (QCustomPlot * customPlot = qobject_cast<QCustomPlot*>(child)) {
+-            if (customPlot->windowTitle() == histogramName) {
++            if (customPlot->windowTitle() == latencyHistogramName) {
+                 bool show = false;
+                 if (customPlot->isVisible()) customPlot->hide();
+                 else { customPlot->show(); show = true; }
+@@ -4396,7 +4405,8 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
+         container->insertWidget(1, histogram);
+ }
+ 
+-void PropertyPanel::showLatencyButtonSlot() {
++void PropertyPanel::showLatencyButtonSlot()
++{
+     // Get the show/hide button
+     if (QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender())) {
+         auto buttonLayout = btn->parentWidget();
+@@ -4407,6 +4417,181 @@ void PropertyPanel::showLatencyButtonSlot() {
+     }
+ }
+ 
++void PropertyPanel::updateOpcodeHistogram(const EventGroup & eg, QCustomPlot * customplot, QSharedPointer<StatTab> st)
++{
++    if (!customplot || !customplot->parentWidget()) return;
++    auto horizontalSplitter = qobject_cast<QSplitter*>(customplot->parentWidget());
++    const int containsHistogram = 3;
++    if (!horizontalSplitter || horizontalSplitter->count() < containsHistogram) return;
++
++    QCustomPlot * latencyhistogram = nullptr;
++    for (auto& it : horizontalSplitter->children()) {
++        // Find child with class name is QCustomPlot
++        if (QCustomPlot * cusplot = qobject_cast<QCustomPlot*>(it)) {
++            // If that child is a Latency historam
++            if (cusplot && cusplot->windowTitle() == opcodeHistogramName) {
++                latencyhistogram = qobject_cast<QCustomPlot*>(it);
++                if (latencyhistogram) updateOpcodeData(eg, latencyhistogram, st);
++                break;
++            }
++        }
++    }
++}
++
++void PropertyPanel::updateOpcodeData(const EventGroup & eg, QCustomPlot * customPlot, QSharedPointer<StatTab> statTab)
++{
++    //Get latency events
++    const QMap<long, long> latency_events = eg.compute_latency_events(statTab, eg.zoomLower, eg.zoomUpper);
++    if (latency_events.empty()) return;
++    // Find the range of latency values
++    const int min_latency = latency_events.firstKey();
++    const int max_latency = latency_events.lastKey();
++    const int num_buckets = NetSpeed::Grid::gui_latency_histogram_num_ranges;
++
++    const double delta = double(max_latency - min_latency) / num_buckets;
++    // Store the radius for this graph
++    customPlot->setProperty("radius", QVariant(delta / 2));
++    // Summary data for easy to draw graph
++    QVector<double> x_tick_positions;
++    QVector<double> bar_centers;
++    QVector<QString> x_tick_labels;
++    for (double l = min_latency; l < max_latency; l += delta) {
++        bar_centers.append(l + delta / 2);
++        x_tick_positions.append(l);
++    }
++    bar_centers.append(max_latency + delta / 2);
++    x_tick_positions.append(max_latency);
++
++    // entry pos i is count of latencies in range (min_range + i * delta, min_range + (i+1) * delta)
++    QVector<double> bucketed_latencies(num_buckets, 0);
++    FOR(lei, latency_events) {
++        qint32 qRoundConvert = static_cast<qint32>(qRound64((lei.key() - min_latency) / delta));
++        const int bucket_idx = std::min(num_buckets - 1, qRoundConvert);
++        bucketed_latencies[bucket_idx] += lei.value();
++    }
++
++    // Find the max count (frequency)
++    const int max_cnt = *std::max_element(begin(bucketed_latencies), end(bucketed_latencies));
++
++    // Fill data to the customplot and graph
++    //Recalculate min/max for XAxis
++
++    auto xAxis = customPlot->xAxis;
++    xAxis->setRange(min_latency, max_latency);
++    xAxis->setAutoTicks(false);
++    xAxis->setTickVector(x_tick_positions);
++    xAxis->grid()->setVisible(true);
++    xAxis->rescale();
++
++    auto yAxis = customPlot->yAxis;
++    yAxis->setRange(0, max_cnt);
++    yAxis->setAutoTickCount(std::min(max_cnt, 5));
++    yAxis->setAutoTicks(true);
++    yAxis->grid()->setVisible(true);
++
++    int plotCount = customPlot->plottableCount();
++    for (int count = 0; count < plotCount; ++count) {
++        auto plottable = dynamic_cast<QCPBars*>(customPlot->plottable(count));
++        if (!plottable) continue;
++        if (plottable->name() != opcodeHistogramName) continue;
++        plottable->setWidth(delta);
++        plottable->setData(bar_centers, bucketed_latencies);
++        break;
++    }
++    customPlot->rescaleAxes();
++    customPlot->replot();
++}
++
++QCustomPlot* PropertyPanel::createOpcodeHistogram(const EventGroup & eg, QSharedPointer<StatTab> st)
++{
++    //Create container
++    QCustomPlot* customPlot = new QCustomPlot;
++    QCPPlotTitle* title = new QCPPlotTitle(customPlot, opcodeHistogramName);
++    title->setTextColor(Qt::blue);
++    customPlot->setToolTip("Latency histogram for " + QString::fromStdString(eg.name));
++    customPlot->plotLayout()->insertRow(0);
++    customPlot->plotLayout()->addElement(0, 0, title);
++    customPlot->xAxis->setLabel("Latency (ns)");
++    customPlot->xAxis->setLabelColor(Qt::blue);
++    customPlot->yAxis->setLabel("Frequency");
++    customPlot->yAxis->setLabelColor(Qt::blue);
++    customPlot->setWindowTitle(opcodeHistogramName);
++    customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
++    connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showLatencyFrequencyToolTip(QMouseEvent*)));
++
++    //Create plottable
++    QCPBars * bar = new QCPBars(customPlot->xAxis, customPlot->yAxis);
++    bar->setName(opcodeHistogramName);
++    bar->setVisible(true);
++    bar->setPen(QPen(Qt::red));
++    bar->setBrush(QBrush(Qt::blue));
++    customPlot->addPlottable(bar);
++
++    //Update data
++    updateOpcodeData(eg, customPlot, st);
++
++    return customPlot;
++}
++
++void PropertyPanel::updateOpcodeHistogramStatus(QCustomPlot * customPlot, bool status)
++{
++    if (!customPlot) return;
++    QString gname = customPlot->getEventGroupName();
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getLiveWidget(), nullptr);
++    if (!statTab) return;
++    auto egi = statTab->groups.find(gname.toStdString());
++    if (egi == statTab->groups.end()) return;
++    EventGroup & eg = egi->second;
++    eg.showLatencyHistogram = status;
++}
++
++void PropertyPanel::showHideOpcodeHistogram(QWidget * splitter)
++{
++    auto horizontalSplitter = qobject_cast<QSplitter*>(splitter);
++    if (!horizontalSplitter) return;
++    QCustomPlot* graph = nullptr;
++    for (int i = 0; i < horizontalSplitter->count(); ++i) {
++        auto child = horizontalSplitter->widget(i);
++        if (QCustomPlot * customPlot = qobject_cast<QCustomPlot*>(child)) {
++            if (customPlot->windowTitle() == opcodeHistogramName) {
++                bool show = false;
++                if (customPlot->isVisible()) customPlot->hide();
++                else { customPlot->show(); show = true; }
++                updateOpcodeHistogramStatus(customPlot, show);
++                return;
++            }
++            else graph = customPlot;
++        }
++    }
++
++    auto scollArea = mw->getLiveWidget();
++    if (!scollArea) return;
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(scollArea, nullptr);
++    if (!statTab) return;
++    auto gname = graph->getEventGroupName();
++    if (gname.isEmpty()) return;
++
++    auto it = statTab->groups.find(gname.toStdString());
++    if (it == statTab->groups.end()) return;
++    EventGroup & g = it->second;
++    g.showLatencyHistogram = true;
++    auto histogram = createOpcodeHistogram(g, statTab);
++    if (auto container = qobject_cast<QSplitter*>(splitter))
++        container->insertWidget(1, histogram);
++}
++
++void PropertyPanel::showOpcodeButtonSlot()
++{
++    // Get the show/hide button
++    if (QPushButton* btn = qobject_cast<QPushButton*>(QObject::sender())) {
++        auto buttonLayout = btn->parentWidget();
++        if (!buttonLayout) return;
++        auto horSplitter = buttonLayout->parentWidget();
++        if (!horSplitter) return;
++        showHideOpcodeHistogram(horSplitter);
++    }
++}
++
+ QWidget* PropertyPanel::getParentWidgetInVisualizationTab(QWidget * widget) {
+     if (!widget) return nullptr;
+     QMap<QString, QCustomPlot*>* plotMap = mw->getTabPlotsMap().value(widget, nullptr);
+@@ -4477,7 +4662,7 @@ void PropertyPanel::showAllLatencyHistogram()
+                     for (int i = 0; i < horizontalSplitter->count(); ++i) {
+                         auto it = horizontalSplitter->widget(i);
+                         if (QCustomPlot * plot = dynamic_cast<QCustomPlot*>(it)) {
+-                            if (plot->windowTitle() == histogramName) {
++                            if (plot->windowTitle() == latencyHistogramName) {
+                                 plot->hide();
+                                 updateLatencyHistogramStatus(customPlot, false);
+                                 break;
+@@ -4497,7 +4682,7 @@ void PropertyPanel::showAllLatencyHistogram()
+                     for (int i = 0; i < count; ++i) {
+                         auto it = horizontalSplitter->widget(i);
+                         if (QCustomPlot * plot = qobject_cast<QCustomPlot*>(it)) {
+-                            if (plot->windowTitle() == histogramName) {
++                            if (plot->windowTitle() == latencyHistogramName) {
+                                 plot->show();
+                                 updateLatencyHistogramStatus(customPlot, true);
+                                 break;
+@@ -4619,7 +4804,7 @@ void PropertyPanel::movePlotUp()
+         //        showHideLatencyHistogram(horizontalSplitter);
+         for (auto const& it : horizontalSplitter->children()) {
+             if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
+-                if (customPlot->windowTitle() == histogramName) continue;
++                if (customPlot->windowTitle() == latencyHistogramName) continue;
+                 auto graphSplitter = horizontalSplitter->parentWidget();
+                 if (customPlot && graphSplitter) swapGraph(customPlot, graphSplitter);
+                 break;
+@@ -4723,7 +4908,7 @@ void PropertyPanel::movePlotDown()
+         //        showHideLatencyHistogram(horizontalSplitter);
+         for (auto const& it : horizontalSplitter->children()) {
+             if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
+-                if (customPlot->windowTitle() == histogramName) continue;
++                if (customPlot->windowTitle() == latencyHistogramName) continue;
+                 auto graphSplitter = horizontalSplitter->parentWidget();
+                 if (customPlot && graphSplitter)  swapGraph(customPlot, graphSplitter);
+                 break;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+index d8d9f99f9f5..bd0252371a0 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+@@ -273,6 +273,16 @@ public:
+     void updateLatencyHistogram(const EventGroup& eg, QCustomPlot* customplot, QSharedPointer<StatTab> st);
+     void showHideLatencyHistogram(QWidget* gnowidget);
+     void updateLatencyHistogramStatus(QCustomPlot* plot, bool status);
++    /**
++    /**
++     * @brief create a graph present opcode histogram
++     * @param latency data points
++     * @return a graph
++     */
++    QCustomPlot* createOpcodeHistogram(const EventGroup& eg, QSharedPointer<StatTab> st);
++    void updateOpcodeHistogram(const EventGroup& eg, QCustomPlot* customplot, QSharedPointer<StatTab> st);
++    void showHideOpcodeHistogram(QWidget* gnowidget);
++    void updateOpcodeHistogramStatus(QCustomPlot* plot, bool status);
+     /**
+      * @brief getButtonWidget
+      * @return
+@@ -834,8 +844,10 @@ private:
+     QString vcName;
+     QCustomPlot * generateNormalPlot(QString lb);
+     void updateLatencyData(const EventGroup&, QCustomPlot*, QSharedPointer<StatTab>);
++    void updateOpcodeData(const EventGroup&, QCustomPlot*, QSharedPointer<StatTab>);
+ 
+-    const QString histogramName = "Latency Histogram";
++    const QString latencyHistogramName = "Latency Histogram";
++    const QString opcodeHistogramName = "Opcode Histogram";
+ 
+ private:
+     friend class Test_PropertyPanel;
+@@ -1190,6 +1202,10 @@ private slots:
+      * @brief showAllLatencyHistogram
+      */
+     void showAllLatencyHistogram();
++    /**
++     * @brief showHideLatencyHistogram
++     */
++    void showOpcodeButtonSlot();
+ 
+ protected:
+     friend class Test_PropertyPanel;

@@ -1,0 +1,16 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 730e9587d7d..aaee667717d 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3145,7 +3145,7 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+         for (auto i = 0; i < customPlot->axisRect(0)->axes().size(); i++)
+         {
+             QString lbl = customPlot->axisRect(0)->axes()[i]->label();
+-            if (lbl.contains("Time"))
++            if (lbl.contains("Time") || lbl.contains("Idle Latency"))
+                 continue;
+             double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->position().y());
+             for (graphix = 0; graphix < customPlot->graphCount(); graphix++)

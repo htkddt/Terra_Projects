@@ -1,0 +1,89 @@
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp | 61 ++++++++++++----------
+ 1 file changed, 34 insertions(+), 27 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+index 8372d940cf6..1a3ccaeb078 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+@@ -1227,7 +1227,7 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+             }
+         }
+ 
+-        if (drag) {           
++        if (drag) {
+             auto items = selectedItems();
+             auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
+             if (!items.empty()) {
+@@ -1274,18 +1274,23 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+                 _highlightedItem = nullptr;
+             }
+             drag = false;
+-            if (mw->getIPDesign()->getWiresDialog()) mw->getIPDesign()->refreshWires();
+-            else if (mw->isShowWiresChecked()) mw->getIPDesign()->showWires(true);
+-            else {
+-                for (auto item : _renderWireList) {
+-                    removeWire(item);
+-                }
+-                _renderWireList.clear();
+-                if (auto item = itemAt(event->scenePos(), QTransform())) {
+-                    if (auto label = dynamic_cast<Label*>(item)) {
+-                        if (auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem())) {
+-                            QList<QString> ifce_name = {label->text()};
+-                            _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
++            auto item = itemAt(event->scenePos(), QTransform());
++            if (dynamic_cast<IPInstance*>(item) || dynamic_cast<IPConnectivity*>(item)) {
++                if (mw) {
++                    if (mw->getIPDesign()->getWiresDialog()) mw->getIPDesign()->refreshWires();
++                    else if (mw->isShowWiresChecked()) mw->getIPDesign()->showWires(true);
++                    else {
++                        for (auto item : _renderWireList) {
++                            removeWire(item);
++                        }
++                        _renderWireList.clear();
++                        if (item) {
++                            if (auto label = dynamic_cast<Label*>(item)) {
++                                if (auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem())) {
++                                    QList<QString> ifce_name = {label->text()};
++                                    _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
++                                }
++                            }
+                         }
+                     }
+                 }
+@@ -1446,20 +1451,22 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+ 
+             drag = true; /* Select multi instances */
+             if (!parentMoving) {
+-                auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
+-                if (mw) {
+-                    if (mw->getIPDesign()->getWiresDialog()) mw->getIPDesign()->refreshWires();
+-                    else if (mw->isShowWiresChecked()) mw->getIPDesign()->showWires(true);
+-                    else {
+-                        for (auto item : _renderWireList) {
+-                            removeWire(item);
+-                        }
+-                        _renderWireList.clear();
+-                        if (auto item = itemAt(event->scenePos(), QTransform())) {
+-                            if (auto label = dynamic_cast<Label*>(item)) {
+-                                if (auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem())) {
+-                                    QList<QString> ifce_name = {label->text()};
+-                                    _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
++                auto item = itemAt(event->scenePos(), QTransform());
++                if (dynamic_cast<IPInstance*>(item) || dynamic_cast<IPConnectivity*>(item)) {
++                    if (auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow())) {
++                        if (mw->getIPDesign()->getWiresDialog()) mw->getIPDesign()->refreshWires();
++                        else if (mw->isShowWiresChecked()) mw->getIPDesign()->showWires(true);
++                        else {
++                            for (auto item : _renderWireList) {
++                                removeWire(item);
++                            }
++                            _renderWireList.clear();
++                            if (item) {
++                                if (auto label = dynamic_cast<Label*>(item)) {
++                                    if (auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem())) {
++                                        QList<QString> ifce_name = {label->text()};
++                                        _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
++                                    }
+                                 }
+                             }
+                         }

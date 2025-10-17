@@ -1,0 +1,26 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 907a80baea2..29ea96b073e 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -957,12 +957,16 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+                         break;
+                     }
+                 }
+-                
++
++                auto grid = console->get_container().get_grid();
++                if (!grid) break;
+                 auto gBridge = getFirst<NsBridge>(items(event->scenePos()), BRIDGE);
+                 if (!gBridge || !mw) break;
++                auto itemBr = dynamic_cast<NsNormalBridge*>(gBridge);
++                if (!itemBr) break;
+                 auto nsBridge = gBridge->getBridge();
+                 auto propPanel = mw->getPropertyPanel();
+-                if (!nsBridge || !propPanel) break;
++                if (!nsBridge || grid->is_regbus_layer(itemBr->getLayerID()) || !propPanel) break;
+                 auto mesh = getFirst<NsMesh>(items(gBridge->scenePos()), MESH);
+                 if (!mesh) break;
+                 if (!addDependencyBridgeClicked){

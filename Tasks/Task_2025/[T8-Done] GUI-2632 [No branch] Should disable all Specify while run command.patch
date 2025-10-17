@@ -1,0 +1,24 @@
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index cf5e072c4df..8602cf41b17 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -8831,6 +8831,7 @@ void MainWindow::closeCurrentInstrument()
+ 
+ void MainWindow::grayOutDomainViewAndAddList()
+ {
++    if (console->getProcessCMDState()) return;
+     bool isIdle = gSem.available();
+     bool isEco_Mode = c->get_container().is_ECO();  // check state when eco_mode command run
+     setInstrumentState(instrumentsActMap, { TOGGLE_CLOCK_DOMAIN_VIEW, TOGGLE_POWER_DOMAIN_VIEW,
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index f5eadbc7872..8cb378903cd 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -8818,6 +8818,7 @@ void MainWindow::closeCurrentInstrument()
+ 
+ void MainWindow::grayOutDomainViewAndAddList()
+ {
++    if (console->getProcessCMDState()) return;
+     bool isIdle = gSem.available();
+     bool isEco_Mode = c->get_container().is_ECO();  // check state when eco_mode command run
+     setInstrumentState(instrumentsActMap, { TOGGLE_CLOCK_DOMAIN_VIEW, TOGGLE_POWER_DOMAIN_VIEW,

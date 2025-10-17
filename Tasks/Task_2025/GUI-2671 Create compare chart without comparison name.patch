@@ -1,0 +1,77 @@
+ src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp | 51 +++++++++++++---------
+ 1 file changed, 31 insertions(+), 20 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp b/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
+index ede4997ca3a..7e210236d8a 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
+@@ -364,22 +364,31 @@ void StatDashboard::statMergeAct()
+         tr("Specify merge name:"), QLineEdit::Normal,
+         "Merge Name", &ok, Qt::WindowCloseButtonHint).toLower();
+     requestedName = requestedName.trimmed();
+-    if (ok && !requestedName.trimmed().isEmpty()) {
+-        // check for existing name
+-        if (currentStatTab->groups.find(requestedName.trimmed().simplified().toStdString())
+-            != currentStatTab->groups.end()
+-            || currentStatTab->plots.find(requestedName.trimmed().simplified().toStdString())
+-            != currentStatTab->plots.end())
+-        {
++    if (ok) {
++        if (!requestedName.trimmed().isEmpty()) {
++            // Check for existing name
++            if (currentStatTab->groups.find(requestedName.trimmed().simplified().toStdString())
++                != currentStatTab->groups.end()
++                || currentStatTab->plots.find(requestedName.trimmed().simplified().toStdString())
++                != currentStatTab->plots.end())
++            {
++                QMessageBox* msg = new QMessageBox(this);
++                msg->setWindowTitle("NocStudio");
++                msg->setText("Specified name has already been used. Please try another name.");
++                msg->setStandardButtons(QMessageBox::Retry | QMessageBox::Close);
++                msg->setDefaultButton(QMessageBox::Retry);
++                int ret = msg->exec();
++                if (ret == QMessageBox::Retry) statMergeAct();
++            } else mergeCompCmd(requestedName, true);
++        } else {
+             QMessageBox* msg = new QMessageBox(this);
+             msg->setWindowTitle("NocStudio");
+-            msg->setText("Specified name has already been used. Please try another name.");
++            msg->setText("Please enter the Merge name.");
+             msg->setStandardButtons(QMessageBox::Retry | QMessageBox::Close);
+             msg->setDefaultButton(QMessageBox::Retry);
+-            int ret = msg->exec();
+-            if (ret == QMessageBox::Retry) statMergeAct();
++            if (msg->exec() == QMessageBox::Retry) statMergeAct();
++            else return;
+         }
+-        else mergeCompCmd(requestedName, true);
+     }
+ }
+ 
+@@ -432,15 +441,17 @@ void StatDashboard::statCompareAct()
+                 msg->setText("Specified name has already been used. Please try another name.");
+                 msg->setStandardButtons(QMessageBox::Retry | QMessageBox::Close);
+                 msg->setDefaultButton(QMessageBox::Retry);
+-                int ret = msg->exec();
+-                if (ret == QMessageBox::Retry) {
+-                    statCompareAct();
+-                } else {
+-                    return;
+-                }
+-            } else {
+-                mergeCompCmd(simRequestedName);
+-            }
++                if (msg->exec() == QMessageBox::Retry) statCompareAct();
++                else return;
++            } else mergeCompCmd(simRequestedName);
++        } else {
++            QMessageBox* msg = new QMessageBox(this);
++            msg->setWindowTitle("NocStudio");
++            msg->setText("Please enter the Comparison name.");
++            msg->setStandardButtons(QMessageBox::Retry | QMessageBox::Close);
++            msg->setDefaultButton(QMessageBox::Retry);
++            if (msg->exec() == QMessageBox::Retry) statCompareAct();
++            else return;
+         }
+     }
+ }

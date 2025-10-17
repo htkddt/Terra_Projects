@@ -1,0 +1,80 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 20 ++++++++++++++++++--
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 20 ++++++++++++++++++--
+ 2 files changed, 36 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index a75f80ae254..6754149ac93 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3240,7 +3240,15 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+         double maxValueAxis = customPlot->graph(0)->valueAxis()->range().maxRange;
+         // Find related evengroup
+         QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
+-        if (!statTab) return;
++        if (!statTab) {
++            auto listToolipDialogs = mw->getTooltipDialogs();
++            for (auto& tooltip : listToolipDialogs) {
++                if (auto dialog = dynamic_cast<ToolTipAppDialog*>(tooltip)) {
++                    if ((statTab = mw->getTabStatTabMap().value(dialog->getMainWidget(), nullptr))) break;
++                }
++            }
++            if (!statTab) return;
++        }
+         auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
+         if (iter == statTab->plots.end()) return;
+         const Plot & eg = iter->second;
+@@ -3532,7 +3540,15 @@ void PropertyPanel::showPointToolTip(QMouseEvent * event)
+ 
+         // Find related evengroup
+         QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
+-        if (!statTab) return;
++        if (!statTab) {
++            auto listToolipDialogs = mw->getTooltipDialogs();
++            for (auto& tooltip : listToolipDialogs) {
++                if (auto dialog = dynamic_cast<ToolTipAppDialog*>(tooltip)) {
++                    if ((statTab = mw->getTabStatTabMap().value(dialog->getMainWidget(), nullptr))) break;
++                }
++            }
++            if (!statTab) return;
++        }
+         auto iter = statTab->groups.find(customPlot->getEventGroupName().toStdString());
+         if (iter == statTab->groups.end()) return;
+         EventGroup & eg = iter->second;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 76dc037083f..7eedc218e20 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3243,7 +3243,15 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+         double maxValueAxis = customPlot->graph(0)->valueAxis()->range().maxRange;
+         // Find related evengroup
+         QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
+-        if (!statTab) return;
++        if (!statTab) {
++            auto listToolipDialogs = mw->getTooltipDialogs();
++            for (auto& tooltip : listToolipDialogs) {
++                if (auto dialog = dynamic_cast<ToolTipAppDialog*>(tooltip)) {
++                    if ((statTab = mw->getTabStatTabMap().value(dialog->getMainWidget(), nullptr))) break;
++                }
++            }
++            if (!statTab) return;
++        }
+         auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
+         if (iter == statTab->plots.end()) return;
+         const Plot & eg = iter->second;
+@@ -3535,7 +3543,15 @@ void PropertyPanel::showPointToolTip(QMouseEvent * event)
+ 
+         // Find related evengroup
+         QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
+-        if (!statTab) return;
++        if (!statTab) {
++            auto listToolipDialogs = mw->getTooltipDialogs();
++            for (auto& tooltip : listToolipDialogs) {
++                if (auto dialog = dynamic_cast<ToolTipAppDialog*>(tooltip)) {
++                    if ((statTab = mw->getTabStatTabMap().value(dialog->getMainWidget(), nullptr))) break;
++                }
++            }
++            if (!statTab) return;
++        }
+         auto iter = statTab->groups.find(customPlot->getEventGroupName().toStdString());
+         if (iter == statTab->groups.end()) return;
+         EventGroup & eg = iter->second;

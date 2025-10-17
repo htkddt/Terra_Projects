@@ -1,0 +1,27 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index a245f5495db..739bc94452b 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -452,9 +452,9 @@ void NsNormalHost::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+     if (!isDragged())
+     {
+         // get mesh scene
+-        auto meshScene = static_cast<NsMeshViewScene*>(this->scene());
++        auto meshScene = dynamic_cast<NsMeshViewScene*>(this->scene());
+         if (!meshScene) return;
+-		auto mw = static_cast<MainWindow*>(QApplication::activeWindow());
++        auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+ 		if(!mw) return;
+         // prevent context menu apply to other host when drag host
+         if (hasDraggedHost(scene(), event->pos())) return;
+@@ -495,6 +495,7 @@ void NsNormalHost::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+                 mw->raiseSelectionTab();
+                 mw->showMessageToStatusBar(MSG_ADD_BRIDGE);
+                 mw->setCheckAddBridgeButtons();
++                mw->setAllInstrumentsUnchecked(mw->getInstrumentsActMap()[ADD_BRIDGE]);
+                 break;
+             case COMMAND_ACT:
+             {

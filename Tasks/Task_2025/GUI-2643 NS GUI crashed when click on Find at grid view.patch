@@ -1,0 +1,148 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 34 +++++++++++++------------
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 34 +++++++++++++------------
+ 2 files changed, 36 insertions(+), 32 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 5d76bb7368e..fa7d748dfc0 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2717,39 +2717,43 @@ void MainWindow::nocFinderButtonSlot()
+         if (nocScene) {
+             isSearching = true;
+             refreshMeshView();
++
++            /* Get all layers are existing */
+             auto listLayerID = nocScene->getLayers().keys();
+-            auto listChopView = nocScene->getChopViews();
++            if (listLayerID.isEmpty()) return;
+             QList<int> listLayerShow;
+             QList<int> listLayerHide;
+-            QList<QGraphicsItem*> listItemOnChop;
+             for (int layer : listLayerID) {
+-                if (nsWorkArea->getShowLayers(NetSpeed::Layer_id(layer))) {
+-                    listLayerShow.push_back(NetSpeed::Layer_id(layer));
+-                }
+-                else {
+-                    listLayerHide.push_back(NetSpeed::Layer_id(layer));
+-                }
++                if (nsWorkArea->getShowLayers(NetSpeed::Layer_id(layer))) listLayerShow.push_back(NetSpeed::Layer_id(layer));
++                else listLayerHide.push_back(NetSpeed::Layer_id(layer));
+             }
+             listLayerShow << listLayerHide;
+ 
++            /* Processing logic when user clicks on show hide any layer */
+             if (layerShowHideClicked) {
+                 indexLayer = 0;
+                 indexChop = 0;
+                 layerShowHideClicked = false;
+             }
+ 
++            /* Get all chopview are existing in Grid view tab and processing find components when indexLayer is out of range of list layers */
++            auto listChopView = nocScene->getChopViews();
++            QList<QGraphicsItem*> listItemOnChop;
+             if (indexLayer >= listLayerID.size()) {
+-                listItemOnChop = nocScene->findOnChop(nocFinder->text(), listChopView);
+-                if (!listItemOnChop.isEmpty()) {
+-                    if (indexChop < listItemOnChop.size()) {
+-                        nsWorkArea->centerOn(listItemOnChop.at(indexChop++));
+-                        return;
++                if (!listChopView.empty()) {
++                    listItemOnChop = nocScene->findOnChop(nocFinder->text(), listChopView);
++                    if (!listItemOnChop.isEmpty()) {
++                        if (indexChop < listItemOnChop.size()) {
++                            nsWorkArea->centerOn(listItemOnChop.at(indexChop++));
++                            return;
++                        }
+                     }
+                 }
+                 indexChop = 0;
+                 indexLayer = 0;
+             }
+ 
++            /* Processing find components. If not found, GUI will increment indexLayer, GUI will stop when found */
+             listCompKeyWord.clear();
+             nocScene->listCompOfLink.clear();
+             int indexInit = indexLayer;
+@@ -2766,9 +2770,7 @@ void MainWindow::nocFinderButtonSlot()
+                     indexChop = 0;
+                     indexLayer = 0;
+                 }
+-                if (indexLayer == indexInit) {
+-                    break;
+-                }
++                if (indexLayer == indexInit) break;
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 2907964560a..470effa3a52 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -2759,39 +2759,43 @@ void MainWindow::nocFinderButtonSlot()
+         if (nocScene) {
+             isSearching = true;
+             refreshMeshView();
++
++            /* Get all layers are existing */
+             auto listLayerID = nocScene->getLayers().keys();
+-            auto listChopView = nocScene->getChopViews();
++            if (listLayerID.isEmpty()) return;
+             QList<int> listLayerShow;
+             QList<int> listLayerHide;
+-            QList<QGraphicsItem*> listItemOnChop;
+             for (int layer : listLayerID) {
+-                if (nsWorkArea->getShowLayers(NetSpeed::Layer_id(layer))) {
+-                    listLayerShow.push_back(NetSpeed::Layer_id(layer));
+-                }
+-                else {
+-                    listLayerHide.push_back(NetSpeed::Layer_id(layer));
+-                }
++                if (nsWorkArea->getShowLayers(NetSpeed::Layer_id(layer))) listLayerShow.push_back(NetSpeed::Layer_id(layer));
++                else listLayerHide.push_back(NetSpeed::Layer_id(layer));
+             }
+             listLayerShow << listLayerHide;
+ 
++            /* Processing logic when user clicks on show hide any layer */
+             if (layerShowHideClicked) {
+                 indexLayer = 0;
+                 indexChop = 0;
+                 layerShowHideClicked = false;
+             }
+ 
++            /* Get all chopview are existing in Grid view tab and processing find components when indexLayer is out of range of list layers */
++            auto listChopView = nocScene->getChopViews();
++            QList<QGraphicsItem*> listItemOnChop;
+             if (indexLayer >= listLayerID.size()) {
+-                listItemOnChop = nocScene->findOnChop(nocFinder->text(), listChopView);
+-                if (!listItemOnChop.isEmpty()) {
+-                    if (indexChop < listItemOnChop.size()) {
+-                        nsWorkArea->centerOn(listItemOnChop.at(indexChop++));
+-                        return;
++                if (!listChopView.empty()) {
++                    listItemOnChop = nocScene->findOnChop(nocFinder->text(), listChopView);
++                    if (!listItemOnChop.isEmpty()) {
++                        if (indexChop < listItemOnChop.size()) {
++                            nsWorkArea->centerOn(listItemOnChop.at(indexChop++));
++                            return;
++                        }
+                     }
+                 }
+                 indexChop = 0;
+                 indexLayer = 0;
+             }
+ 
++            /* Processing find components. If not found, GUI will increment indexLayer, GUI will stop when found */
+             listCompKeyWord.clear();
+             nocScene->listCompOfLink.clear();
+             int indexInit = indexLayer;
+@@ -2808,9 +2812,7 @@ void MainWindow::nocFinderButtonSlot()
+                     indexChop = 0;
+                     indexLayer = 0;
+                 }
+-                if (indexLayer == indexInit) {
+-                    break;
+-                }
++                if (indexLayer == indexInit) break;
+             }
+         }
+     }

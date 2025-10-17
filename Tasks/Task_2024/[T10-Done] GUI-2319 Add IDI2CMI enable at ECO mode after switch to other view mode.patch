@@ -1,0 +1,48 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 34432fd5168..c80a08c7891 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -1331,6 +1331,11 @@ void MainWindow::createSpecificMenu()
+ {
+     for (const auto& ins : specifyMenu)
+     {
++        if (ins == ADD_IDI2CMI) {
++            if (c == nullptr) continue;
++            auto cc = c->get_command(NetSpeed::Command_idx(QString(CMD_ADD_IDI2CMI).toStdString()));
++            if (cc == nullptr) continue;
++        }
+         addMenu->addAction(instrumentsActMap[ins]);
+     }
+     addMenu->addSeparator();
+@@ -7018,17 +7023,7 @@ void MainWindow::setEnableAction(QString cmd, InstrumentsEnum ins)
+ 
+ void MainWindow::enableAddButtons()
+ {
+-    auto popupAddButtons = dynamic_cast<QToolButton*>(addToolbar->widgetForAction(instrumentsActMap[ADD_BUTTONS]));
+-    if (!popupAddButtons) return;
+-    auto actionsList = popupAddButtons->menu()->actions();
+-    if (actionsList.isEmpty()) return;
+-    foreach(auto action, actionsList) {
+-        if (action->isEnabled()) {
+-            instrumentsActMap[ADD_BUTTONS]->setEnabled(true);
+-            return;
+-        }
+-    }
+-    instrumentsActMap[ADD_BUTTONS]->setEnabled(false);
++    instrumentsActMap[ADD_BUTTONS]->setEnabled(true);
+ }
+ 
+ void MainWindow::grayFeaturesInSpecifyMenuMode()
+@@ -8632,7 +8627,8 @@ void MainWindow::createToolbars()
+     if (NetSpeed::Config::enable_ahb()){
+         popupAddButtonsMenu->addAction(instrumentsActMap[ADD_AHB_DOCK]);
+     }
+-    if (NetSpeed::Flag::enable_cmi && NetSpeed::Flag::enable_idi) {
++    if (NetSpeed::Flag::enable_cmi && NetSpeed::Flag::enable_idi &&
++        c && c->get_command(NetSpeed::Command_idx(QString(CMD_ADD_IDI2CMI).toStdString()))) {
+         popupAddButtonsMenu->addAction(instrumentsActMap[ADD_IDI2CMI]);
+     }
+     if (NetSpeed::Config::enable_axi()) {// TODO: TuanNguyen: temp condition

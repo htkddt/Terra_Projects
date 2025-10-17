@@ -1,0 +1,10 @@
+GUI-2554:
+	- Problems:
+		+ Right clicked bridge components
+		+ Created biridge diagrams
+		+ Z value of Host and colliding items on Host equal NsMeshViewScene::HIGHEST_ORDER
+		+ Bridge diagrams are destroyed, z value of Host and colliding items on Host still equal NsMeshViewScene::HIGHEST_ORDER
+	- Solutions:
+		+ 1: Set z value of Host and colliding items on Host to old value when bridge diagrams are destroyed.
+		+ 2: Do not change z value of components when creating and destroying bridge diagrams.
+#####################################################################################################################################################################################################################################

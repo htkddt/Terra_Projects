@@ -1,0 +1,29 @@
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
+index 7811497434f..347a8119c9a 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
+@@ -598,10 +598,17 @@ void NsNormalHost::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+             auto h = static_cast<NetSpeed::Configurable_slave_host*>(host);
+             auto const& components = h->get_storage_components();
+             if(!components.empty()) {
+-                auto item = new NsStorageComponents(components, this);
+-                auto menuDirection = meshScene->getMenuDirection();
+-                auto const point = (menuDirection != Qt::RightToLeft) ? QPointF(item->boundingRect().width(), 0) : QPointF(0,0);
+-                item->setPos(mapFromScene(event->scenePos()) - point);
++                bool existStorageComponents = false;
++                QList<QGraphicsItem*> itemList = collidingItems();
++                for (const auto& it : itemList) {
++                    if (it->type() == STORAGE_DIAGRAM) existStorageComponents = true;
++                }
++                if (!existStorageComponents) {
++                    auto item = new NsStorageComponents(components, this);
++                    auto menuDirection = meshScene->getMenuDirection();
++                    auto const point = (menuDirection != Qt::RightToLeft) ? QPointF(item->boundingRect().width(), 0) : QPointF(0,0);
++                    item->setPos(mapFromScene(event->scenePos()) - point);
++                }
+             }
+         }
+ 

@@ -1,0 +1,15 @@
+ src/sw/noc_dev/NocCore/src/PChannel.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sw/noc_dev/NocCore/src/PChannel.cpp b/src/sw/noc_dev/NocCore/src/PChannel.cpp
+index fb4432590b1..e74076384c3 100644
+--- a/src/sw/noc_dev/NocCore/src/PChannel.cpp
++++ b/src/sw/noc_dev/NocCore/src/PChannel.cpp
+@@ -335,6 +335,7 @@ int Tx_PChannel::initial_length_um() const {
+     if (get_rx_pch() == nullptr) return 0;
+     Node_id pos = get_parent()->get_regbus_pos();
+     Node_id other_end_pos = get_rx_pch()->get_parent()->get_regbus_pos();
++    if (pos.is_null() || other_end_pos.is_null()) return 0;
+     assert(!pos.is_null());
+     assert(!other_end_pos.is_null());
+     return get_grid()->compute_distance_um(pos, other_end_pos);

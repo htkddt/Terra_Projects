@@ -1,0 +1,62 @@
+ src/sw/noc_dev/GUICore/genericconsole.cpp   | 20 +++++++++++++-------
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp |  3 ++-
+ 2 files changed, 15 insertions(+), 8 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/genericconsole.cpp b/src/sw/noc_dev/GUICore/genericconsole.cpp
+index 9efe76ad1c9..15f9ec474f5 100644
+--- a/src/sw/noc_dev/GUICore/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore/genericconsole.cpp
+@@ -256,8 +256,9 @@ void MainConsole::setLineLimit()
+ 
+ void MainConsole::onTabIndexChanged(int index)
+ {
+-    this->setFocus();
+-    if (index == NS::WARN) {
++    if (index == NS::ALL) {
++        this->setFocus();
++    } else if (index == NS::WARN) {
+         QString tmp;
+         QVectorIterator<QString> iter(warningBuff.buff);
+         while (iter.hasNext()) {
+@@ -340,17 +341,22 @@ void MainConsole::printOutput(const QString& message)
+     ensureCursorVisible();
+ }
+ 
+-void LogConsole::keyPressEvent(QKeyEvent* e) {
++void LogConsole::keyPressEvent(QKeyEvent* e)
++{
+     if (e->modifiers().testFlag(Qt::ControlModifier)) {
+         switch (e->key()) {
+-        case Qt::Key_F: {
++        case Qt::Key_C:
++            copy();
++            break;
++        case Qt::Key_A:
++            selectAll();
++            break;
++        case Qt::Key_F:
+             GenericConsole::keyPressEvent(e);
+             break;
+-        }
+-        default: {
++        default:
+             break;
+         }
+-        }
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index e9b11881d8d..f91bf717d9d 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2647,7 +2647,8 @@ void MainWindow::nocFinderFocus() {
+ 
+ void MainWindow::consoleFinderFocus()
+ {
+-    if ((dynamic_cast<NSDockWidget*>(sender())) || (dynamic_cast<INIConsole*>(this->focusWidget()))) {
++    if ((dynamic_cast<NSDockWidget*>(sender())) || (dynamic_cast<INIConsole*>(this->focusWidget())) ||
++        (dynamic_cast<LogConsole*>(this->focusWidget()))) {
+         if (finderWidget->isVisible()) {
+             consoleFinder->setFocus();
+         } else {

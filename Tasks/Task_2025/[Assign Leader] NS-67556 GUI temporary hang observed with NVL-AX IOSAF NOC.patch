@@ -1,0 +1,1136 @@
+ src/sw/noc_dev/GUICore/global.h                    |   4 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     |  98 +++----
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.h       |  11 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp       |   2 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.h         |   5 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp       |   4 +-
+ .../noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp  |   2 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     |  99 +++----
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.h       |   8 +-
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  |   2 +-
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp      | 318 ++++++++++++---------
+ src/sw/noc_dev/prototype/Gui/View/NsScene.h        |   4 +-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        |  55 ++--
+ src/sw/noc_dev/prototype/Gui/mainwindow.h          |   1 +
+ src/sw/noc_dev/prototype/Utils/nocstudioenums.h    |   1 +
+ 15 files changed, 321 insertions(+), 293 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/global.h b/src/sw/noc_dev/GUICore/global.h
+index 6d08d336052..ad8f6cc6ab1 100644
+--- a/src/sw/noc_dev/GUICore/global.h
++++ b/src/sw/noc_dev/GUICore/global.h
+@@ -15,7 +15,7 @@ extern int g_focusWid;
+ const int INVALID_INDEX                               = -1;
+ 
+ //Refactor global var
+-const int MAX_COLORS                                  = 256;
++const int MAX_COLORS                                  = 5000;
+ const int SOC_VIEW_DEFAULT_SCALE_STEP                 = 50;
+ const double ZOOM_STEP                                 = 0.1;
+ const int MAX_POWER_DOMAIN_MERGE_VIEW                 = 100;
+@@ -507,6 +507,7 @@ const char* const TEXT_HL_ALL_SPINE_REGIONS           = "All Spine Gating Region
+ const char* const TEXT_HL_REGBUS_LAYER                = "All Regbus Layers";
+ const char* const TEXT_HL_CUSTOM                      = "Custom Highlight...";
+ const char* const TEXT_ENABLE_TOOLTIP                 = "Enable Tooltip";
++const char* const TEXT_ENABLE_RTL_GROUP               = "Enable RTL Group";
+ const char* const TEXT_ENABLE_GLOBAL_WEB              = "Enable Global Web Open";
+ const char* const TEXT_DISPLAY_X_Y                    = "Display Node as x_y";
+ //Tab name
+@@ -597,6 +598,7 @@ const QString TOOLTIP_HL_ALL_BRIDGE_TYPES             = "Highlight all bridges o
+ const QString TOOLTIP_HL_ALL_NOC_QOS                  = "Highlight all elements of different qos in different colors";
+ const QString TOOLTIP_HL_ALL_SPINE_REGIONS            = "Highlight all elements of different spine clock gating regions in different colors";
+ const QString TOOLTIP_ENABLE_TOOLTIP                  = "Enable tooltip (Ctrl + T)";
++const QString TOOLTIP_ENABLE_RTL_GROUP                = "Enable rtl group (Ctrl + R)";
+ const QString TOOLTIP_ENABLE_GLOBAL_WEB               = "Enable global web open (Ctrl + G)";
+ const QString TOOLTIP_DISPLAY_NODE_X_Y                = "Display node as x_y (Ctrl +N)";
+ //Title
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 2cf1c7798ba..c605faa2730 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -131,60 +131,8 @@ QColor NsNormalBridge::getBridgeColor()
+     else if (meshScene->isViewMode(NsScene::POWER_DOMAIN))
+         setNameColor(powerDomainBridge);
+     else if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
+-        auto mw = meshScene->getNsWorkArea()->getMainWindow();
+-        if (!mw) return color;
+-        QList<QString> rtlMeshList = mw->getRtlGroupsTree().keys();
+-        QList<QString> rtlBridgeList;
+-        QList<QString> rtlMeshSelected = meshScene->getRtlSelected();
+-
+-        std::string bridgeRtlGroup = bridge->get_module_group()->name;
+-        if (NetSpeed::has_beginning(bridgeRtlGroup, "ns_")) {
+-            bridgeRtlGroup = bridgeRtlGroup.substr(3);
+-        }
+-        if (rtlMeshList.contains(QString::fromStdString(bridgeRtlGroup))) {
+-            rtlBridgeList.push_back(QString::fromStdString(bridgeRtlGroup));
+-        }
+-
+-        std::string nspsRtlGroup = bridge->get_power_domainp()->get_nsps_rtl_group()->name;
+-        if (NetSpeed::has_beginning(nspsRtlGroup, "ns_")) {
+-            nspsRtlGroup = nspsRtlGroup.substr(3);
+-        }
+-        if (rtlMeshList.contains(QString::fromStdString(nspsRtlGroup))) {
+-            rtlBridgeList.push_back(QString::fromStdString(nspsRtlGroup));
+-        }
+-
+-        auto spgroup = bridge->get_spine_cg_mod();
+-        std::string rtlGateName = spgroup ? (spgroup->get_module_group()->name) : "";
+-        if (NetSpeed::has_beginning(rtlGateName, "ns_")) {
+-            rtlGateName = rtlGateName.substr(3);
+-        }
+-        QString rtlGate = QString::fromStdString(rtlGateName);
+-        if (rtlGate != "fabric") {
+-            if (rtlMeshList.contains(rtlGate)) {
+-                rtlBridgeList.push_back(rtlGate);
+-            }
+-        }
+-
+-        if (!rtlBridgeList.isEmpty()) {
+-            QColor pickColor = meshScene->getRTLColor(rtlBridgeList.last());
+-            if (pickColor.isValid()) {
+-                color = pickColor;
+-            }
+-        }
+-
+-        QList<QString> rtlBridgeSelList;
+-        for (auto const &rtlName : rtlBridgeList) {
+-            if (rtlMeshSelected.contains(rtlName) || rtlMeshSelected.contains("*")) {
+-                rtlBridgeSelList.push_back(rtlName);
+-            }
+-        }
+-
+-        if (!rtlBridgeSelList.empty()) {
+-            QColor selectedColor = meshScene->getRTLColor(rtlBridgeSelList.last());
+-            if (selectedColor.isValid()) {
+-                color = selectedColor;
+-            }
+-        }
++        QColor selectedColor = meshScene->getRTLColor(bridgeRtlGroupName);
++        if (selectedColor.isValid()) color = selectedColor;
+     }
+     return color;
+ }
+@@ -193,7 +141,6 @@ void NsNormalBridge::setBridgeColor()
+ {
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     if (meshScene && meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
+-        QString bridgeRtlGroup = QString::fromStdString(bridge->get_module_group()->name);
+         if (!isSelectedInRTLView()) {
+             setBrush(QColor(Qt::gray));
+             setOpacity(0.2);
+@@ -826,7 +773,7 @@ void NsNormalBridge::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+         if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC)) {
+             std::string rtlGroup = getRTLGroup();
+             if (!rtlGroup.empty()) {
+-                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup));
++                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup), this->getLayerID());
+             }
+         }
+     }
+@@ -892,6 +839,45 @@ QVariant NsNormalBridge::itemChange(GraphicsItemChange change, const QVariant &
+     {
+         const bool isNocView = (dynamic_cast<NsNocViewScene*>(scene())) ? true : false;
+         if (!isNocView) setOpacity(1);
++
++        // get rtl group bridge
++        auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
++        if (meshScene && meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
++            if (bridgeRtlGroupName.isEmpty()) {
++                if (auto mw = meshScene->getNsWorkArea()->getMainWindow()) {
++                    QList<QString> rtlMeshList = mw->getRtlGroupsTree().keys();
++                    std::string bridgeRtlGroup;
++                    if (bridge->get_module_group()) {
++                        bridgeRtlGroup = bridge->get_module_group()->name;
++                        if (NetSpeed::has_beginning(bridgeRtlGroup, "ns_")) {
++                            bridgeRtlGroup = bridgeRtlGroup.substr(3);
++                        }
++                        if (rtlMeshList.contains(QString::fromStdString(bridgeRtlGroup))) {
++                            bridgeRtlGroupName = QString::fromStdString(bridgeRtlGroup);
++                        }
++                    } else if (bridge->get_power_domainp()->get_nsps_rtl_group()) {
++                        bridgeRtlGroup = bridge->get_power_domainp()->get_nsps_rtl_group()->name;
++                        if (NetSpeed::has_beginning(bridgeRtlGroup, "ns_")) {
++                            bridgeRtlGroup = bridgeRtlGroup.substr(3);
++                        }
++                        if (rtlMeshList.contains(QString::fromStdString(bridgeRtlGroup))) {
++                            bridgeRtlGroupName = QString::fromStdString(bridgeRtlGroup);
++                        }
++                    } else if (bridge->get_spine_cg_mod()) {
++                        bridgeRtlGroup = bridge->get_spine_cg_mod()->get_module_group()->name;
++                        if (NetSpeed::has_beginning(bridgeRtlGroup, "ns_")) {
++                            bridgeRtlGroup = bridgeRtlGroup.substr(3);
++                        }
++                        if (QString::fromStdString(bridgeRtlGroup) != "fabric") {
++                            if (rtlMeshList.contains(QString::fromStdString(bridgeRtlGroup))) {
++                                bridgeRtlGroupName = QString::fromStdString(bridgeRtlGroup);
++                            }
++                        }
++                    }
++                }
++            }
++        }
++
+         setBridgeColor();
+         if(auto mesh = dynamic_cast<NsMesh*>(this->parentItem()))
+             installSceneEventFilter(mesh);
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
+index f98c6079180..9217cf1c79a 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
+@@ -108,6 +108,9 @@ public:
+     }
+     void updateSize(QRectF r) { highlight = true; setRect(r); }
+ 
++    QColor getBridgeColor();
++    void setBridgeColor();
++
+     bool highlight = false;
+ 
+ signals:
+@@ -161,10 +164,6 @@ protected:
+     * @return QColor of Bridge
+     * @author Anh.Ma
+     */
+-    QColor getBridgeColor();
+-
+-    void setBridgeColor();
+-
+ 
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+     void disableBridgeActionInViewMode();
+@@ -172,8 +171,8 @@ protected:
+ private:
+     NetSpeed::Layer_id layerID;
+     bool isRegbusMaster = false;
+-    QString portName,
+-            bridgeName; // the name of this bridge as host/bridge
++    QString portName, bridgeName; // the name of this bridge as host/bridge
++    QString bridgeRtlGroupName;
+     const NetSpeed::Clock_domain_props_t* clockDomainBridge = nullptr;
+     const NetSpeed::Voltage_domain_props_t* volateDomainBridge = nullptr;
+     const NetSpeed::Power_domain_props_t* powerDomainBridge = nullptr;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index 7ce25a6bfff..0fec014fb19 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -716,7 +716,7 @@ void NsNormalHost::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+         if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC)) {
+             std::string rtlGroup = getRTLGroup();
+             if (!rtlGroup.empty()) {
+-                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup));
++                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup), this->getLayerID());
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.h b/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
+index 3027283770e..b0948f4cffc 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
+@@ -112,6 +112,9 @@ public:
+     void setDefaultSize() { highlight = false; setRect(rec); }
+     void updateSize(QRectF r) { highlight = true; setRect(r); }
+ 
++    QColor getHostColor();
++    void setHostColor();
++
+     bool highlight = false;
+ 
+ protected:
+@@ -156,7 +159,6 @@ protected:
+     * @return QColor of host
+     * @author Anh.Ma
+     */
+-    QColor getHostColor();
+ 
+     /**
+     * @brief notify that some part of the item's state changes
+@@ -167,7 +169,6 @@ protected:
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+     bool sceneEvent(QEvent* event) override;
+ private:
+-    void setHostColor();
+     bool isBockage = false;
+     bool isHostNameOverLapNodeId = false;
+     const NetSpeed::Clock_domain_props_t* clockDomainHost = nullptr;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp
+index 4f37a0d3f5a..39d088f18e5 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp
+@@ -39,7 +39,7 @@ NsMesh::NsMesh(NetSpeed::Layer_id l, const QVector<QString>& chops, NetSpeed::Gr
+     setZValue(NsMeshViewScene::MESH_ORDER);
+     nodeIDPen = QPen(QColor("#4D4D4D"), 1);
+     setAcceptHoverEvents(true);
+-    if (viewMode == NsScene::NOC)
++    if (viewMode == NsScene::NOC) {
+         for (auto const& it : grid->chop) {
+             if (!isNogui && !chops.contains(QString::fromStdString(it.first))) continue;
+             const NetSpeed::Chop_cfg& chop = it.second;
+@@ -54,6 +54,8 @@ NsMesh::NsMesh(NetSpeed::Layer_id l, const QVector<QString>& chops, NetSpeed::Gr
+             }
+             new NsChop(poly, this);
+         }
++    }
++
+     // create grid in mesh
+     drawRowColId();
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+index 65a580c2366..45eae2827a6 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+@@ -242,7 +242,7 @@ void NsRegbusBridge::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+         if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC)) {
+             std::string rtlGroup = getRTLGroup();
+             if (!rtlGroup.empty()) {
+-                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup));
++                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup), this->getLayerID());
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 10041ed2136..4bf6abdb150 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -162,58 +162,8 @@ QColor NsRouter::getRouterColor() {
+     else if (meshScene->isViewMode(NsScene::POWER_DOMAIN))
+         setNameColor(powerDomainRouter);
+     else if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
+-        auto mw = meshScene->getNsWorkArea()->getMainWindow();
+-        if (!mw) return color;
+-        QList<QString> rtlMeshList = mw->getRtlGroupsTree().keys();
+-        QList<QString> rtlRouterList;
+-        QList<QString> rtlMeshSelected = meshScene->getRtlSelected();
+-
+-        std::string routerRtlGroup = router->get_module_group()->name;
+-        if (NetSpeed::has_beginning(routerRtlGroup, "ns_")) {
+-            routerRtlGroup = routerRtlGroup.substr(3);
+-        }
+-        if (rtlMeshList.contains(QString::fromStdString(routerRtlGroup))) {
+-            rtlRouterList.push_back(QString::fromStdString(routerRtlGroup));
+-        }
+-
+-        std::string nspsRtlGroup = router->get_power_domainp()->get_nsps_rtl_group()->name;
+-        if (NetSpeed::has_beginning(nspsRtlGroup, "ns_")) {
+-            nspsRtlGroup = nspsRtlGroup.substr(3);
+-        }
+-        if (rtlMeshList.contains(QString::fromStdString(nspsRtlGroup))) {
+-            rtlRouterList.push_back(QString::fromStdString(nspsRtlGroup));
+-        }
+-
+-        auto spgroup = router->get_spine_cg_mod();
+-        std::string rtlGateName = spgroup ? (spgroup->get_module_group()->name) : "";
+-        if (NetSpeed::has_beginning(rtlGateName, "ns_")) {
+-            rtlGateName = rtlGateName.substr(3);
+-        }
+-        QString rtlGate = QString::fromStdString(rtlGateName);
+-        if (rtlGate != "fabric") {
+-            if (rtlMeshList.contains(rtlGate)) {
+-                rtlRouterList.push_back(rtlGate);
+-            }
+-        }
+-
+-        if (!rtlRouterList.isEmpty()) {
+-            QColor pickColor = meshScene->getRTLColor(rtlRouterList.last());
+-            if (pickColor.isValid()) {
+-                color = pickColor;
+-            }
+-        }
+-
+-        QList<QString> rtlRouterSelList;
+-        for (auto const &rtlName : rtlRouterList) {
+-            if (rtlMeshSelected.contains(rtlName) || rtlMeshSelected.contains("*")) {
+-                rtlRouterSelList.push_back(rtlName);
+-            }
+-        }
+-
+-        if (!rtlRouterSelList.empty()) {
+-            QColor selectedColor = meshScene->getRTLColor(rtlRouterSelList.last());
+-            if (selectedColor.isValid()) color = selectedColor;
+-        }
++        QColor selectedColor = meshScene->getRTLColor(routerRtlGroupName);
++        if (selectedColor.isValid()) color = selectedColor;
+     }
+ 
+     return color;
+@@ -223,11 +173,12 @@ void NsRouter::setRouterColor()
+ {
+     auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
+     if (meshScene && meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
+-        QString routerRtlGroup = QString::fromStdString(router->get_module_group()->name);
+         if (!isSelectedInRTLView()) {
+             setBrush(QColor(Qt::gray));
+             setOpacity(0.2);
+             return;
++        } else {
++            setOpacity(0.95);
+         }
+     }
+ 
+@@ -275,7 +226,45 @@ bool NsRouter::isSelectedInRTLView()
+ */
+ QVariant NsRouter::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+ {
+-    if (change == QGraphicsItem::ItemSceneHasChanged && active){
++    if (change == QGraphicsItem::ItemSceneHasChanged && active) {
++        // get rtl group router
++        auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
++        if (meshScene && meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
++            if (routerRtlGroupName.isEmpty()) {
++                if (auto mw = meshScene->getNsWorkArea()->getMainWindow()) {
++                    QList<QString> rtlMeshList = mw->getRtlGroupsTree().keys();
++                    std::string routerRtlGroup;
++                    if (router->get_module_group()) {
++                        routerRtlGroup = router->get_module_group()->name;
++                        if (NetSpeed::has_beginning(routerRtlGroup, "ns_")) {
++                            routerRtlGroup = routerRtlGroup.substr(3);
++                        }
++                        if (rtlMeshList.contains(QString::fromStdString(routerRtlGroup))) {
++                            routerRtlGroupName = QString::fromStdString(routerRtlGroup);
++                        }
++                    } else if (router->get_power_domainp()->get_nsps_rtl_group()) {
++                        routerRtlGroup = router->get_power_domainp()->get_nsps_rtl_group()->name;
++                        if (NetSpeed::has_beginning(routerRtlGroup, "ns_")) {
++                            routerRtlGroup = routerRtlGroup.substr(3);
++                        }
++                        if (rtlMeshList.contains(QString::fromStdString(routerRtlGroup))) {
++                            routerRtlGroupName = QString::fromStdString(routerRtlGroup);
++                        }
++                    } else if (router->get_spine_cg_mod()) {
++                        routerRtlGroup = router->get_spine_cg_mod()->get_module_group()->name;
++                        if (NetSpeed::has_beginning(routerRtlGroup, "ns_")) {
++                            routerRtlGroup = routerRtlGroup.substr(3);
++                        }
++                        if (QString::fromStdString(routerRtlGroup) != "fabric") {
++                            if (rtlMeshList.contains(QString::fromStdString(routerRtlGroup))) {
++                                routerRtlGroupName = QString::fromStdString(routerRtlGroup);
++                            }
++                        }
++                    }
++                }
++            }
++        }
++
+         setRouterColor();
+         if (auto mesh = dynamic_cast<NsMesh*>(this->parentItem())) {
+             installSceneEventFilter(mesh);
+@@ -425,7 +414,7 @@ void NsRouter::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+         if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC)) {
+             std::string rtlGroup = getRTLGroup();
+             if (!rtlGroup.empty()) {
+-                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup));
++                meshScene->updateSizeComponents(QString::fromStdString(rtlGroup), this->getLayerID());
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+index 12a8a55d0a8..a115dc42375 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+@@ -49,6 +49,8 @@ public:
+      * @author Tai.Vu
+      */
+     NetSpeed::Router* getRouter();
++    QColor getRouterColor();
++    void setRouterColor();
+ 
+     /**
+      * @brief initData init data for host
+@@ -102,11 +104,6 @@ protected:
+     QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value);
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+     void disableRouterActionInViewMode();
+-
+-    // get router color
+-    QColor getRouterColor();
+-
+-    void setRouterColor();
+     bool isSelectedInRTLView(); 
+ 
+ private:
+@@ -118,6 +115,7 @@ private:
+     bool active = false;
+     QString name; // use the display on GUI
+     QString routerName;
++    QString routerRtlGroupName;
+     QColor color;
+     const NetSpeed::Clock_domain_props_t* clockDomainRouter = nullptr;
+     const NetSpeed::Voltage_domain_props_t* voltageDomainRouter = nullptr;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index d450e03706f..2fd105dffab 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -493,7 +493,7 @@ bool NsNocViewScene::zoomOn(QString compName, QString color)
+         }
+     }
+     else if (mw->getRtlGroupsTree().keys().contains(compName)) {
+-        vector<QGraphicsItem*>rtlItems = getItems(compName);
++        vector<QGraphicsItem*> rtlItems = getItems(compName, NetSpeed::Layer_id(-1));
+         auto tree = mw->getRtlGroupsTree();
+         std::function<QList<QString>(QString)> getGroups = [&getGroups, &tree](QString name) -> QList<QString> {
+             QList<QString> grs;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index cac8d9f4f8e..620179e9098 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -718,35 +718,41 @@ void NsMeshViewScene::load()
+     NsRegbusRing* nsRegbusRing = nullptr;
+     NsRouterDiagram* nsRouterDiagram = nullptr;
+ 
+-    for (const auto& item : items()) {
+-        if (item->type() == BRIDGE_DIAGRAM) {
+-            nsRSSBDiagram = dynamic_cast<NsRSSBDiagram*>(item);
+-            nsBridgeDiagram = dynamic_cast<NsBridgeDiagram*>(item);
+-            if (nsRSSBDiagram) {
+-                nsRSSBDiagram->clearMesh();
+-                nameDiagram = nsRSSBDiagram->m_name;
+-                layerIdDiagram = nsRSSBDiagram->m_layerId;
+-                listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" + QString::number(layerIdDiagram));
+-            } else if (nsBridgeDiagram) {
+-                nsBridgeDiagram->clearMesh();
+-                nameDiagram = nsBridgeDiagram->m_name;
+-                layerIdDiagram = nsBridgeDiagram->m_layerId;
+-                listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" + QString::number(layerIdDiagram));
+-            }
+-        } else if (item->type() == RING_VISUALIZATION) {
+-            nsRegbusRing = dynamic_cast<NsRegbusRing*>(item);
+-            if (nsRegbusRing) {
+-                nsRegbusRing->clearMesh();
+-                nameDiagram = nsRegbusRing->m_name;
+-                layerIdDiagram = nsRegbusRing->m_layerId;
+-                listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" + QString::number(layerIdDiagram));
+-            }
+-        } else if (item->type() == ROUTER_DIAGRAM) {
+-            nsRouterDiagram = dynamic_cast<NsRouterDiagram*>(item);
+-            if (nsRouterDiagram) {
+-                nameDiagram = nsRouterDiagram->getName();
+-                layerIdDiagram = nsRouterDiagram->getLayerId();
+-                listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" + QString::number(layerIdDiagram));
++    if (isViewMode(NsMeshViewScene::NOC)) {
++        for (const auto& item : items()) {
++            if (item->type() == BRIDGE_DIAGRAM) {
++                nsRSSBDiagram   = dynamic_cast<NsRSSBDiagram*>(item);
++                nsBridgeDiagram = dynamic_cast<NsBridgeDiagram*>(item);
++                if (nsRSSBDiagram) {
++                    nsRSSBDiagram->clearMesh();
++                    nameDiagram    = nsRSSBDiagram->m_name;
++                    layerIdDiagram = nsRSSBDiagram->m_layerId;
++                    listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" +
++                                               QString::number(layerIdDiagram));
++                } else if (nsBridgeDiagram) {
++                    nsBridgeDiagram->clearMesh();
++                    nameDiagram    = nsBridgeDiagram->m_name;
++                    layerIdDiagram = nsBridgeDiagram->m_layerId;
++                    listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" +
++                                               QString::number(layerIdDiagram));
++                }
++            } else if (item->type() == RING_VISUALIZATION) {
++                nsRegbusRing = dynamic_cast<NsRegbusRing*>(item);
++                if (nsRegbusRing) {
++                    nsRegbusRing->clearMesh();
++                    nameDiagram    = nsRegbusRing->m_name;
++                    layerIdDiagram = nsRegbusRing->m_layerId;
++                    listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" +
++                                               QString::number(layerIdDiagram));
++                }
++            } else if (item->type() == ROUTER_DIAGRAM) {
++                nsRouterDiagram = dynamic_cast<NsRouterDiagram*>(item);
++                if (nsRouterDiagram) {
++                    nameDiagram    = nsRouterDiagram->getName();
++                    layerIdDiagram = nsRouterDiagram->getLayerId();
++                    listRestoreDiagrams.append(QString::fromStdString(nameDiagram) + "-" +
++                                               QString::number(layerIdDiagram));
++                }
+             }
+         }
+     }
+@@ -785,11 +791,9 @@ void NsMeshViewScene::load()
+     }
+     auto const& chops  = (mw) ? mw->getChopsToDisplay() : QVector<QString>();
+     auto const isNogui = console->is_nogui_mode();
+-    auto gen_lay       = [&](NetSpeed::Layer_id l) -> NsMesh* {
++    auto gen_lay = [&](NetSpeed::Layer_id l) -> NsMesh* {
+         /* Create mesh */
+         NsMesh* mesh = new NsMesh(l, chops, grid, mode, isNogui);
+-        // Create mesh split, remove this when testing new scf implementation
+-        createSCF(grid, mesh);
+ 
+         /* Create host items */
+         createHosts(brs_by_pos, regbusBridges, l, grid, mesh);
+@@ -820,6 +824,7 @@ void NsMeshViewScene::load()
+         layers.insert(l, m);
+         addItem(m);
+     }
++
+     // create chops items
+     if (mw) {
+         for (auto& topo : mw->topoMap) {
+@@ -828,7 +833,8 @@ void NsMeshViewScene::load()
+             addItem(b);
+         }      
+     }
+-    addTriangleToBridge();
++
++    if (isViewMode(NOC)) addTriangleToBridge();
+ }
+ 
+ int NsMeshViewScene::getTrianglePosition(NetSpeed::Bridge* b)
+@@ -850,39 +856,38 @@ int NsMeshViewScene::getTrianglePosition(NetSpeed::Bridge* b)
+ void NsMeshViewScene::addTriangleToBridge()
+ {
+     /* Get Show Link Only value */
+-    if (mw && (mw->isShowLinkOnly())) {
+-        NetSpeed::Grid* grid = console->get_container().get_grid();
+-        if (!grid) return;
+-        if (grid && (grid->get_state() >= NetSpeed::state_t::Mapped)) {
+-            for (auto& item : items()) {
+-                if (item && item->type() == BRIDGE) {
+-                    auto normalBridge = dynamic_cast<NsNormalBridge*>(item);
+-                    if (normalBridge) {
+-                        auto b = normalBridge->getBridge();
+-                        if (!b || !b->show_on_layer(normalBridge->getLayerID())) continue;
+-                        auto topLeft = normalBridge->rect().topLeft();
++    if (mw && (!mw->isShowLinkOnly())) return;
++    NetSpeed::Grid* grid = console->get_container().get_grid();
++    if (!grid) return;
++    if (grid && (grid->get_state() >= NetSpeed::state_t::Mapped)) {
++        for (auto& item : items()) {
++            if (item && item->type() == BRIDGE) {
++                auto normalBridge = dynamic_cast<NsNormalBridge*>(item);
++                if (normalBridge) {
++                    auto b = normalBridge->getBridge();
++                    if (!b || !b->show_on_layer(normalBridge->getLayerID())) continue;
++                    auto topLeft = normalBridge->rect().topLeft();
++                    int trianglePos = getTrianglePosition(b);
++                    if (trianglePos < 0) return;
++                    if (trianglePos > 1) {
++                        new NsTriangle(topLeft, 0, normalBridge);
++                        new NsTriangle(topLeft, 1, normalBridge);
++                    } else {
++                        new NsTriangle(topLeft, trianglePos, normalBridge);
++                    }
++                } else {
++                    auto regbusBridge = dynamic_cast<NsRegbusBridge*>(item);
++                    if (regbusBridge) {
++                        auto b = regbusBridge->getBridge();
++                        if (!b || !b->show_on_layer(regbusBridge->getLayerID())) continue;
++                        auto topLeft = regbusBridge->rect().topLeft();
+                         int trianglePos = getTrianglePosition(b);
+                         if (trianglePos < 0) return;
+                         if (trianglePos > 1) {
+-                            new NsTriangle(topLeft, 0, normalBridge);
+-                            new NsTriangle(topLeft, 1, normalBridge);
++                            new NsTriangle(topLeft, 0, regbusBridge);
++                            new NsTriangle(topLeft, 1, regbusBridge);
+                         } else {
+-                            new NsTriangle(topLeft, trianglePos, normalBridge);
+-                        }
+-                    } else {
+-                        auto regbusBridge = dynamic_cast<NsRegbusBridge*>(item);
+-                        if (regbusBridge) {
+-                            auto b = regbusBridge->getBridge();
+-                            if (!b || !b->show_on_layer(regbusBridge->getLayerID())) continue;
+-                            auto topLeft = regbusBridge->rect().topLeft();
+-                            int trianglePos = getTrianglePosition(b);
+-                            if (trianglePos < 0) return;
+-                            if (trianglePos > 1) {
+-                                new NsTriangle(topLeft, 0, regbusBridge);
+-                                new NsTriangle(topLeft, 1, regbusBridge);
+-                            } else {
+-                                new NsTriangle(topLeft, trianglePos, regbusBridge);
+-                            }
++                            new NsTriangle(topLeft, trianglePos, regbusBridge);
+                         }
+                     }
+                 }
+@@ -1148,11 +1153,8 @@ void NsMeshViewScene::display()
+ 
+ void NsMeshViewScene::refresh()
+ {
+-    if (isDomainView())
+-        makeDomainColors();
+-    if (viewMode() == NsScene::RTL_GROUP_VIEW) {
+-        makeRTLColors();
+-    }
++    if (isDomainView()) makeDomainColors();
++    if (isViewMode(NsScene::RTL_GROUP_VIEW)) makeRTLColors();
+     load();
+ }
+ 
+@@ -1322,31 +1324,37 @@ void NsMeshViewScene::createHosts(std::unordered_map<bpos, std::vector<NetSpeed:
+         if (!isValidMeshRect(h)) continue;
+         NsNormalHost* host = new NsNormalHost(h, grid);
+         host->setParentItem(mesh);
+-        if (isViewMode(MERGE_DOMAIN)) 
+-            if (auto power = host->getPowerDomain()) 
++        if (isViewMode(MERGE_DOMAIN)) {
++            if (auto power = host->getPowerDomain()) {
+                 new NsPowerPattern(powerDomainPatterns[power->name],
+-                    host->rect().topRight() - QPointF(NODE_SIZE / 3, NODE_SIZE / 3),
+-                    NODE_SIZE / 3, host);
++                                   host->rect().topRight() - QPointF(NODE_SIZE / 3, NODE_SIZE / 3),
++                                   NODE_SIZE / 3, host);
++            }
++        }
++
+         // show/hide host in grid view
+         if (!isHostVisible) host->hide();
+         /* TODO: Display Bridges Individually */
+-        if (NetSpeed::is_member(viewMode(), {CLOCK_DOMAIN, POWER_DOMAIN, VOLTAGE_DOMAIN, MERGE_DOMAIN}) &&
+-            isDisplayBridgesIndividually(h))
++        if (NetSpeed::is_member(viewMode(),
++            {CLOCK_DOMAIN, POWER_DOMAIN, VOLTAGE_DOMAIN, MERGE_DOMAIN}) && isDisplayBridgesIndividually(h)) {
+             displayBridgesIndividually(h, layer, mesh);
+-        else {
++        } else {
+             /* Create Bridges Items*/
+             bool isRegbusLayer = grid->is_regbus_layer(layer);
+             auto addBridge = [&](QGraphicsItem * bridge, NetSpeed::Bridge * b) {
+-                if (isHostVisible && b->get_hostp() == host->getHost()) bridge->setParentItem(host);
+-                else bridge->setParentItem(mesh);
++                if (isHostVisible && b->get_hostp() == host->getHost()) {
++                    bridge->setParentItem(host);
++                } else {
++                    bridge->setParentItem(mesh);
++                }
+                 // show/hide bridge in grid view
+                 if (!isBridgeVisible) bridge->hide();
+                 alreadyAdded.append(b);
+                 bridge->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+             };
+-            NsPlusItem* plus   = nullptr; 
++            NsPlusItem* plus = nullptr;
+             auto processBridge = [&](NetSpeed::Bridge * b, bool isRegbus) {
+-                if (!b || !b->show_on_layer(layer)) return;
++                if (!b || (!b->show_on_layer(layer))) return;
+                 auto bris = getOverLappedBridgesAtLayer(brs_by_pos[std::make_pair(b->get_pos(), b->get_pos_rport())], layer);
+                 if (bris.size() > 1) {
+                     /* Add "+" item */
+@@ -1354,47 +1362,53 @@ void NsMeshViewScene::createHosts(std::unordered_map<bpos, std::vector<NetSpeed:
+                     // show/hide multi bridge in grid view
+                     if (!isBridgeVisible) plus->hide();
+                     alreadyAdded.append(bris);
+-                }
+-                else {
++                } else {
+                     if (isRegbus) {
+                         if (b->is_regbus_mst()) {
+                             auto rb = dynamic_cast<NetSpeed::Regbus_bridge*>(b);
+-                            if (rb && (layer == rb->get_regbus_lyr_connection()))
++                            if (rb && (layer == rb->get_regbus_lyr_connection())) {
+                                 addBridge(new NsNormalBridge(b, layer), b);
++                            }
++                        } else {
++                            addBridge(new NsRegbusBridge(b, layer), b);
+                         }
+-                        else addBridge(new NsRegbusBridge(b, layer), b);
+-                    }
+-                    else {
++                    } else {
+                         if (isRegbusLayer) return;
+                         addBridge(new NsNormalBridge(b, layer), b);
+                     }
+                 }
+             };
++
+             auto bridges = h->get_bridges();
+             for (auto b : bridges) {
+                 if (alreadyAdded.contains(b)) continue;
+                 processBridge(b, false);
+             }
+-            if (isRegbusLayer) for (auto b : regbusBridges) {
+ 
+-                if (alreadyAdded.contains(b)) continue;
+-                processBridge(b, true);
++            if (isRegbusLayer) {
++                for (auto& b : regbusBridges) {
++                    if (alreadyAdded.contains(b)) continue;
++                    processBridge(b, true);
++                }
+             }
++
+             // add sib lines
+-            if(isSibVisible) for(auto const& b: bridges){
+-                if (!b || !b->show_on_layer(layer)) continue;
+-                if(b->get_sibs().empty()) continue;
+-                NsNormalBridge normalBridge(b, layer);
+-                QPointF bridgePoint = normalBridge.scenePos() + normalBridge.rect().center();
+-                for (const auto& sib : b->get_sibs()) {
+-                    if (plus && plus->hasBridge(b) && plus->hasBridge(sib)) {
+-                        continue;
++            if (isSibVisible) {
++                for (auto const& b : bridges) {
++                    if (!b || !b->show_on_layer(layer)) continue;
++                    if (b->get_sibs().empty()) continue;
++                    NsNormalBridge normalBridge(b, layer);
++                    QPointF bridgePoint = normalBridge.scenePos() + normalBridge.rect().center();
++                    for (const auto& sib : b->get_sibs()) {
++                        if (plus && plus->hasBridge(b) && plus->hasBridge(sib)) {
++                            continue;
++                        }
++                        NsNormalBridge s(sib, layer);
++                        QPointF sibPoint = s.scenePos() + s.rect().center();
++                        new NsSibLine(QLineF(bridgePoint, sibPoint), mesh);
+                     }
+-                    NsNormalBridge s(sib, layer);
+-                    QPointF sibPoint =  s.scenePos() + s.rect().center();
+-                    new NsSibLine(QLineF(bridgePoint, sibPoint), mesh);
+                 }
+-            }                      
++            }
+         }
+     }
+ }
+@@ -1772,8 +1786,9 @@ void NsMeshViewScene::makeDomainColors()
+             else if (dmName == "system")
+                 dmColor->insert(dmName, 1);
+             else {
+-                while (usedColor.contains(color) && color != MAX_COLORS)
++                while (usedColor.contains(color) && (color != MAX_COLORS)) {
+                     color++;
++                }
+                 dmColor->insert(dmName, color);
+                 usedColor.insert(color);
+             }
+@@ -1804,28 +1819,24 @@ void NsMeshViewScene::makeDomainColors()
+ void NsMeshViewScene::makeRTLColors()
+ {
+     if (!mw) return;
++    QList<QColor> usedColor;
+     QList<QString> rtlList = mw->getRtlGroupsTree().keys();
+-    for (auto rtlName : rtlGroupColor.keys()) {
++    for (auto& rtlName : rtlGroupColor.keys()) {
+         if (!rtlList.contains(rtlName)) {
+             rtlGroupColor.remove(rtlName);
++        } else {
++            usedColor.append(rtlGroupColor[rtlName]);
+         }
+     }
+ 
+-    QList<QColor> usedColor;
+-    for (auto rtlName : rtlGroupColor.keys()) {
+-        usedColor.push_back(rtlGroupColor[rtlName]);
+-    }
+-
+     int i = 2;
+-    for (auto const &rtlName : mw->getRtlGroupsTree().keys()) {
+-        if ((!rtlGroupColor.contains(rtlName))) {
+-            /* Avoid the same color */
+-            while (usedColor.contains(g_dmColors[i]) && (i < g_dmColors.size())) {
+-                i++;
+-            }
+-            rtlGroupColor[rtlName] = g_dmColors[i];
+-            usedColor.push_back(g_dmColors[i]);
+-        }
++    for (auto const& rtlName : rtlList) {
++        if (rtlGroupColor.contains(rtlName)) continue;
++        /* Avoid the same color */
++        while ((i < g_dmColors.size()) && usedColor.contains(g_dmColors[i])) i++;
++        QColor& c = g_dmColors[i];
++        rtlGroupColor[rtlName] = c;
++        usedColor.append(c);
+     }
+ }
+ 
+@@ -1891,12 +1902,14 @@ void NsMeshViewScene::createActiveRouter(Layer_id l, Grid *grid, NsMesh *mesh)
+         if (!r || !r->is_enabled()) continue;
+         NsRouter* router = new NsRouter(l, n, grid);
+         router->setParentItem(mesh);
+-        if (isViewMode(MERGE_DOMAIN))
++        if (isViewMode(MERGE_DOMAIN)) {
+             if (auto power = r->get_power_domainp()) {
+-                auto pos = (r->get_orientation() == NetSpeed::orient::R0) ? router->rect().topRight() - QPointF(ROUTER_SIZE / 3, 0)
+-                                                                          : router->rect().bottomLeft() - QPointF(0, ROUTER_SIZE / 3);
++                auto pos = (r->get_orientation() == NetSpeed::orient::R0) ?
++                               router->rect().topRight() - QPointF(ROUTER_SIZE / 3, 0) :
++                               router->rect().bottomLeft() - QPointF(0, ROUTER_SIZE / 3);
+                 new NsPowerPattern(powerDomainPatterns[power->name], pos, ROUTER_SIZE / 3, router);
+             }
++        }
+     }
+ }
+ 
+@@ -1998,18 +2011,13 @@ void NsMeshViewScene::createRouterConnection(Layer_id l, Grid *grid, NsMesh *mes
+ 
+ void NsMeshViewScene::createRouter2RouterConnection(Layer_id l, Grid *grid, NsMesh *mesh)
+ {
+-    if (!console->get_command(NetSpeed::Command_idx(CMD_ADD_CONNECT))) {
+-        return;
+-    }
++    if (!console->get_command(NetSpeed::Command_idx(CMD_ADD_CONNECT))) return;
++
+     auto const& nodes = grid->get_nodes();
+     for(auto n : nodes){
+-        if (!n.is_center()) {
+-            continue;
+-        }
++        if (!n.is_center()) continue;
+         NetSpeed::Router* rtr = grid->router(l,n);
+-        if (!rtr) {
+-            continue;
+-        }
++        if (!rtr) continue;
+         for(NetSpeed::Port_id direction: NetSpeed::DIRECTION_PORT_LIST) {
+             auto connectingRId = rtr->get_router_conn(direction);
+             if (connectingRId.first.is_null() || connectingRId.second.is_null()) {
+@@ -2322,17 +2330,34 @@ std::vector<NetSpeed::Node_id> getIntersectsNodes(const NetSpeed::Node_id& topLe
+ RtlDialog* NsMeshViewScene::makeRtlGroupsDialog()
+ {
+     RtlDialog* rtlGroupsDialog = new RtlDialog(&rtlSelected, &rtlGroupColor, mw);
+-    auto update = [=]() {
+-        rtlSelected.clear();
++
++    auto updateColors = [&, rtlGroupsDialog]() {
++        if (rtlSelected.size() > 0) rtlSelected.clear();
++        if (!rtlGroupsDialog) return;
+         rtlSelected = rtlGroupsDialog->getSelectedItem();
+         QMap<QString, QColor> colorItems = rtlGroupsDialog->getColorItems();
+-        for (auto rtlName : rtlGroupColor.keys()) {
+-            rtlGroupColor[rtlName] = colorItems[rtlName];
++        for (const auto& rtlName : rtlGroupColor.keys()) {
++            if (rtlGroupColor[rtlName] != colorItems[rtlName]) {
++                rtlGroupColor[rtlName] = colorItems[rtlName];   /* Update color */
++            }
+         }
+         mw->showDomainColorLegend();
+-        nsWorkArea->refresh();
++        for (auto& mesh : layers) {
++            if (!mesh->isVisible()) continue;
++            for (const auto& item : mesh->collidingItems()) {
++                if (!NetSpeed::is_member(item->type(), {HOST, BRIDGE, ROUTER})) continue;
++                if (auto h = dynamic_cast<NsNormalHost*>(item)) {
++                    h->setHostColor();
++                } else if (auto b = dynamic_cast<NsNormalBridge*>(item)) {
++                    b->setBridgeColor();
++                } else if (auto r = dynamic_cast<NsRouter*>(item)) {
++                    r->setRouterColor();
++                }
++            }
++        }
+     };
+-    connect(rtlGroupsDialog, &RtlDialog::updated, this, update);
++
++    connect(rtlGroupsDialog, &RtlDialog::updated, this, updateColors);
+ 
+     return rtlGroupsDialog;
+ }
+@@ -2692,14 +2717,14 @@ void NsMeshViewScene::showTextOnTrace(QString& text)
+     }
+ }
+ 
+-void NsMeshViewScene::updateSizeComponents(QString rtlGroup)
++void NsMeshViewScene::updateSizeComponents(QString rtlGroup, NetSpeed::Layer_id l)
+ {
+     if (!console)   return;
+     auto g = console->get_container().get_grid();
+     if (!g) return;
+     if (g->gui_rtl_group_mode == NetSpeed::enable_rtl_group_mode::No) return; 
+ 
+-    auto items = getItems(rtlGroup);
++    auto items = getItems(rtlGroup, l);
+     for (auto const &item : items) {
+         QRectF rf = item->boundingRect().adjusted(-3, -3, 3, 3);
+         /* Normal Host */
+@@ -2725,6 +2750,7 @@ void NsMeshViewScene::updateSizeComponents(QString rtlGroup)
+         item->update();
+     };
+ 
++    if (!mw->getInstrumentsActMap()[ENABLE_RTL_GROUP]->isChecked()) return;
+     /* Show RTL Group name on the trace */
+     showTextOnTrace(rtlGroup);
+ }
+@@ -2771,7 +2797,7 @@ void NsMeshViewScene::resetSizeComponents()
+     }
+ }
+ 
+-vector<QGraphicsItem*> NsMeshViewScene::getItems(QString rtlGroup)
++vector<QGraphicsItem*> NsMeshViewScene::getItems(QString rtlGroup, NetSpeed::Layer_id l)
+ {
+     vector<QGraphicsItem*>rtlItems;
+     auto tree = mw->getRtlGroupsTree();
+@@ -2784,13 +2810,27 @@ vector<QGraphicsItem*> NsMeshViewScene::getItems(QString rtlGroup)
+         return grs;
+     };
+ 
+-    for (auto item : items()) {
+-        for (auto gr : getGroups(rtlGroup)) {
++    QList<QGraphicsItem*> listItems;
++    if (l.as_int() < 0) {
++        /* All items of visible mesh */
++        for (auto& mesh : layers) {
++            if (mesh->isVisible()) {
++                listItems << mesh->collidingItems();
++            }
++        }
++    } else {
++        listItems = layers[l]->collidingItems();    /* Just get items in the specify layer */
++    }
++
++    for (auto& item : listItems) {
++        if (!NetSpeed::is_member(item->type(), {HOST, BRIDGE, REGBUS_BRIDGE, ROUTER})) continue;
++        for (auto& gr : getGroups(rtlGroup)) {
+             if (checkGroupItem(item, gr)) {
+                 rtlItems.push_back(item);
+             }
+         }
+     }
++
+     return rtlItems;
+ }
+ 
+@@ -2800,6 +2840,8 @@ bool NsMeshViewScene::checkGroupItem(QGraphicsItem* item, QString rtlGroup)
+     if (h && h->isRTLGroup(rtlGroup)) return true;
+     auto b = dynamic_cast<NsBridge*>(item);
+     if (b && b->isRTLGroup(rtlGroup)) return true;
++    auto rb = dynamic_cast<NsRegbusBridge*>(item);
++    if (rb && rb->isRTLGroup(rtlGroup)) return true;
+     auto r = dynamic_cast<NsRouter*>(item);
+     if (r && r->isRTLGroup(rtlGroup)) return true;
+     return false;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.h b/src/sw/noc_dev/prototype/Gui/View/NsScene.h
+index ccd543cc4ad..d179c9ad971 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.h
+@@ -416,8 +416,8 @@ public:
+     QStringList getRtlSelected() const;
+     void resetRtlSelected();
+     RtlDialog* getRtlDialog() const { return rtlDialog; }
+-    std::vector<QGraphicsItem*> getItems(QString rtlGroup);
+-    void updateSizeComponents(QString);
++    std::vector<QGraphicsItem*> getItems(QString rtlGroup, NetSpeed::Layer_id);
++    void updateSizeComponents(QString, NetSpeed::Layer_id = NetSpeed::Layer_id(-1));
+     void resetSizeComponents();
+     void showTextOnTrace(QString& text);
+     QList<QPair<int, QGraphicsRectItem*>> box;
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 65732a83153..140c1910dd9 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -116,19 +116,23 @@ std::vector<std::string> getListDomains(NetSpeed::Grid* g, domain_id domain) {
+ 
+ void createColors()
+ {
+-    g_dmColors.append(QColor(Qt::white));
++    qreal hue = 0;
++    const qreal sat = 0.5;
++    const qreal golden_ratio_conjugate = 0.618033988749895;
++    const qreal l1 = 0.9f;
++    const qreal l2 = 0.7f;
+ 
+-    double hue = 0;
+-    const double sat = 0.5, golden_ratio_conjugate = 0.618033988749895;
++    if (g_dmColors.size() > 0) g_dmColors.clear();
++    g_dmColors.append(QColor(Qt::white));
+     for (int i = 0; i < MAX_COLORS; i++) {
+-        QColor c;
+         hue += golden_ratio_conjugate;
+         hue = hue < 1 ? hue : hue - 1;
+-        if (i % 2 == 0)
+-            c.setHslF(hue, sat, (float)0.9);
+-        else
+-            c.setHslF(hue, sat, (float)0.7);
+-
++        QColor c = QColor();
++        if ((i % 2) == 0) {
++            c.setHslF(hue, sat, l1);
++        } else {
++            c.setHslF(hue, sat, l2);
++        }
+         g_dmColors.append(c);
+     }
+ }
+@@ -216,6 +220,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+         addDockWidget(Qt::RightDockWidgetArea, addressRangeDock);
+         addressRangeDock->hide();
+     }
++
+     /* Set application icon */
+     setWindowIcon(QIcon(ICON_NOC_M1));
+     setMinimumSize(640, 480);
+@@ -574,26 +579,25 @@ QMap<QString, QString> MainWindow::getRtlGroupsTree()
+                                              g->get_alive_noc_rtl_modules(NetSpeed::Verbose{false}) :
+                                              g->get_noc_rtl_modules(false);
+ 
+-    std::vector<const NetSpeed::rtl_group_id*> rtlGroups;
+-    for (auto r : rs) {
+-        rtlGroups.push_back(r->get_module_group());
+-    }
++    std::string rtlName;
++    std::string rtlParentName;
++    const NetSpeed::rtl_group_id* rtlGroup = nullptr;
++    const NetSpeed::rtl_group_id* rtlParentGroup = nullptr;
+ 
+-    for (auto rtlGroup : rtlGroups) {
+-        std::string rtlName = rtlGroup->name;
++    for (auto r : rs) {
++        rtlGroup = r->get_module_group();
++        rtlName = rtlGroup->name;
+         if (NetSpeed::has_beginning(rtlName, "ns_")) {
+             rtlName = rtlName.substr(3);
+         }
+-        std::string parentgrp;
+-
+-        auto parent = g->get_rtl_group_parent_of(rtlGroup);
+-        if (parent != rtlGroup) {
+-            parentgrp = parent->name;
+-            if (NetSpeed::has_beginning(parentgrp, "ns_")) {
+-                parentgrp = parentgrp.substr(3);
++        rtlParentGroup = g->get_rtl_group_parent_of(rtlGroup);
++        if (rtlParentGroup != rtlGroup) {
++            rtlParentName = rtlParentGroup->name;
++            if (NetSpeed::has_beginning(rtlParentName, "ns_")) {
++                rtlParentName = rtlParentName.substr(3);
+             }
+         }
+-        rtlGroupsTree[QString::fromStdString(rtlName)] = QString::fromStdString(parentgrp);
++        rtlGroupsTree[QString::fromStdString(rtlName)] = QString::fromStdString(rtlParentName);
+     }
+     return rtlGroupsTree;
+ }
+@@ -910,6 +914,7 @@ void MainWindow::setActionsShortcut()
+     instrumentsActMap[EXIT_FULLSCREEN]->setShortcut(QKeySequence("Ctrl+W"));
+     instrumentsActMap[DISPLAY_NODE_ID]->setShortcut(QKeySequence("Ctrl+N"));
+     instrumentsActMap[ENABLE_TOOLTIP]->setShortcut(QKeySequence("Ctrl+T"));
++    instrumentsActMap[ENABLE_RTL_GROUP]->setShortcut(QKeySequence("Ctrl+R"));
+     instrumentsActMap[ENABLE_GLOBAL_WEB]->setShortcut(QKeySequence("Ctrl+G"));
+ 
+     // Add action
+@@ -8889,11 +8894,13 @@ void MainWindow::createToolbars()
+ 
+     popupViewMenu->addSeparator();
+ 
+-    /* Add "DISPLAY_NODE_ID" and "[ENABLE_TOOLTIP]" */
++    /* Add "[DISPLAY_NODE_ID]", "[ENABLE_TOOLTIP] and [ENABLE_RTL_GROUP] " */
+     popupViewMenu->addAction(instrumentsActMap[DISPLAY_NODE_ID]);
+     instrumentsActMap[DISPLAY_NODE_ID]->setIconVisibleInMenu(false);
+     popupViewMenu->addAction(instrumentsActMap[ENABLE_TOOLTIP]);
+     instrumentsActMap[ENABLE_TOOLTIP]->setIconVisibleInMenu(false);
++    popupViewMenu->addAction(instrumentsActMap[ENABLE_RTL_GROUP]);
++    instrumentsActMap[ENABLE_RTL_GROUP]->setIconVisibleInMenu(false);
+ 
+     //Zoom items
+     viewToolbar->addAction(instrumentsActMap[ZOOM_FIT]);
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index 21a4718a1eb..d70ab2ea9dc 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -1440,6 +1440,7 @@ private:
+         {TOGGLE_LAYER_BLOCKAGE_VIEW,         ActionParams(QString(TOOLTIP_LAYER_BLOCKAGE_BUTTON_UNCHECKED) + "\tAlt+B"     , QIcon(ICON_SWITCH_BLOCKAGE), TOOLTIP_LAYER_BLOCKAGE_BUTTON_UNCHECKED,  true)},
+         {TOGGLE_RTL_GROUP_VIEW,              ActionParams(QString(TOOLTIP_RTL_GROUP_BUTTON_UNCHECKED) + "\tAlt+R"          , QIcon(ICON_SWITCH_RTL_GROUP), TOOLTIP_RTL_GROUP_BUTTON_UNCHECKED,      true)},
+         {ENABLE_TOOLTIP,                     ActionParams(QString(TEXT_ENABLE_TOOLTIP) + "\tCtrl+T"                        , QIcon(ICON_SHORTCUT),        TOOLTIP_ENABLE_TOOLTIP,                   true)},
++        {ENABLE_RTL_GROUP,                   ActionParams(QString(TEXT_ENABLE_RTL_GROUP) + "\tCtrl+R"                      , QIcon(ICON_SHORTCUT),        TOOLTIP_ENABLE_RTL_GROUP,                 true)},
+         {ENABLE_GLOBAL_WEB,                  ActionParams(QString(TEXT_ENABLE_GLOBAL_WEB)+ "\tCtrl+G"                      , QIcon(ICON_SHORTCUT),        TOOLTIP_ENABLE_GLOBAL_WEB,                true)},
+         {DISPLAY_NODE_ID,                    ActionParams(QString(TEXT_DISPLAY_X_Y) + "\tCtrl+N"                           , QIcon(ICON_SHORTCUT),        TOOLTIP_DISPLAY_NODE_X_Y,                 true)},
+         {COMBINE_ALL_WINDOWS,                ActionParams(TEXT_DOCK_ALL)},
+diff --git a/src/sw/noc_dev/prototype/Utils/nocstudioenums.h b/src/sw/noc_dev/prototype/Utils/nocstudioenums.h
+index 2dbd287d3e8..df7ea422b67 100644
+--- a/src/sw/noc_dev/prototype/Utils/nocstudioenums.h
++++ b/src/sw/noc_dev/prototype/Utils/nocstudioenums.h
+@@ -152,6 +152,7 @@ typedef enum InstrumentsEnum {
+     ZOOM_OUT,
+     ENABLE_CONSOLE,
+     ENABLE_TOOLTIP,
++    ENABLE_RTL_GROUP,
+     ENABLE_GLOBAL_WEB,
+     ENABLE_LINT_WAIVE_TAB,
+     ENABLE_TOOLTIP_WINDOW,

@@ -1,0 +1,79 @@
+ .../noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp  | 17 +++++++++++++++--
+ src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h |  2 ++
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+index dfb571cccfc..c4ec6557da3 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+@@ -266,6 +266,9 @@ void IPMainWindow::saveSettings()
+ 
+     // Saving window state
+     settings.setValue("Gerneral/" + geometryName, saveGeometry());
++
++    // Saving final path of open dialog
++    settings.setValue("Gerneral/" + pathName, folderPathOfOpenDialog);
+ }
+ 
+ void IPMainWindow::readSettings()
+@@ -320,6 +323,11 @@ void IPMainWindow::readSettings()
+     // Restore window state
+     restoreGeometry(settings.value("Gerneral/" + geometryName).toByteArray());
+ 
++    // Restore final path
++    folderPathOfOpenDialog = settings.value("Gerneral/" + pathName).toString();
++
++    qDebug() << folderPathOfOpenDialog;
++
+     HelpAppDialog::setAbstractFontSlider(fSizeDialog->getHelpSlider());
+ }
+ 
+@@ -386,6 +394,8 @@ void IPMainWindow::createMenu()
+     fileMenu->addAction(source);
+     connect(source, &QAction::triggered, this, [&]() {
+         QString filename = fileDialog(QFileDialog::AcceptMode::AcceptOpen, TITLE_FILE_OF_TYPES_IP);
++        QFileInfo latestFolderPath(filename);
++        folderPathOfOpenDialog = latestFolderPath.absolutePath();
+         if (!filename.isEmpty()) {
+             console->get_container().Clear(false);
+             QFileInfo file(filename);
+@@ -830,7 +840,8 @@ void IPMainWindow::resizeEvent(QResizeEvent* event)
+     QMainWindow::resizeEvent(event);
+ }
+ 
+-QString IPMainWindow::fileDialog(const QFileDialog::AcceptMode& acceptMode, const QString& filter) {
++QString IPMainWindow::fileDialog(const QFileDialog::AcceptMode& acceptMode, const QString& filter)
++{
+     QString fn;
+     lastSourceDirPath = QDir::currentPath();
+     const int MAX_WIDTH_DIALOG = 1280;
+@@ -841,7 +852,9 @@ QString IPMainWindow::fileDialog(const QFileDialog::AcceptMode& acceptMode, cons
+     customeQFileDialog dialogFileName;
+ 
+     dialogFileName.setOption(QFileDialog::DontUseNativeDialog);
+-    dialogFileName.setDirectory(lastSourceDirPath);
++    if (folderPathOfOpenDialog.isEmpty()) dialogFileName.setDirectory(lastSourceDirPath);
++    else dialogFileName.setDirectory(folderPathOfOpenDialog);
++
+     if (acceptMode == QFileDialog::AcceptMode::AcceptOpen) {
+         dialogFileName.setWindowTitle(TITLE_OPEN_FILE);
+         dialogFileName.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+index bc46a5b2ef9..5936709d1e2 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+@@ -66,12 +66,14 @@ private:
+     QString absolute;
+     QString moduleSpecContent;
+     QString lastSourceDirPath;
++    QString folderPathOfOpenDialog;
+     QString openedFileName;
+ 
+     //QSetting
+     const QString dialogSizeConfig = "Font Size Settings";
+     const QString geometryName = "Geometry";
+     const QString stateName = "State";
++    const QString pathName = "Path";
+     
+     std::map<std::string, std::vector<std::string>> strs;
+     QThread consoleThread;

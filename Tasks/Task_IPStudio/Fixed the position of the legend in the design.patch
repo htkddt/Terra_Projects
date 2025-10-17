@@ -1,0 +1,385 @@
+ .../IPStudio_qt6/GUI/MainWindow/IPDesign.cpp       | 26 ++++-----
+ .../IPStudio_qt6/GUI/MainWindow/MainWindow.cpp     | 11 ++++
+ .../IPStudio_qt6/GUI/MainWindow/MainWindow.h       |  1 +
+ src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj   | 68 +++++++++++-----------
+ .../IPStudio_qt6/IPStudio_qt6.vcxproj.filters      | 68 +++++++++++-----------
+ src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h     | 14 +++--
+ 6 files changed, 101 insertions(+), 87 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+index 1e784ccc1a1..aff79c3642d 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+@@ -27,18 +27,17 @@ using namespace BDS;
+ extern QSemaphore gSem;
+ 
+ IPDesign::IPDesign(const NetSpeed::BDS::Module* module, QWidget* parent)
+-: QSchematic::View(parent), view(new OverlaidGraphicsView(this)), module(module)
++: QSchematic::View(parent), module(module)
+ {    
+     object = std::make_shared<IPObject>();
+     QSchematic::Settings settings;
+     scene = new QSchematic::Scene;
+-    notification = new QSchematic::Scene;
+     scene->setSettings(settings);
+     scene->setWireFactory([] { return std::make_shared<FancyWire>(); });
+     setScene(scene);
+     setSettings(settings);
+ 
+-    IPMainWindow* mw = dynamic_cast<IPMainWindow*>(parent);
++    mw = dynamic_cast<IPMainWindow*>(parent);
+     if (mw) {
+         connect(scene, &QSchematic::Scene::setSelectedItems, mw->getModulesTab(), &IPInstancesTable::setSelectedItems);
+         connect(mw->getModulesTab(), &IPInstancesTable::itemClick, scene, &QSchematic::Scene::setFocusItem);
+@@ -278,19 +277,18 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+         wireDialog->refresh(ifces);
+     }
+ 
+-    view->fitInView(0, 0, 1, 1);
+-    view->setResizeAnchor(QGraphicsView::AnchorViewCenter);
+-    view->setRenderHint(QPainter::Antialiasing);
+-    view->setOverlayScene(notification);
+-    auto imageObject = new QImage();
+-    imageObject->load(":/images/icons/legend.png");
+-    auto image = QPixmap::fromImage(*imageObject);
+-    view->setFixedSize(image.width() + 1, image.height() + 1);
+-    notification->addPixmap(image);
++    auto centralWidget = mw->centralWidget();
++    centralWidget->installEventFilter(mw);
++    widthVerticalScrollbar = QSchematic::View::verticalScrollBar()->sizeHint().width();
++    heightHorizontalScrollBar = QSchematic::View::horizontalScrollBar()->sizeHint().height();
+ 
+-    fitInView();
++    legend = new QLabel(this);
++    legend->setPixmap(QPixmap(":/images/icons/legend.png"));
++    legend->adjustSize();
++    legend->move(centralWidget->rect().bottomRight().x() - widthVerticalScrollbar * 1.5 - legend->width(),
++                 centralWidget->rect().bottomRight().y() - heightHorizontalScrollBar * 3 - legend->height());
+ 
+-    emit loadLayoutFinish(scene);       
++    emit loadLayoutFinish(scene);
+ }
+ 
+ void IPDesign::buildInstanceWires(Instance* inst)
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+index 777f3c4942c..dfb571cccfc 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+@@ -196,6 +196,17 @@ void IPMainWindow::closeEvent(QCloseEvent* event) {
+         
+ }
+ 
++bool IPMainWindow::eventFilter(QObject* obj, QEvent* event)
++{
++    if (obj == centralWidget() && event->type() == QEvent::Resize) {
++        if (auto legend = ipDesign->getLegendDesign()) {
++            legend->move(centralWidget()->rect().bottomRight().x() - ipDesign->getWidthVerticalScrollbar() * 1.5 - legend->width(),
++                         centralWidget()->rect().bottomRight().y() - ipDesign->getHeightHorizontalScrollBar() * 3 - legend->height());
++        } else return false;
++    }
++    return QMainWindow::eventFilter(obj, event);
++}
++
+ void IPMainWindow::registerPostCommand()
+ {
+     console->add_post_cmd(NetSpeed::Command_idx(CMD_PROP_DEFAULT),
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+index 692d58ab4c3..bc46a5b2ef9 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+@@ -50,6 +50,7 @@ public:
+ protected:
+     void closeEvent(QCloseEvent* event) override;
+     void resizeEvent(QResizeEvent* event) override;
++    bool eventFilter(QObject* obj, QEvent* event) override;
+ 
+ private:
+     IPDesign* ipDesign = nullptr;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj b/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj
+index cdab2273554..5af78e17150 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj
++++ b/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj
+@@ -209,6 +209,40 @@
+     </ProjectReference>
+   </ItemDefinitionGroup>
+   <ItemGroup>
++    <ClCompile Include="Debug\moc_commandbase.cpp" />
++    <ClCompile Include="Debug\moc_commanditemadd.cpp" />
++    <ClCompile Include="Debug\moc_commanditemmove.cpp" />
++    <ClCompile Include="Debug\moc_commanditemremove.cpp" />
++    <ClCompile Include="Debug\moc_commanditemvisibility.cpp" />
++    <ClCompile Include="Debug\moc_commandlabelrename.cpp" />
++    <ClCompile Include="Debug\moc_commandnodeaddconnector.cpp" />
++    <ClCompile Include="Debug\moc_commandnoderesize.cpp" />
++    <ClCompile Include="Debug\moc_commandnoderotate.cpp" />
++    <ClCompile Include="Debug\moc_commandwirenetrename.cpp" />
++    <ClCompile Include="Debug\moc_commandwirepointmove.cpp" />
++    <ClCompile Include="Debug\moc_connector.cpp" />
++    <ClCompile Include="Debug\moc_fancywire.cpp" />
++    <ClCompile Include="Debug\moc_IPConnectivity.cpp" />
++    <ClCompile Include="Debug\moc_IPDesign.cpp" />
++    <ClCompile Include="Debug\moc_IPDialog.cpp" />
++    <ClCompile Include="Debug\moc_IPInstance.cpp" />
++    <ClCompile Include="Debug\moc_IPInstancesTable.cpp" />
++    <ClCompile Include="Debug\moc_IPObject.cpp" />
++    <ClCompile Include="Debug\moc_IPPropertyPanel.cpp" />
++    <ClCompile Include="Debug\moc_IPWorker.cpp" />
++    <ClCompile Include="Debug\moc_item.cpp" />
++    <ClCompile Include="Debug\moc_itemmimedata.cpp" />
++    <ClCompile Include="Debug\moc_itemwire.cpp" />
++    <ClCompile Include="Debug\moc_label.cpp" />
++    <ClCompile Include="Debug\moc_MainConsole.cpp" />
++    <ClCompile Include="Debug\moc_MainWindow.cpp" />
++    <ClCompile Include="Debug\moc_manager.cpp" />
++    <ClCompile Include="Debug\moc_node.cpp" />
++    <ClCompile Include="Debug\moc_scene.cpp" />
++    <ClCompile Include="Debug\moc_splinewire.cpp" />
++    <ClCompile Include="Debug\moc_view.cpp" />
++    <ClCompile Include="Debug\moc_wirenet.cpp" />
++    <ClCompile Include="Debug\moc_wireroundedcorners.cpp" />
+     <ClCompile Include="GUI\Item\IPConnectivity.cpp" />
+     <ClCompile Include="GUI\Item\IPGroup.cpp" />
+     <ClCompile Include="GUI\Item\IPInstance.cpp" />
+@@ -275,40 +309,6 @@
+     <ClCompile Include="libavoid\viscluster.cpp" />
+     <ClCompile Include="libavoid\visibility.cpp" />
+     <ClCompile Include="libavoid\vpsc.cpp" />
+-    <ClCompile Include="Release\moc_commandbase.cpp" />
+-    <ClCompile Include="Release\moc_commanditemadd.cpp" />
+-    <ClCompile Include="Release\moc_commanditemmove.cpp" />
+-    <ClCompile Include="Release\moc_commanditemremove.cpp" />
+-    <ClCompile Include="Release\moc_commanditemvisibility.cpp" />
+-    <ClCompile Include="Release\moc_commandlabelrename.cpp" />
+-    <ClCompile Include="Release\moc_commandnodeaddconnector.cpp" />
+-    <ClCompile Include="Release\moc_commandnoderesize.cpp" />
+-    <ClCompile Include="Release\moc_commandnoderotate.cpp" />
+-    <ClCompile Include="Release\moc_commandwirenetrename.cpp" />
+-    <ClCompile Include="Release\moc_commandwirepointmove.cpp" />
+-    <ClCompile Include="Release\moc_connector.cpp" />
+-    <ClCompile Include="Release\moc_fancywire.cpp" />
+-    <ClCompile Include="Release\moc_IPConnectivity.cpp" />
+-    <ClCompile Include="Release\moc_IPDesign.cpp" />
+-    <ClCompile Include="Release\moc_IPDialog.cpp" />
+-    <ClCompile Include="Release\moc_IPInstance.cpp" />
+-    <ClCompile Include="Release\moc_IPInstancesTable.cpp" />
+-    <ClCompile Include="Release\moc_IPObject.cpp" />
+-    <ClCompile Include="Release\moc_IPPropertyPanel.cpp" />
+-    <ClCompile Include="Release\moc_IPWorker.cpp" />
+-    <ClCompile Include="Release\moc_item.cpp" />
+-    <ClCompile Include="Release\moc_itemmimedata.cpp" />
+-    <ClCompile Include="Release\moc_itemwire.cpp" />
+-    <ClCompile Include="Release\moc_label.cpp" />
+-    <ClCompile Include="Release\moc_MainConsole.cpp" />
+-    <ClCompile Include="Release\moc_MainWindow.cpp" />
+-    <ClCompile Include="Release\moc_manager.cpp" />
+-    <ClCompile Include="Release\moc_node.cpp" />
+-    <ClCompile Include="Release\moc_scene.cpp" />
+-    <ClCompile Include="Release\moc_splinewire.cpp" />
+-    <ClCompile Include="Release\moc_view.cpp" />
+-    <ClCompile Include="Release\moc_wirenet.cpp" />
+-    <ClCompile Include="Release\moc_wireroundedcorners.cpp" />
+     <ClCompile Include="src\Commands.ip.cpp" />
+     <ClCompile Include="src\Commands.spec.cpp" />
+     <ClCompile Include="src\Commands.util.cpp" />
+diff --git a/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj.filters b/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj.filters
+index b79f8da9f21..1ed0939a931 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj.filters
++++ b/src/sw/noc_dev/IPStudio_qt6/IPStudio_qt6.vcxproj.filters
+@@ -279,106 +279,106 @@
+     <ClCompile Include="src\IPGParse.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandbase.cpp">
++    <ClCompile Include="Debug\moc_commandbase.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commanditemadd.cpp">
++    <ClCompile Include="Debug\moc_commanditemadd.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commanditemmove.cpp">
++    <ClCompile Include="Debug\moc_commanditemmove.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commanditemremove.cpp">
++    <ClCompile Include="Debug\moc_commanditemremove.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commanditemvisibility.cpp">
++    <ClCompile Include="Debug\moc_commanditemvisibility.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandlabelrename.cpp">
++    <ClCompile Include="Debug\moc_commandlabelrename.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandnodeaddconnector.cpp">
++    <ClCompile Include="Debug\moc_commandnodeaddconnector.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandnoderesize.cpp">
++    <ClCompile Include="Debug\moc_commandnoderesize.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandnoderotate.cpp">
++    <ClCompile Include="Debug\moc_commandnoderotate.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandwirenetrename.cpp">
++    <ClCompile Include="Debug\moc_commandwirenetrename.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_commandwirepointmove.cpp">
++    <ClCompile Include="Debug\moc_commandwirepointmove.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_connector.cpp">
++    <ClCompile Include="Debug\moc_connector.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_fancywire.cpp">
++    <ClCompile Include="Debug\moc_fancywire.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPConnectivity.cpp">
++    <ClCompile Include="Debug\moc_IPConnectivity.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPDesign.cpp">
++    <ClCompile Include="Debug\moc_IPDesign.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPDialog.cpp">
++    <ClCompile Include="Debug\moc_IPDialog.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPInstance.cpp">
++    <ClCompile Include="Debug\moc_IPInstance.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPInstancesTable.cpp">
++    <ClCompile Include="Debug\moc_IPInstancesTable.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPObject.cpp">
++    <ClCompile Include="Debug\moc_IPObject.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPPropertyPanel.cpp">
++    <ClCompile Include="Debug\moc_IPPropertyPanel.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_IPWorker.cpp">
++    <ClCompile Include="Debug\moc_IPWorker.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_item.cpp">
++    <ClCompile Include="Debug\moc_item.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_itemmimedata.cpp">
++    <ClCompile Include="Debug\moc_itemmimedata.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_itemwire.cpp">
++    <ClCompile Include="Debug\moc_itemwire.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_label.cpp">
++    <ClCompile Include="Debug\moc_label.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_MainConsole.cpp">
++    <ClCompile Include="Debug\moc_MainConsole.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_MainWindow.cpp">
++    <ClCompile Include="Debug\moc_MainWindow.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_manager.cpp">
++    <ClCompile Include="Debug\moc_manager.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_node.cpp">
++    <ClCompile Include="Debug\moc_node.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_scene.cpp">
++    <ClCompile Include="Debug\moc_scene.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_splinewire.cpp">
++    <ClCompile Include="Debug\moc_splinewire.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_view.cpp">
++    <ClCompile Include="Debug\moc_view.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_wirenet.cpp">
++    <ClCompile Include="Debug\moc_wirenet.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="Release\moc_wireroundedcorners.cpp">
++    <ClCompile Include="Debug\moc_wireroundedcorners.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+   </ItemGroup>
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+index 560090a2527..8b25ea1de3f 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+@@ -22,7 +22,9 @@ namespace Avoid {
+ class IPInstance;
+ class IPObject;
+ class QAction;
++class QLabel;
+ class IPConnectivity;
++class IPMainWindow;
+ class ShowWiresDialog;
+ 
+ class IPDesign : public QSchematic::View
+@@ -34,8 +36,6 @@ public:
+         if (scene) {
+             scene->clear();
+         }
+-        delete notification;
+-        delete view;
+         delete scene;
+     }
+     void refresh();
+@@ -59,17 +59,19 @@ public:
+     QMap<NetSpeed::BDS::Instance*, NetSpeed::BDS::Interface*> findInstanceAndInterface(std::string, std::string); 
+     void buildInstanceWires(Instance*);
+     QString getDesignName() const { return QString::fromStdString(module->name); }
++    QLabel* getLegendDesign() { return legend; }
++    int getWidthVerticalScrollbar() { return widthVerticalScrollbar; }
++    int getHeightHorizontalScrollBar() { return heightHorizontalScrollBar; }
+ 
+ protected:
+     bool event(QEvent* event);
+ 
+ private:
+     enum { TOP = 0, RIGHT, BOTTOM, LEFT };
+-    OverlaidGraphicsView* view;
++    IPMainWindow* mw; 
+     const NetSpeed::BDS::Module* module;   
+     std::shared_ptr<IPObject> object; 
+     QSchematic::Scene* scene = nullptr;
+-    QSchematic::Scene* notification = nullptr;
+     ShowWiresDialog* wireDialog = nullptr;
+     std::map<QString, QList<QString>> ifces;
+     QMap<std::string, std::vector<IPConnectivity*>> instanceConn;
+@@ -77,8 +79,10 @@ private:
+     std::unordered_map<IPConnectivity*, IPConnectivity*> wiresRouted;
+     const int INIT_SRAND = 9;
+     int _offset = -1;
++    int widthVerticalScrollbar;
++    int heightHorizontalScrollBar;
++    QLabel* legend = nullptr;
+ 
+ signals :
+     void loadLayoutFinish(QSchematic::Scene*);
+ };
+-

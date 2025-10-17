@@ -1,0 +1,232 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     | 55 +++++++++++++++++++---
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp |  2 +-
+ .../noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp  | 33 +++++++++----
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     | 15 ++++++
+ 4 files changed, 88 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 936db2171be..80e0f997307 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -19,6 +19,7 @@
+ #include "mainwindow.h"
+ #include "Power.h"
+ #include "NsBridgeDiagram.h"
++#include "NsMultipleBridges.h"
+ #include <QApplication>
+ #include <QGraphicsSceneMouseEvent>
+ #include "ClockDomain.h"
+@@ -381,26 +382,38 @@ void bridgeContextMenu(QGraphicsItem* guiBridge, NetSpeed::Bridge* b, Qt::Layout
+ 
+ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+ {
+-    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> bool {
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++        bool mulBris = false;
++        if (this->parentItem()) {
++            if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                mulBris = true;
++            }
++        }
+         for (const auto& diagram : listDiagrams) {
+             if (diagram->type() == BRIDGE_DIAGRAM) {
+                 if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(diagram)) {
+                     if (rssbDiagram->parentBridge == this) {
+-                        return true;
++                        if (!mulBris) return diagram;
++                        auto mulBriDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem());
++                        if (mulBriDiagram) return mulBriDiagram->getMulBris();
+                     }
+                 } else if (auto brDiagram = dynamic_cast<NsBridgeDiagram*>(diagram)) {
+                     if (brDiagram->parentBridge == this) {
+-                        return true;
++                        if (!mulBris) return diagram;
++                        auto mulBriDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem());
++                        if (mulBriDiagram) return mulBriDiagram->getMulBris();
+                     }
+                 }
+             } else if (diagram->type() == RING_VISUALIZATION) {
+                 auto regbusDiagram = dynamic_cast<NsRegbusRing*>(diagram);
+                 if (regbusDiagram->parentBridge == this) {
+-                    return true;
++                    if (!mulBris) return diagram;
++                    auto mulBriDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem());
++                    if (mulBriDiagram) return mulBriDiagram->getMulBris();
+                 }
+             }
+         }
+-        return false;
++        return nullptr;
+     };
+ 
+     if (!isDragged())
+@@ -413,8 +426,11 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+             event->accept();
+             auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+             if (!mw) return;
+-            auto isOpened = isOpenedDiagram(mw->getListDiagrams());
+-            if (isOpened) return;
++            auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
++            if (diagramOpenning) {
++                mw->updateZValueOfListDiagrams(diagramOpenning);
++                return;
++            }
+             bool bridgeHasRSSB = bridge->has_external_switch();
+             if (bridge->is_regbus_bridge() || bridge->is_regbus_mst()) {
+                 auto node_id = bridge->get_pos();
+@@ -459,6 +475,27 @@ void NsNormalBridge::disableBridgeActionInViewMode()
+ */
+ void NsNormalBridge::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++        if (this->parentItem()) {
++            if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                if (auto mulBri = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) return mulBri->getMulBris();
++            }
++        }
++        for (const auto& diagram : listDiagrams) {
++            if (diagram->type() == BRIDGE_DIAGRAM) {
++                if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(diagram)) {
++                    if (rssbDiagram->parentBridge == this) return diagram;
++                } else if (auto brDiagram = dynamic_cast<NsBridgeDiagram*>(diagram)) {
++                    if (brDiagram->parentBridge == this) return diagram;
++                }
++            } else if (diagram->type() == RING_VISUALIZATION) {
++                auto regbusDiagram = dynamic_cast<NsRegbusRing*>(diagram);
++                if (regbusDiagram->parentBridge == this) return diagram;
++            }
++        }
++        return nullptr;
++    };
++
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     auto nocScene = dynamic_cast<NsNocViewScene*>(meshScene);
+@@ -477,6 +514,10 @@ void NsNormalBridge::mousePressEvent(QGraphicsSceneMouseEvent * event)
+                 proPanel->updateBridgeProperties(bridge, true);
+                 proPanel->raiseSelectionTab();
+                 mw->raiseTooltipTab();
++                auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
++                if (diagramOpenning) {
++                    mw->updateZValueOfListDiagrams(diagramOpenning);
++                }
+             }
+             clearExpanded(); // clear explaned flag
+             setAnchorPoint(this->pos());// using revert position bridge
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index f2d6810414a..d1ed826f341 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -158,7 +158,7 @@ NsRouterDiagramManager::~NsRouterDiagramManager()
+ NsRouterDiagram* NsRouterDiagramManager::createDiagramFromRouter(NsRouter *guiRouter)
+ {
+     for (auto& diagram : m_diagrams) {
+-        if (guiRouter == dynamic_cast<NsRouter*>(diagram->getGuiRouter())) return nullptr;
++        if (guiRouter == dynamic_cast<NsRouter*>(diagram->getGuiRouter())) return diagram;
+     }
+     auto newDiagram = new NsRouterDiagram(guiRouter->getRouter(), guiRouter);
+     bool ok;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+index a5db955005d..b338eef4a97 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+@@ -15,6 +15,7 @@
+ #include "Port.h"
+ #include "NsTypes.h"
+ #include "NsBridgeDiagram.h"
++#include "NsMultipleBridges.h"
+ #include "mainwindow.h"
+ #include <QPainter>
+ #include <QApplication>
+@@ -120,6 +121,20 @@ void NsRegbusBridge::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
+ */
+ void NsRegbusBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ {
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++        if (this->parentItem()) {
++            if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                if (auto mulBri = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) return mulBri->getMulBris();
++            }
++        }
++        for (const auto& diagram : listDiagrams) {
++            if (diagram->type() == RING_VISUALIZATION) {
++                auto regbusDiagram = dynamic_cast<NsRegbusRing*>(diagram);
++                if (regbusDiagram->parentBridge == this) return diagram;
++            }
++        }
++        return nullptr;
++    };
+     auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
+     if (!meshScene) return;
+     meshScene->clearSelection();
+@@ -134,28 +149,28 @@ void NsRegbusBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         mw->raiseTooltipTab();
+         clearExpanded();
+         setAnchorPoint(this->pos());
++        auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
++        if (diagramOpenning) {
++            mw->updateZValueOfListDiagrams(diagramOpenning);
++        }
+     } else if (event->button() == Qt::RightButton) {
+         auto g = bridge->get_grid();
+         auto& rbRings = g->get_regbus_rings();
+         NetSpeed::Node_id regbus_ring_position;
+         regbus_ring_position = bridge->get_pos_router();
+         auto it = rbRings[regbus_ring_position];
+-        for (const auto& diagram : mw->getListDiagrams()) {
+-            if (diagram->type() == RING_VISUALIZATION) {
+-                auto regbusDiagram = dynamic_cast<NsRegbusRing*>(diagram);
+-                if (regbusDiagram->parentBridge == this) {
+-                    return;
+-                }
+-            }
++        auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
++        if (diagramOpenning) {
++            mw->updateZValueOfListDiagrams(diagramOpenning);
++            return;
+         }
+-
+         QGraphicsItem* diagram = nullptr;
+         if (!it.empty()) {
+             diagram = new NsRegbusRing(bridge, regbus_ring_position, this);
+         } else if (bridge->has_external_switch()) {
+             diagram = new NsRSSBDiagram(bridge, this);
+         }
+-        mw->appendListDiagrams(diagram);
++        if (diagram) mw->appendListDiagrams(diagram);
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 77fc61c942e..9eb0204eff5 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -285,6 +285,16 @@ QVariant NsRouter::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
+ */
+ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++        for (const auto& diagram : listDiagrams) {
++            if (diagram->type() == ROUTER_DIAGRAM) {
++                if (auto nsRouterDiagram = dynamic_cast<NsRouterDiagram*>(diagram)) {
++                    if (this == dynamic_cast<NsRouter*>(nsRouterDiagram->getGuiRouter())) return diagram;
++                }
++            }
++        }
++        return nullptr;
++    };
+     auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
+     if (!meshScene) return;
+     meshScene->clearSelection();
+@@ -313,6 +323,11 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             if (diagram) {
+                 mw->appendListDiagrams(diagram);
+             }
++        } else if (event->button() == Qt::LeftButton) {
++            auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
++            if (diagramOpenning) {
++                mw->updateZValueOfListDiagrams(diagramOpenning);
++            }
+         }
+     }
+ }

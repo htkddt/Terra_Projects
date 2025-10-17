@@ -1,0 +1,173 @@
+ src/sw/noc_dev/GUICore/NSDockWidget.cpp         | 25 +++++++------------------
+ src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp     | 25 +++++++------------------
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     |  9 ++++++---
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp |  9 ++++++---
+ 4 files changed, 26 insertions(+), 42 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/NSDockWidget.cpp b/src/sw/noc_dev/GUICore/NSDockWidget.cpp
+index 72d952afe6a..b8b37b6739a 100644
+--- a/src/sw/noc_dev/GUICore/NSDockWidget.cpp
++++ b/src/sw/noc_dev/GUICore/NSDockWidget.cpp
+@@ -16,16 +16,9 @@ NSDockWidget::NSDockWidget(const QString& title, QWidget* parent, Qt::WindowFlag
+     menu->addAction(tr("Raise"), this, [this]() {
+         if (isVisible()) raise();
+     });
++    setAllowedAreas(Qt::AllDockWidgetAreas);
++    setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+     connect(this, SIGNAL(topLevelChanged(bool)), this, SLOT(floatingChanged(bool)));
+-    connect(toggleViewAction(), &QAction::triggered, [&](bool checked) {
+-        if (checked && isFloating())
+-        {
+-            // workaround: must set dock area flag before showing the window so that it can be re-docked
+-            setAllowedAreas(Qt::AllDockWidgetAreas);
+-            setWindowFlags(Qt::CustomizeWindowHint | Qt::Window | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+-            show();
+-        }
+-    });
+     connect(this, &NSDockWidget::visibilityChanged, this, [this](){
+         emit dockWidgetChanged();
+     });
+@@ -33,13 +26,7 @@ NSDockWidget::NSDockWidget(const QString& title, QWidget* parent, Qt::WindowFlag
+  
+ void NSDockWidget::floatingChanged(bool floating)
+ {
+-    if (floating)
+-    {
+-        //Must set this value otherwise one of the buttons are going to be disabled
+-        setAllowedAreas(Qt::AllDockWidgetAreas);
+-        setWindowFlags(Qt::CustomizeWindowHint | Qt::Window | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+-        //Qt hides the widgret after set window flag
+-        show();
++    if (floating) {
+         if (runTabSim) {
+             emit dockFloating();
+             runTabSim = false;
+@@ -47,7 +34,8 @@ void NSDockWidget::floatingChanged(bool floating)
+     }
+ }
+ 
+-void NSDockWidget::keyPressEvent(QKeyEvent* event) {
++void NSDockWidget::keyPressEvent(QKeyEvent* event)
++{
+     if (isFloating()) {
+         emit keyPress(event);
+         if (event->modifiers().testFlag(Qt::ControlModifier)) {
+@@ -80,7 +68,8 @@ void NSDockWidget::keyPressEvent(QKeyEvent* event) {
+     QDockWidget::keyPressEvent(event);
+ }
+ 
+-void NSDockWidget::mousePressEvent(QMouseEvent* event) {
++void NSDockWidget::mousePressEvent(QMouseEvent* event)
++{
+     if (event->button() == Qt::LeftButton) {
+         emit dockFloating();
+     }
+diff --git a/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp b/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp
+index b685ef12acf..8c7ee479716 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp
+@@ -16,27 +16,14 @@ NSDockWidget::NSDockWidget(const QString& title, QWidget* parent, Qt::WindowFlag
+     menu->addAction(tr("Raise"), this, [this]() {
+         if (isVisible()) raise();
+     });
++    setAllowedAreas(Qt::AllDockWidgetAreas);
++    setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+     connect(this, SIGNAL(topLevelChanged(bool)), this, SLOT(floatingChanged(bool)));
+-    connect(toggleViewAction(), &QAction::triggered, [&](bool checked) {
+-        if (checked && isFloating())
+-        {
+-            // workaround: must set dock area flag before showing the window so that it can be re-docked
+-            setAllowedAreas(Qt::AllDockWidgetAreas);
+-            setWindowFlags(Qt::CustomizeWindowHint | Qt::Window | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+-            show();
+-        }
+-    });
+ }
+  
+ void NSDockWidget::floatingChanged(bool floating)
+ {
+-    if (floating)
+-    {
+-        //Must set this value otherwise one of the buttons are going to be disabled
+-        setAllowedAreas(Qt::AllDockWidgetAreas);
+-        setWindowFlags(Qt::CustomizeWindowHint | Qt::Window | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+-        //Qt hides the widgret after set window flag
+-        show();
++    if (floating) {
+         if (runTabSim) {
+             emit dockFloating();
+             runTabSim = false;
+@@ -44,7 +31,8 @@ void NSDockWidget::floatingChanged(bool floating)
+     }
+ }
+ 
+-void NSDockWidget::keyPressEvent(QKeyEvent* event) {
++void NSDockWidget::keyPressEvent(QKeyEvent* event)
++{
+     if (isFloating()) {
+         emit keyPress(event);
+         if (event->modifiers().testFlag(Qt::ControlModifier)) {
+@@ -77,7 +65,8 @@ void NSDockWidget::keyPressEvent(QKeyEvent* event) {
+     QDockWidget::keyPressEvent(event);
+ }
+ 
+-void NSDockWidget::mousePressEvent(QMouseEvent* event) {
++void NSDockWidget::mousePressEvent(QMouseEvent* event)
++{
+     if (event->button() == Qt::LeftButton) {
+         emit dockFloating();
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index cf5e072c4df..8b86020b554 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2774,7 +2774,10 @@ void MainWindow::nocFinderButtonSlot()
+     }
+ }
+ 
+-void MainWindow::nocFinderFocus() {
++void MainWindow::nocFinderFocus()
++{
++    if (console->hasFocus() || errorConsole->hasFocus() ||
++        warningConsole->hasFocus() || cmdHistoryConsole->hasFocus()) return;
+     QWidget* currentFocus = this->focusWidget();
+     if (!currentFocus) return;
+     auto parent = currentFocus->parentWidget();
+@@ -2795,8 +2798,8 @@ void MainWindow::nocFinderFocus() {
+ 
+ void MainWindow::consoleFinderFocus()
+ {
+-    if ((dynamic_cast<NSDockWidget*>(sender())) || (dynamic_cast<INIConsole*>(this->focusWidget())) ||
+-        (dynamic_cast<LogConsole*>(this->focusWidget()))) {
++    if (console->hasFocus() || errorConsole->hasFocus() ||
++        warningConsole->hasFocus() || cmdHistoryConsole->hasFocus()) {
+         if (finderWidget->isVisible()) {
+             consoleFinder->setFocus();
+         } else {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index f5eadbc7872..5f58deb4df9 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -2774,7 +2774,10 @@ void MainWindow::nocFinderButtonSlot()
+     }
+ }
+ 
+-void MainWindow::nocFinderFocus() {
++void MainWindow::nocFinderFocus()
++{
++    if (console->hasFocus() || errorConsole->hasFocus() ||
++        warningConsole->hasFocus() || cmdHistoryConsole->hasFocus()) return;
+     QWidget* currentFocus = this->focusWidget();
+     if (!currentFocus) return;
+     auto parent = currentFocus->parentWidget();
+@@ -2795,8 +2798,8 @@ void MainWindow::nocFinderFocus() {
+ 
+ void MainWindow::consoleFinderFocus()
+ {
+-    if ((dynamic_cast<NSDockWidget*>(sender())) || (dynamic_cast<INIConsole*>(this->focusWidget())) ||
+-        (dynamic_cast<LogConsole*>(this->focusWidget()))) {
++    if (console->hasFocus() || errorConsole->hasFocus() ||
++        warningConsole->hasFocus() || cmdHistoryConsole->hasFocus()) {
+         if (finderWidget->isVisible()) {
+             consoleFinder->setFocus();
+         } else {

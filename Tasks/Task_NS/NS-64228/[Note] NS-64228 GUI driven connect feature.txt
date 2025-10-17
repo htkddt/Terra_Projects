@@ -1,0 +1,18 @@
+Step:
+1. Press Atl+T
+2. Set connection between R0.7E and R0.1S
+3. Press Atl+T
+4. Click bridge h2/p1
+5. Mouse move to R0.7 and click on R0.7
+
+Actual result: Router port R0.7E is displayed
+
+Related content: 
+- In Help dialog, the detailed description of connect command is mentioned "When a connection is made between 2 router ports, 
+the previous connections of those router ports are broken and left disconnected".
+- I see that router ports are set default connection when user press Alt+T, so a connection is made between 2 router ports doesn't
+need to be disabled on the GUI.
+
+Question: Is router port R0.7E displayed?
+
+***This ticket conflicted with GUI-2386: NsBridge.cpp --> contextMenuEvent() --> Line 40 of GUI-2386.patch and Line 15 of this patch file.

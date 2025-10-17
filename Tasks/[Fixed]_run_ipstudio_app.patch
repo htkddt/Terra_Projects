@@ -1,0 +1,15 @@
+ src/sw/noc_dev/IPCore/include/IPTypes.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sw/noc_dev/IPCore/include/IPTypes.h b/src/sw/noc_dev/IPCore/include/IPTypes.h
+index 0b71e8d61de..e1e7ceec3f4 100755
+--- a/src/sw/noc_dev/IPCore/include/IPTypes.h
++++ b/src/sw/noc_dev/IPCore/include/IPTypes.h
+@@ -39,6 +39,7 @@
+ #include "Rtl_lib.common.h"
+ #include "IPTypes.Common.h"
+ #include "json/json.hpp"
++#define IP_TCL = 1
+ namespace NetSpeed {
+ 
+ using ip_json = nlohmann::json;

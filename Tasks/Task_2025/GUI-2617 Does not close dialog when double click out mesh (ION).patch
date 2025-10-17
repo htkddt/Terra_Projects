@@ -1,0 +1,103 @@
+diff --git i/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp w/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index f6e2adea4c1..999cc591fe0 100644
+--- i/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ w/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -225,7 +225,7 @@ TuneMaxOutstandingDialog::TuneMaxOutstandingDialog(QWidget * parent) : QDialog(p
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+ 
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_TUNE_MAX_OUT_STANDING);
+     setWindowIcon(QIcon(ICON_TUNE_MAX_OD));
+ }
+@@ -304,7 +304,7 @@ TuneSibsDialog::TuneSibsDialog(QWidget * parent) : QDialog(parent)
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+ 
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_TUNE_SIBS);
+     setWindowIcon(QIcon("://images/icons/tune_sibs.png"));
+ }
+@@ -378,7 +378,7 @@ MapOptDialog::MapOptDialog(QWidget * parent) : QDialog(parent)
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+ 
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_MAP_OPT);
+     setWindowIcon(QIcon("://images/icons/map_optimize.png"));
+ }
+@@ -454,7 +454,7 @@ TunePlaceDialog::TunePlaceDialog(QWidget * parent) : QDialog(parent)
+     connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_TUNE_PLACE);
+     setWindowIcon(QIcon("://images/icons/tune_place.png"));
+ }
+@@ -520,7 +520,7 @@ TuneLinkDialog::TuneLinkDialog(QWidget * parent) : QDialog(parent)
+     connect(okButton, SIGNAL(clicked()), modeInput, SLOT(onFormSubmit()));
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_TUNE_LINKS);
+     setWindowIcon(QIcon(ICON_TUNE_LINK_CUSTOM));
+ }
+@@ -578,7 +578,7 @@ RunDialog::RunDialog(QWidget * parent) : QDialog(parent)
+     connect(okButton, SIGNAL(clicked()), this, SLOT(validateAndExecute()));
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle("run external trace");
+     setWindowIcon(QIcon(ICON_RUN));
+ }
+@@ -793,7 +793,7 @@ CreateTraceFilesDialog::CreateTraceFilesDialog(QWidget * parent) : QDialog(paren
+     connect(okButton, SIGNAL(clicked()), perInput, SLOT(onFormSubmit()));
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_CREATE_TRACE_FILE);
+     setWindowIcon(QIcon(ICON_CREATE_TF));
+ }
+@@ -1108,7 +1108,7 @@ AnalyzeLinksDialog::AnalyzeLinksDialog(QWidget * parent, const NetSpeed::Grid *
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+ 
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_ANALYZE_LINKS);
+     setWindowIcon(QIcon("://images/icons/analyze_links.png"));
+ }
+@@ -3525,7 +3525,7 @@ AddClockDomainDialog::AddClockDomainDialog(domain_id typeDomain, QWidget * paren
+     connect(okButton, SIGNAL(clicked()), this, SLOT(validateAndExecute()));
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowIcon(QIcon(ICON_NOC_M1));
+ }
+ 
+@@ -4383,7 +4383,7 @@ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent),
+     setLayout(mainLayout);
+ 
+     setModal(true);
+-    setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint | Qt::Window);
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(TEXT_MESH_CHOP);
+     setWindowIcon(QIcon(ICON_NOC_M1));
+     cancelButton->setFocusPolicy(Qt::NoFocus);
+@@ -4589,7 +4589,7 @@ void DelTypeDomainDialog::closeEvent(QCloseEvent* event)
+ OpenRecentlyDialog::OpenRecentlyDialog(QWidget* parent) : QDialog(parent)
+ {
+     _unused(parent);
+-    setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+ 
+     /* Create widget */
+     QHBoxLayout* timeLayout = new QHBoxLayout;

@@ -1,0 +1,17 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 4de3ba8529a..730e9587d7d 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3894,7 +3894,8 @@ void PropertyPanel::updateLatencyData(const EventGroup & eg, QCustomPlot * custo
+     // entry pos i is count of latencies in range (min_range + i * delta, min_range + (i+1) * delta)
+     QVector<double> bucketed_latencies(num_buckets, 0);
+     FOR(lei, latency_events) {
+-        const int bucket_idx = std::min(num_buckets - 1, qRound((lei.key() - min_latency) / delta));
++        qint32 qRoundConvert = static_cast<qint32>(qRound64((lei.key() - min_latency) / delta));
++        const int bucket_idx = std::min(num_buckets - 1, qRoundConvert);
+         bucketed_latencies[bucket_idx] += lei.value();
+     }
+ 

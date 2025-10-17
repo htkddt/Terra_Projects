@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 05fbc98bdc6..cf6fffb111e 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3263,7 +3263,7 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                         if (lbl.contains("Data") && !eg.pkt_size) continue;
+                         if (lbl.contains("Throughput") && !eg.throughput) continue;
+                         hasMessage = true;
+-                        if (msg.split("<span").size() > 50) {
++                        if (msg.split("<span").size() > 25) {
+                             msg = msg + "...";
+                             break;
+                         }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 5c37e25d4a9..3688e813577 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3266,7 +3266,7 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                         if (lbl.contains("Data") && !eg.pkt_size) continue;
+                         if (lbl.contains("Throughput") && !eg.throughput) continue;
+                         hasMessage = true;
+-                        if (msg.split("<span").size() > 50) {
++                        if (msg.split("<span").size() > 25) {
+                             msg = msg + "...";
+                             break;
+                         }

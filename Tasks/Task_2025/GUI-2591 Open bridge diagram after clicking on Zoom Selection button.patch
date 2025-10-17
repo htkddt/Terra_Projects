@@ -1,0 +1,32 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     | 3 ++-
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 2cf1c7798ba..b038cba13f7 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -480,7 +480,8 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+             } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() &&
+                        !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked() &&
+                        !mw->getInstrumentsActMap()[ADD_CONNECT]->isChecked() &&
+-                       !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked()) {
++                       !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked() &&
++                       !mw->getInstrumentsActMap()[ZOOM_SELECTION]->isChecked()) {
+                 if (bridgeHasRSSB) {
+                     auto diagram = new NsRSSBDiagram(bridge, this);
+                     if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+index 72d921318a8..e34ede4241e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+@@ -480,7 +480,8 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+             } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() &&
+                        !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked() &&
+                        !mw->getInstrumentsActMap()[ADD_CONNECT]->isChecked() &&
+-                       !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked()) {
++                       !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked() &&
++                       !mw->getInstrumentsActMap()[ZOOM_SELECTION]->isChecked()) {
+                 if (bridgeHasRSSB) {
+                     auto diagram = new NsRSSBDiagram(bridge, this);
+                     if (this->parentItem()->type() == MULTIPLE_BRIDGE) {

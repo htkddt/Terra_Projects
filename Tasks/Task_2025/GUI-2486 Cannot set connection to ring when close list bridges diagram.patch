@@ -1,0 +1,38 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     | 6 +-----
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp | 6 +-----
+ 2 files changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 2409c478d37..0b53859977c 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -2169,11 +2169,7 @@ void NsCircleSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* event)
+     }
+     case TYPE_ITEM::BRIDGE:
+     {
+-        auto item = instrumentMediator->data(ITEM_POINTER).value<QGraphicsItem*>();
+-        if (!item) return;
+-        auto b = dynamic_cast<NsBridge*>(item);
+-        if (!b) return;
+-        auto bridge_src = b->getBridge();
++        auto bridge_src = instrumentMediator->src;
+         if (bridge_src) {
+             auto console = mw->getConsole();
+             if (!console) break;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index a9b51e7d24f..40ea90e6bb7 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -2131,11 +2131,7 @@ void NsCircleSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* event)
+     }
+     case TYPE_ITEM::BRIDGE:
+     {
+-        auto item = instrumentMediator->data(ITEM_POINTER).value<QGraphicsItem*>();
+-        if (!item) return;
+-        auto b = dynamic_cast<NsBridge*>(item);
+-        if (!b) return;
+-        auto bridge_src = b->getBridge();
++        auto bridge_src = instrumentMediator->src;
+         if (bridge_src) {
+             auto console = mw->getConsole();
+             if (!console) break;

@@ -1,0 +1,46 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     | 8 ++++++--
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp | 8 ++++++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 926f126293d..f324268cbf5 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -676,10 +676,14 @@ bool NsNocViewScene::findOn(QString compName, int layId)
+         }
+     } else {
+         for (const auto& ifce : grid->get_ifces("*", false)) {
+-            if (ifce->if_name() == compName.toStdString()) {
++            if (QString::fromStdString(ifce->if_name()).contains(compName, Qt::CaseSensitive)) {
+                 chanName = ifce->if_name();
+                 bridgeLink = ifce->get_first_rx_vchannel();
+-                break;
++                auto splitChanName = QString::fromStdString(chanName).split(".");
++                string subChanLinkName = splitChanName.first().toStdString();
++                if (compName.toStdString() == chanName) break;
++                if (listCompOfLink.contains(QString::fromStdString(subChanLinkName))) continue;
++                listCompOfLink.push_back(QString::fromStdString(subChanLinkName));
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 3718e313fcd..86b7238e426 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -680,10 +680,14 @@ bool NsNocViewScene::findOn(QString compName, int layId)
+         }
+     } else {
+         for (const auto& ifce : grid->get_ifces("*", false)) {
+-            if (ifce->if_name() == compName.toStdString()) {
++            if (QString::fromStdString(ifce->if_name()).contains(compName, Qt::CaseSensitive)) {
+                 chanName = ifce->if_name();
+                 bridgeLink = ifce->get_first_rx_vchannel();
+-                break;
++                auto splitChanName = QString::fromStdString(chanName).split(".");
++                string subChanLinkName = splitChanName.first().toStdString();
++                if (compName.toStdString() == chanName) break;
++                if (listCompOfLink.contains(QString::fromStdString(subChanLinkName))) continue;
++                listCompOfLink.push_back(QString::fromStdString(subChanLinkName));
+             }
+         }
+     }

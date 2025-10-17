@@ -1,0 +1,157 @@
+reset_mesh
+
+prop_default allow_host_position_overlap {yes}
+prop_default allow_remote_rx_switch_removal {yes}
+prop_default allow_remote_tx_switch_removal {yes}
+prop_default allow_switch_bypass {yes}
+prop_default arb_prioritize_midflight_packet {yes}
+prop_default arbitration_mode {end_of_packet}
+prop_default archive_project_dir {no}
+prop_default atpg_scan_bypass_reset_signal_name {fscan_byprst}
+prop_default atpg_scan_clock_ungate_signal_name {fscan_mode}
+prop_default atpg_scan_rst_bypass_enable_signal_name {fscan_rstbypen}
+prop_default clock_domain_freq_mhz {1050}
+prop_default credit_flop_to_output_ns {0.05}
+prop_default data_width {48}
+prop_default def_enable {yes}
+prop_default display_node_as_x_y {no}
+prop_default enable_fine_grain_clock_gating {yes}
+prop_default enable_tx_switch_removal {yes}
+prop_default enable_rx_switch_removal {yes}
+prop_default flop_to_output_ns {0.05}
+prop_default gen_all_ifce_deps {yes}
+prop_default gen_dep_graph {yes}
+prop_default global_web_open_enable {no}
+prop_default hysteresis_count {30}
+prop_default local_credit_output_register {no}
+prop_default local_output_register {no}
+prop_default max_num_regbus_layers {1}
+prop_default max_num_vcs {16}
+prop_default niq_depth {10}
+prop_default optimize_bridge_id_width {yes}
+#prop_default osxml_enable {yes}
+#prop_default osxml_partition {no}
+prop_default output_register {yes}
+prop_default qos_weight_enable {yes}
+prop_default regbus_vc_fifo_depth {1}
+prop_default router_registers_enabled {none}
+prop_default sai_compression_scheme {compress}
+prop_default sdc_enable {yes}
+prop_default sdc_time_unit {ps}
+prop_default sysc_enable {yes}
+#prop_default tag_project_name {yes}
+prop_default tooltip_on {no}
+
+new_mesh 10 5 3 client_minime_16vc_3lay
+
+#mesh_prop cell_size -1
+mesh_prop grid_cell_size_mm 1
+mesh_prop wire_delay_mm_per_ns 5
+mesh_prop drop_unused_interfaces yes
+mesh_prop display_vc_blocking_causes yes
+mesh_prop coarse_clock_gating_enabled yes
+mesh_prop max_channel_width 800
+mesh_prop enable_vc_remapping yes
+mesh_prop shareable_classes *
+mesh_prop low_power_enabled yes
+mesh_prop power_save_and_restore_enable yes
+mesh_prop enable_fine_grained_router_skipping yes
+
+add_host  src0 color   blue pos 0,1
+    add_bridge -host src0 -name req -type nsip -rel_pos 1,1J -ifces a -layers 0  
+    add_bridge -host src0 -name dat -type nsip -rel_pos 1,1J -ifces a -layers 1  
+    add_bridge -host src0 -name rsp -type nsip -rel_pos 1,1J -ifces a -layers 2  
+
+add_host  src1 color   blue pos 1,1
+    add_bridge -host src1 -name req -type nsip -rel_pos 0,1K -ifces a -layers 0  
+    add_bridge -host src1 -name dat -type nsip -rel_pos 0,1K -ifces a -layers 1  
+    add_bridge -host src1 -name rsp -type nsip -rel_pos 0,1K -ifces a -layers 2  
+
+add_host  src2 color   blue pos 0,2
+    add_bridge -host src2 -name req -type nsip -rel_pos 1,0I -ifces a -layers 0 
+    add_bridge -host src2 -name dat -type nsip -rel_pos 1,0I -ifces a -layers 1  
+    add_bridge -host src2 -name rsp -type nsip -rel_pos 1,0I -ifces a -layers 2  
+
+add_host  src3 color   blue pos 1,2
+    add_bridge -host src3 -name req -type nsip -rel_pos 0,0H -ifces a -layers 0 
+    add_bridge -host src3 -name dat -type nsip -rel_pos 0,0H -ifces a -layers 1  
+    add_bridge -host src3 -name rsp -type nsip -rel_pos 0,0H -ifces a -layers 2  
+
+add_host dest0 color yellow pos 7,1
+    add_bridge -host dest0 -name req -type nsip -rel_pos 1,1J -ifces a -layers 0 
+    add_bridge -host dest0 -name dat -type nsip -rel_pos 1,1J -ifces a -layers 1  
+    add_bridge -host dest0 -name rsp -type nsip -rel_pos 1,1J -ifces a -layers 2  
+
+add_host dest1 color yellow pos 8,1
+    add_bridge -host dest1 -name req -type nsip -rel_pos 0,1K -ifces a -layers 0 
+    add_bridge -host dest1 -name dat -type nsip -rel_pos 0,1K -ifces a -layers 1  
+    add_bridge -host dest1 -name rsp -type nsip -rel_pos 0,1K -ifces a -layers 2
+
+add_host dest2 color yellow pos 7,2
+    add_bridge -host dest2 -name req -type nsip -rel_pos 1,0I -ifces a -layers 0 
+    add_bridge -host dest2 -name dat -type nsip -rel_pos 1,0I -ifces a -layers 1  
+    add_bridge -host dest2 -name rsp -type nsip -rel_pos 1,0I -ifces a -layers 2  
+
+add_host dest3 color yellow pos 8,2
+    add_bridge -host dest3 -name req -type nsip -rel_pos 0,0H -ifces a -layers 0 
+    add_bridge -host dest3 -name dat -type nsip -rel_pos 0,0H -ifces a -layers 1  
+    add_bridge -host dest3 -name rsp -type nsip -rel_pos 0,0H -ifces a -layers 2  
+
+class_pri_map 4 1
+class_pri_map 12 1
+class_pri_map 0 1
+class_pri_map 8 1
+class_pri_map 1 1
+class_pri_map 9 1
+class_pri_map 6 1
+class_pri_map 14 1
+class_pri_map 5 1
+class_pri_map 13 1
+class_pri_map 15 1
+class_pri_map 7 1
+class_pri_map 4 1
+class_pri_map 2 1
+class_pri_map 10 1
+class_pri_map 7 1
+class_pri_map 15 1
+class_pri_map 6 1
+class_pri_map 14 1
+class_pri_map 3 1
+class_pri_map -alternate_priority 0 1 2
+class_pri_map -alternate_priority 8 1 2
+class_pri_map -alternate_priority 1 1 2
+class_pri_map -alternate_priority 9 1 2
+class_pri_map -alternate_priority 2 1 2
+class_pri_map -alternate_priority 3 1 2
+
+ifce_prop {src*/*.a.out} nsip_vc_enable {0x0f}
+ifce_prop {dest*/*.a.in} nsip_vc_enable {0x0f}
+
+enter_tcl_mode
+set bridges [ list req dat rsp ]
+foreach brdg $bridges {
+#ADD TRAFFIC
+add_traffic class  0 src0/$brdg.a.nsip0 <0.1 1 1> dest0/$brdg.a.nsip0
+add_traffic class  1 src0/$brdg.a.nsip1 <0.1 1 1> dest0/$brdg.a.nsip1
+add_traffic class  2 src0/$brdg.a.nsip2 <0.1 1 1> dest0/$brdg.a.nsip2
+add_traffic class  3 src0/$brdg.a.nsip3 <0.1 1 1> dest0/$brdg.a.nsip3
+
+add_traffic class  4 src1/$brdg.a.nsip0 <0.1 1 1> dest1/$brdg.a.nsip0
+add_traffic class  5 src1/$brdg.a.nsip1 <0.1 1 1> dest1/$brdg.a.nsip1
+add_traffic class  6 src1/$brdg.a.nsip2 <0.1 1 1> dest1/$brdg.a.nsip2
+add_traffic class  7 src1/$brdg.a.nsip3 <0.1 1 1> dest1/$brdg.a.nsip3
+
+add_traffic class  8 src2/$brdg.a.nsip0 <0.1 1 1> dest2/$brdg.a.nsip0
+add_traffic class  9 src2/$brdg.a.nsip1 <0.1 1 1> dest2/$brdg.a.nsip1
+add_traffic class 10 src2/$brdg.a.nsip2 <0.1 1 1> dest2/$brdg.a.nsip2
+add_traffic class 11 src2/$brdg.a.nsip3 <0.1 1 1> dest2/$brdg.a.nsip3
+
+add_traffic class 12 src3/$brdg.a.nsip0 <0.1 1 1> dest3/$brdg.a.nsip0
+add_traffic class 13 src3/$brdg.a.nsip1 <0.1 1 1> dest3/$brdg.a.nsip1
+add_traffic class 14 src3/$brdg.a.nsip2 <0.1 1 1> dest3/$brdg.a.nsip2
+add_traffic class 15 src3/$brdg.a.nsip3 <0.1 1 1> dest3/$brdg.a.nsip3
+}
+exit_tcl_mode
+
+map_opt 1 10 d b
+gen_ip

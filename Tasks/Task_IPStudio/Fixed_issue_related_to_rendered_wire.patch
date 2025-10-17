@@ -1,0 +1,147 @@
+ src/sw/noc_dev/IPCore/include/IPTypes.h            |  1 +
+ .../noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp   |  5 ++--
+ .../IPStudio_qt6/GUI/MainWindow/IPDesign.cpp       | 31 ++++++++++++++++++++--
+ .../IPStudio_qt6/GUI/MainWindow/MainWindow.cpp     | 15 ++++++++---
+ 4 files changed, 44 insertions(+), 8 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPCore/include/IPTypes.h b/src/sw/noc_dev/IPCore/include/IPTypes.h
+index 0b71e8d61de..e1e7ceec3f4 100755
+--- a/src/sw/noc_dev/IPCore/include/IPTypes.h
++++ b/src/sw/noc_dev/IPCore/include/IPTypes.h
+@@ -39,6 +39,7 @@
+ #include "Rtl_lib.common.h"
+ #include "IPTypes.Common.h"
+ #include "json/json.hpp"
++#define IP_TCL = 1
+ namespace NetSpeed {
+ 
+ using ip_json = nlohmann::json;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp
+index 2dcd24cc466..727fde3b4ff 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp
+@@ -54,11 +54,10 @@ void IPInstance::updateBoundingRect()
+     QRectF united;
+     for (auto* child : childItems()) {
+         auto ipInstance = dynamic_cast<IPInstance*>(child);
+-        if (ipInstance)
+-            united = united.united(child->mapToParent(ipInstance->boundingRect()).boundingRect());
++        if (ipInstance) united = united.united(child->mapToParent(ipInstance->boundingRect()).boundingRect());
+     }
+     prepareGeometryChange();
+-    qreal pad = 50.0;
++    qreal pad = 100.0;
+     united    = united.adjusted(-pad, -pad, pad, pad);
+     setSize(united.size(), united.topLeft());
+     moveChild = false;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+index 04af1fc6021..703749fd751 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+@@ -350,6 +350,11 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+     legend->adjustSize();
+     legend->move(centralWidget->rect().bottomRight().x() - widthVerticalScrollbar * 1.5 - legend->width(),
+                  centralWidget->rect().bottomRight().y() - heightHorizontalScrollBar * 3 - legend->height());
++    auto effect = new QGraphicsOpacityEffect(legend);
++    effect->setOpacity(0.25);
++    legend->setGraphicsEffect(effect);
++    legend->setAttribute(Qt::WA_Hover, true);
++    legend->installEventFilter(legend);
+ 
+     emit loadLayoutFinish(scene);
+ 
+@@ -425,6 +430,7 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+ {   
+     QList<std::shared_ptr<Wire>> wireList;
+     QList<IPConnectivity*> connList;
++    QList<QString> connStringList;
+ 
+     if (instName.isEmpty()) return qMakePair(wireList, connList);
+ 
+@@ -433,7 +439,10 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+         for (auto const& ifce : ifces) {
+             if (conn.first->text() == ifce) {
+                 conn.first->setHighlighted(true);
+-                connList.append(conn.first);
++                if (!connList.contains(conn.first)) {
++                    connList.append(conn.first);
++                    connStringList.append(conn.first->text() + "-" + conn.first->getInstanceName());
++                }
+                 for (auto const& desConn : conn.second) {
+                     auto wire = constructWire(conn.first, desConn, true);
+                     if (wire) {
+@@ -441,7 +450,10 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+                         conn.first->setHighlighted(true);
+                         desConn->setHighlighted(true);
+                         wireList.append(wire);                           
+-                        connList.append(desConn);
++                        if (!connList.contains(desConn)) {
++                            connList.append(desConn);
++                            connStringList.append(desConn->text() + "-" + desConn->getInstanceName());
++                        }
+                     }
+                 }
+                 break;
+@@ -449,6 +461,10 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+         }
+     }
+ 
++    qDebug() << "connStringList:" << connStringList;
++    qDebug() << "connList.size():" << connList.size();
++    qDebug() << "----------------------------------------------------------------";
++
+     return qMakePair(wireList, connList);
+ }
+ 
+@@ -669,6 +685,8 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     attachWireToConnector(wire, static_cast<IPInstance*>(ptrSrc->parentItem()), ptrSrc->scenePos());
+     auto src = ptrSrc->getConnectingScenePos();
+     auto des = ptrDes->getConnectingScenePos();
++    //auto src = ptrSrc->scenePos();
++    //auto des = ptrDes->scenePos();
+ 
+     if (expose) {
+         switch (ptrDes->dir) {
+@@ -730,6 +748,15 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+         horizontalOffset = subDesInstanceTopLeft.x() - subSrcInstanceTopRight.x();
+     }
+ 
++    /*if (expose) {
++        if (prePos.isEmpty()) prePos[end->getLabel()->text()] = des - hugeInstanceTopLeft;
++        else if (prePos[ptrDes->getLabel()->text()].isNull()) prePos[ptrDes->getLabel()->text()] = des - hugeInstanceTopLeft;
++        else {
++            qDebug() << "Name:" << ptrDes->getLabel()->text() << " --- prePos:" << prePos[ptrDes->getLabel()->text()] << " --- pos:" << des - hugeInstanceTopLeft;
++            if (prePos[ptrDes->getLabel()->text()] == (des - hugeInstanceTopLeft)) prePos[ptrDes->getLabel()->text()] = des - hugeInstanceTopLeft;
++        }
++    }*/
++
+     wire->append_point(_settings.snapToGrid(src));
+     /* Config wires direction */
+     switch (ptrSrc->dir) {
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+index a3c199ff4ba..4a571975626 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+@@ -198,10 +198,19 @@ void IPMainWindow::closeEvent(QCloseEvent* event) {
+ 
+ bool IPMainWindow::eventFilter(QObject* obj, QEvent* event)
+ {
+-    if (obj == centralWidget() && event->type() == QEvent::Resize) {
++    if (obj == centralWidget()) {
+         if (auto legend = ipDesign->getLegendDesign()) {
+-            legend->move(centralWidget()->rect().bottomRight().x() - ipDesign->getWidthVerticalScrollbar() * 1.5 - legend->width(),
+-                         centralWidget()->rect().bottomRight().y() - ipDesign->getHeightHorizontalScrollBar() * 3 - legend->height());
++            if (event->type() == QEvent::Resize) {
++                legend->move(centralWidget()->rect().bottomRight().x() - ipDesign->getWidthVerticalScrollbar() * 1.5 - legend->width(),
++                             centralWidget()->rect().bottomRight().y() - ipDesign->getHeightHorizontalScrollBar() * 3 - legend->height());
++            } else if (auto effect = qobject_cast<QGraphicsOpacityEffect*>(legend->graphicsEffect())) {
++                QPoint globalPos;
++                if (auto mouseEvent = dynamic_cast<QMouseEvent*>(event)) globalPos = mouseEvent->globalPos();
++                else globalPos = QCursor::pos();
++                if (qobject_cast<QLabel*>(QApplication::widgetAt(globalPos))) effect->setOpacity(1.0);
++                else effect->setOpacity(0.25);
++                legend->setGraphicsEffect(effect);
++            }
+         } else return false;
+     }
+     return QMainWindow::eventFilter(obj, event);

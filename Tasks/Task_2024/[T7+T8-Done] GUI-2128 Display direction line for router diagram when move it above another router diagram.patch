@@ -1,0 +1,64 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 17 ++++++++++++-----
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h   |  3 ++-
+ 2 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index fdafb5256b5..43738be668e 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -170,7 +170,7 @@ NsRouterDiagram* NsRouterDiagramManager::createDiagramFromRouter(NsRouter *guiRo
+     newDiagram->setZValue(highestZValue + 1);
+     auto transform = mesh->itemTransform(newDiagram, &ok);
+     if (ok) newDiagram->setTransform(transform);
+-    newDiagram->createLine();
++    newDiagram->createLine(highestZValue + 1);
+     m_diagrams.append(newDiagram);
+     connect(guiRouter, &NsRouter::routerPositionChanged, newDiagram, &NsRouterDiagram::positionUpdate);
+     connect(guiRouter, &NsRouter::routerVisibleChanged, newDiagram, &NsRouterDiagram::visibleUpdate);
+@@ -358,11 +358,16 @@ void NsRouterDiagram::visibleUpdate()
+     }
+ }
+ 
+-void NsRouterDiagram::createLine()
++void NsRouterDiagram::createLine(int value)
+ {
+     diagramLine = std::unique_ptr<NsRouterDiagramLine>{new NsRouterDiagramLine(scenePos().toPoint() + arrowPos)};
+     if (scene()) scene()->addItem(diagramLine.get());
+-    diagramLine->setZValue(NsMeshViewScene::HIGHEST_ORDER);
++    diagramLine->setZValue(value);
++}
++
++void NsRouterDiagram::updateLineZValue(int value)
++{
++    diagramLine->setZValue(value);
+ }
+ 
+ void NsRouterDiagramManager::updateZValue(NsRouterDiagram *diagram)
+@@ -372,8 +377,10 @@ void NsRouterDiagramManager::updateZValue(NsRouterDiagram *diagram)
+     int itemIndex = m_diagrams.indexOf(diagram);
+     // Move diagram to end of list
+     m_diagrams.move(itemIndex, m_diagrams.count() - 1);
+-    for (auto diagram : m_diagrams)
+-        diagram->setZValue(z_priority++);
++    for (auto diagram : m_diagrams) {
++        diagram->setZValue(z_priority);
++        diagram->updateLineZValue(z_priority++);
++    }
+ }
+ 
+ void NsRouterDiagram::drawFeedBackArrow(int dir, QLineF & line, const NetSpeed::VC * vc, QGraphicsItem * parent)
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index be3ffad0f47..c30c459412c 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -166,8 +166,9 @@ public:
+     QGraphicsItem* getGuiRouter() { return guiRouter; }
+     int getNodeId() const { return node_id; }
+     int getLayerId() const { return layer_id; }
+-    void createLine();
++    void createLine(int value);
+     void updateLineStartPoint();
++    void updateLineZValue(int value);
+     void showFlowData(const NetSpeed::VC * vc, bool hasAnimation = true);
+     void showFlowData(std::string arrowName, bool hasAnimation = true);
+     void hideFlowData();

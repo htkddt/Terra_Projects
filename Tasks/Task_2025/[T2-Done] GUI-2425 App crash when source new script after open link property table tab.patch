@@ -1,0 +1,15 @@
+ src/sw/noc_dev/NocCore/src/Grid.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sw/noc_dev/NocCore/src/Grid.cpp b/src/sw/noc_dev/NocCore/src/Grid.cpp
+index bec645dc71d..da9954744b9 100644
+--- a/src/sw/noc_dev/NocCore/src/Grid.cpp
++++ b/src/sw/noc_dev/NocCore/src/Grid.cpp
+@@ -1413,6 +1413,7 @@ vector<Router*> Grid::get_routers(bool enabled_only) const { //return all router
+     vector<Router*> rs;
+     for (Layer_id noc : get_layers()) for (Node_id rid : get_nodes()) {
+         if (!rid.is_center()) continue;
++        if (routers(noc, rid) == nullptr) continue;
+         if (enabled_only && !routers(noc, rid)->is_enabled()) continue;
+         rs.push_back(routers(noc, rid).get());
+     }

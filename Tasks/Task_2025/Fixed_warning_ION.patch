@@ -1,0 +1,17 @@
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
+index 2c9b46d8e59..1af051fe8ba 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
+@@ -188,7 +188,8 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+     if (!rssbDiagram) {
+         if (auto nsLinkDiagram = dynamic_cast<NsLinkDiagram*>(this->parentItem())) {
+             if (auto arrowItem = dynamic_cast<NsArrowItem*>(nsLinkDiagram->parentItem())) {
+-                if (rssbDiagram = dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem())) {
++                if (dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem())) {
++                    rssbDiagram = dynamic_cast<NsRSSBDiagram*>(arrowItem->parentItem());
+                     qreal zVal = 0;
+                     for (auto& child : rssbDiagram->childItems()) {
+                         auto arrow = dynamic_cast<NsArrowItem*>(child);

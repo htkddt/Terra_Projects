@@ -1,0 +1,37 @@
+ src/sw/noc_dev/GUICore/global.h            |  1 +
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp | 10 ++++++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/src/sw/noc_dev/GUICore/global.h b/src/sw/noc_dev/GUICore/global.h
+index 51aadd44b2b..7f0d0f870a5 100644
+--- a/src/sw/noc_dev/GUICore/global.h
++++ b/src/sw/noc_dev/GUICore/global.h
+@@ -173,6 +173,7 @@ const char* const CMD_USER_MANUAL                     = "gen_user_manual_suppl";
+ const char* const CMD_ANALYZE_POWER                   = "analyze_power";
+ const char* const CMD_CLEAR_CONSOLE                   = "clear_console";
+ const char* const CMD_RESET_MESH                      = "reset_mesh";
++const char* const CMD_RESET_MAP                       = "reset_map";
+ const char* const CMD_DEL_CHOP                        = "del_chop";
+ const char* const CMD_DISPLAY_LINK                    = "show_link_labels";
+ const char* const CMD_MAKE_ALL_LINKS_BLOCKED          = "add_link_blockage";
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index a2b647599bd..b059f449f78 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -3914,6 +3914,16 @@ void INIConsole::postCommandDeclaration()
+     c->add_post_cmd(NetSpeed::Command_idx(CMD_MAP), postMapProcessing);
+     c->add_post_cmd(NetSpeed::Command_idx(CMD_MAP_OPT), postMapProcessing);
+     c->add_post_cmd(NetSpeed::Command_idx(CMD_ML_BUILD), postMapProcessing);
++    c->add_post_cmd(NetSpeed::Command_idx(CMD_RESET_MAP), [&](NetSpeed::NocConsole&,
++                    const std::vector<std::string>&, bool ok) {
++        if (ok && mainWindow) {
++            QMetaObject::invokeMethod(mainWindow, [this] {
++                auto propPanel = mainWindow->getPropertyPanel();
++                if (!propPanel) return;
++                propPanel->clearSelection();
++            });
++        }
++    });
+ 
+     c->add_post_cmd(NetSpeed::Command_idx(CMD_RESET_MESH), [&](NetSpeed::NocConsole&,
+                     const std::vector<std::string>&, bool ok) {

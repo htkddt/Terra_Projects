@@ -1,0 +1,393 @@
+ src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp     |  4 ---
+ src/sw/noc_dev/GUICore_qt6/NsTypes.cpp          |  4 +--
+ src/sw/noc_dev/GUICore_qt6/genericconsole.cpp   |  3 +-
+ src/sw/noc_dev/GUICore_qt6/genericdialog.h      | 13 -------
+ src/sw/noc_dev/GUICore_qt6/global.h             |  7 ++--
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 47 ++-----------------------
+ 6 files changed, 10 insertions(+), 68 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp b/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp
+index d5e233edcf2..b685ef12acf 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/NSDockWidget.cpp
+@@ -6,15 +6,11 @@
+ NSDockWidget::NSDockWidget(const QString& title, QWidget* parent, Qt::WindowFlags flags)
+     : QDockWidget(title, parent, flags)
+ {
+-    QFont font;
+-    font.setFamily("Consolas");
+-
+     _parent = parent;
+     setObjectName(title);
+     setWindowTitle(title);
+ 
+     menu = new QMenu(title, this);
+-    menu->setFont(font);
+     toggleViewAction()->setText("Show");
+     menu->addAction(toggleViewAction());
+     menu->addAction(tr("Raise"), this, [this]() {
+diff --git a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+index a0448aaf216..06186c2e41d 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+@@ -74,7 +74,7 @@ QString toolTip2Html(QString toolTipString, int dis)
+         const int NUM_LINES_TOOLTIP = 5;
+ 
+         if (alist.size() < NUM_LINES_TOOLTIP) {
+-            toolTipString = "<p style='font-family: \"Consolas\"; white-space:pre'>" + toolTipString + "</p>";
++            toolTipString = "<p style='white-space:pre'>" + toolTipString + "</p>";
+             toolTip = toolTipString.replace("\n", "<br />");
+         } else {
+             QString newlist;
+@@ -119,7 +119,7 @@ QString toolTip2Html(QString toolTipString, int dis)
+                 } else newlist.append(alist.at(0));
+                 newlist.append("...");
+             }
+-            toolTip = "<p style='font-family: \"Consolas\"; white-space:pre'>" + newlist + "</p>";
++            toolTip = newlist;
+         }
+     }
+     return toolTip;
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+index 0e94d3d38da..6c2eb71ed9b 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+@@ -18,8 +18,7 @@ namespace NetSpeed {
+ 
+ GenericConsole::GenericConsole(const QString& prompText, const char* textColor, QWidget* parent, bool mouseTracking, bool readOnly) : QPlainTextEdit(parent)
+ {
+-    QString consoleStyleSheet = QString("QPlainTextEdit {font-family:\"Consolas\";"
+-                                        "background-color:%1; color:%2;padding:10px}").arg(BG_COLOR).arg(textColor);
++    QString consoleStyleSheet = QString("QPlainTextEdit {background-color:%1; color:%2;padding:10px}").arg(BG_COLOR).arg(textColor);
+     setStyleSheet(consoleStyleSheet);
+     setReadOnly(readOnly);
+     setMouseTracking(mouseTracking);
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericdialog.h b/src/sw/noc_dev/GUICore_qt6/genericdialog.h
+index c91836f4808..9ac9f6e9d39 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericdialog.h
++++ b/src/sw/noc_dev/GUICore_qt6/genericdialog.h
+@@ -350,15 +350,11 @@ protected:
+ template<typename T, typename T2>
+ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) : QDialog(parent)
+ {
+-    QFont textBrowserFont;
+-    textBrowserFont.setFamily("Consolas");
+-
+     /* item finder widget */
+     QHBoxLayout* itemFinderLayout = new QHBoxLayout;
+     QWidget* itemFinderWidget = new QWidget;
+     itemFinderWidget->setLayout(itemFinderLayout);
+     itemFinder = new QLineEdit;
+-    itemFinder->setFont(textBrowserFont);
+     itemFinder->setFixedHeight(25);
+     QAction* clearButtonItemFinder = new QAction(this);
+     clearButtonItemFinder->setIcon(QIcon(ICON_CLEAR));
+@@ -369,21 +365,16 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+         });
+ 
+     QLabel* searchLabel = new QLabel("\tSearch : ");
+-    searchLabel->setFont(textBrowserFont);
+     QToolButton* button = new QToolButton;
+-    button->setFont(textBrowserFont);
+     button->setFixedWidth(80);
+     button->setFixedHeight(30);
+     button->setText("Filter");
+     button->setPopupMode(QToolButton::InstantPopup);
+     filterOptions = new LayerMenu;
+-    filterOptions->setFont(textBrowserFont);
+     button->setMenu(filterOptions);
+     back = new QPushButton(QIcon(":/images/icons/close_left.png"), "");
+-    back->setFont(textBrowserFont);
+     back->setFixedSize(30, 30);
+     forward = new QPushButton(QIcon(":/images/icons/close_right.png"), "");
+-    forward->setFont(textBrowserFont);
+     forward->setFixedSize(30, 30);
+     back->setVisible(false);
+     forward->setVisible(false);
+@@ -398,7 +389,6 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     treeViewWidget->setColumnCount(1);
+     treeViewWidget->setHeaderHidden(true);
+     treeViewWidget->setMinimumWidth(100);
+-    treeViewWidget->setFont(textBrowserFont);
+ 
+     /* left layout contains itemFinderWidget & treeViewWidget */
+     QVBoxLayout* leftLayout = new QVBoxLayout;
+@@ -416,11 +406,9 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     finderWidget->setLayout(finderLayout);
+     finderLayout->setContentsMargins(0, 0, 0, 1);
+     QPushButton* findButton = new QPushButton("Find");
+-    findButton->setFont(textBrowserFont);
+     findButton->setFixedHeight(30);
+     findButton->setFixedWidth(70);
+     textFinder = new QLineEdit;
+-    textFinder->setFont(textBrowserFont);
+     textFinder->setFixedHeight(30);
+     QAction* clearButtonTextFinder = new QAction(this);
+     clearButtonTextFinder->setIcon(QIcon(ICON_CLEAR));
+@@ -439,7 +427,6 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     info = new NsTextBrowser;
+     info->setReadOnly(true);
+     info->setWordWrapMode(QTextOption::WordWrap);
+-    info->setFont(textBrowserFont);
+     standardCharFormat = info->currentCharFormat();
+     info->setOpenLinks(false);
+ 
+diff --git a/src/sw/noc_dev/GUICore_qt6/global.h b/src/sw/noc_dev/GUICore_qt6/global.h
+index 8ac73742b17..9df1c0dd066 100644
+--- a/src/sw/noc_dev/GUICore_qt6/global.h
++++ b/src/sw/noc_dev/GUICore_qt6/global.h
+@@ -1,6 +1,7 @@
+ #ifndef GLOBAL_H
+ #define GLOBAL_H
+ #include <QColor>
++#include <QFont>
+ #include <QSemaphore>
+ #include <QWaitCondition>
+ #include <string>
+@@ -12,6 +13,8 @@ extern QList<QColor> g_dmColors;
+ extern bool gEnable;
+ extern int g_focusWid;
+ 
++inline QFont fontGlobal("Consolas", 10);
++
+ const int INVALID_INDEX                               = -1;
+ 
+ //Refactor global var
+@@ -547,7 +550,7 @@ const QString TOOLTIP_NEW_MESH_DF                     = "new_mesh";
+ const QString TOOLTIP_SHOW_HIDE_GRID                  = "Show/Hide Grid (Alt + 2)";
+ const QString TOOLTIP_LAYERS                          = "Layers";
+ const QString TOOLTIP_BUTTON                          = "tooltip";
+-const QString TOOLTIP_ADD                             = "Add: ";
++const QString TOOLTIP_ADD                             = "Add";
+ const QString TOOLTIP_MAP                             = "map";
+ const QString TOOLTIP_ML_BUILD                        = "ml_build";
+ const QString TOOLTIP_MAP_OPT_DB                      = "map_opt distributed balanced";
+@@ -716,7 +719,7 @@ const QString OBJ_TOOLTIP                             = "Tooltip";
+ const QString OBJ_LINT_DOCK                           = "Lint";
+ const QString OBJ_LIBRARY                             = "Library";
+ const QString OBJ_ADDRESS_RANGE                       = "Address Range";
+-const QString OBJ_USER_NOTES                          = "User Notes:";
++const QString OBJ_USER_NOTES                          = "User Notes";
+ 
+ //Add legend dialogs text
+ const QString WARN_ADD_HOST_TEXT                      = "<p align='left'>"
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 8572a883a3a..c2109a437cf 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -168,6 +168,8 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     , isRestoreState(false)
+     , storeStateTimer(new QTimer)
+ {
++    QApplication::setFont(fontGlobal);
++
+     storeStateTimer->setInterval(200); 
+     storeStateTimer->setSingleShot(true);
+     connect(storeStateTimer, &QTimer::timeout, this, [this](){
+@@ -305,7 +307,6 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+         info->setWhatsThis(TOOLBAR_TOOLTIP);
+         info->setReadOnly(true);
+         info->setFont(tmpFont);
+-        tooltip.replace("font-family:courier", "font-family:" + tmpFont.family());
+         info->setHtml(tooltip);
+         addTabToDisplay(title, info);
+     }, Qt::QueuedConnection);
+@@ -1279,49 +1280,36 @@ void MainWindow::revertLastLayersState() {
+ 
+ void MainWindow::createMenus()
+ {
+-    QFont font;
+-    font.setFamily("Consolas");
+-
+     menuBar = new NsMenuBar;
+-    menuBar->setFont(font);
+     fileMenu = menuBar->addMenu(MENU_FILE);
+-    fileMenu->setFont(font);
+     createFileMenu();
+ 
+     const bool bridges_supported = NetSpeed::are_bridges_supported();
+     addMenu = menuBar->addMenu(MENU_SPECIFY);
+-    addMenu->setFont(font);
+     createSpecificMenu();
+ 
+     if (bridges_supported) {
+         designMenu = menuBar->addMenu(MENU_DESIGN);
+-        designMenu->setFont(font);
+         createDesignMenu();
+ 
+         simulateMenu = menuBar->addMenu(MENU_SIMULATE);
+-        simulateMenu->setFont(font);
+         createSimulateMenu();
+     }
+     generateMenu = menuBar->addMenu(MENU_GENERATE);
+-    generateMenu->setFont(font);
+     createGenerateMenu();
+ 
+     // Add high light menu
+     highLightMenu = menuBar->addMenu(MENU_HIGHLIGHT);
+-    highLightMenu->setFont(font);
+     createHighLightMenu();
+ 
+     //Add View menu
+     viewMenu = menuBar->addMenu(MENU_VIEW);
+-    viewMenu->setFont(font);
+     createViewMenu();
+ 
+     // Add Windows menu
+     windowsMenu = menuBar->addMenu(MENU_WINDOWS);
+-    windowsMenu->setFont(font);
+ 
+     designReviewMenu = menuBar->addMenu(MENU_DESIGN_REVIEW);
+-    designReviewMenu->setFont(font);
+ 
+     sessionMenu = new QMenu(MENU_SESSIONS, this);
+     scanSession(sessionMenu, MENU_DESIGN_REVIEW);
+@@ -1331,7 +1319,6 @@ void MainWindow::createMenus()
+ 
+     // Create Help menu
+     helpMenu = menuBar->addMenu(MENU_HELP);
+-    helpMenu->setFont(font);
+     createHelpMenu();
+     menuBar->setCornerWidget(new QLabel("CFG_NoCStudio"));
+ 
+@@ -1350,19 +1337,14 @@ void MainWindow::createMenus()
+ 
+ void MainWindow::createFileMenu()
+ {
+-    QFont font;
+-    font.setFamily("Consolas");
+-
+     fileMenu->addAction(instrumentsActMap[NEW_MESH_CUSTON_NO_ICON]);
+     fileMenu->addAction(instrumentsActMap[OPEN_SOURCE_FILE]);
+     fileMenu->addAction(instrumentsActMap[LOAD_STAT]);
+     fileMenu->addAction(instrumentsActMap[EXIT_FULLSCREEN]);
+     fileMenu->addSeparator();
+     recentlySourcedMenu = new QMenu("Recently Sourced", this);
+-    recentlySourcedMenu->setFont(font);
+     recentlySourcedAction = fileMenu->addMenu(recentlySourcedMenu);
+     recentlyLoadedStatsMenu = new QMenu("Recently Loaded Stats", this);
+-    recentlyLoadedStatsMenu->setFont(font);
+     recentlyLoadedStatsAction = fileMenu->addMenu(recentlyLoadedStatsMenu);
+     fileMenu->addAction(recentlySourcedAction);
+     fileMenu->addAction(recentlyLoadedStatsAction);
+@@ -1372,9 +1354,6 @@ void MainWindow::createFileMenu()
+ 
+ void MainWindow::createSpecificMenu()
+ {
+-    QFont font;
+-    font.setFamily("Consolas");
+-
+     for (const auto& ins : specifyMenu)
+     {
+         if (ins == ADD_IDI2CMI) {
+@@ -1407,7 +1386,6 @@ void MainWindow::createSpecificMenu()
+     if (command_present(CMD_RESET_CONNECT)) addMenu->addAction(instrumentsActMap[RESET_CONNECT]);
+     addMenu->addSeparator();
+     QMenu* addDomain = new QMenu("Add Domains", this);
+-    addDomain->setFont(font);
+     if (command_present(CMD_ADD_CLOCK_DOMAIN))
+         addDomain->addAction(instrumentsActMap[ADD_CLOCK_DOMAIN_IN_MENU]);
+     if (command_present(CMD_ADD_POWER_DOMAIN))
+@@ -1421,7 +1399,6 @@ void MainWindow::createSpecificMenu()
+     addActionsOnSpecifyMenu->setIcon(QIcon(ICON_ADD_CIRCLE));
+     addMenu->addAction(addActionsOnSpecifyMenu);
+     QMenu* delDomain = new QMenu("Delete Domains", this);
+-    delDomain->setFont(font);
+     if (command_present(CMD_DEL_CLOCK_DOMAIN)) delDomain->addAction(instrumentsActMap[DEL_CLOCK_DOMAIN]);
+     if (command_present(CMD_DEL_POWER_DOMAIN)) delDomain->addAction(instrumentsActMap[DEL_POWER_DOMAIN]);
+     if (command_present(CMD_DEL_VOLTAGE_DOMAIN)) delDomain->addAction(instrumentsActMap[DEL_VOTAGE_DOMAIN]);
+@@ -1481,9 +1458,6 @@ void MainWindow::createHighLightMenu()
+ 
+ void MainWindow::createViewMenu()
+ {
+-    QFont font;
+-    font.setFamily("Consolas");
+-
+     const bool bridges_supported = NetSpeed::are_bridges_supported();
+ 
+     viewMenu->addAction(instrumentsActMap[RESIZE_FONT_ICON_ACTION]);
+@@ -1502,29 +1476,22 @@ void MainWindow::createViewMenu()
+     QMenu* menu = new QMenu(this);
+     QMenu* subMenu;
+     subMenu = createPropMenu(TITLE_HOST_PROPS, HOST_PROP, NetSpeed::Property::host_props);
+-    subMenu->setFont(font);
+     menu->addMenu(subMenu);
+     subMenu = createPropMenu(TITLE_BRIDGE_PROPS, BRIDGE_PROP, NetSpeed::Property::bridge_props);
+-    subMenu->setFont(font);
+     subMenu->setVisible(bridges_supported);
+     menu->addMenu(subMenu);
+     subMenu = createPropMenu(TITLE_IFCE_PROPS, IFCE_PROP, NetSpeed::Property::ifce_props);
+-    subMenu->setFont(font);
+     subMenu->setVisible(bridges_supported);
+     menu->addMenu(subMenu);
+     subMenu = createPropMenu(TITLE_VC_PROPS, VC_PROP, NetSpeed::Property::vc_props);
+-    subMenu->setFont(font);
+     subMenu->setVisible(bridges_supported);
+     menu->addMenu(subMenu);
+     subMenu = createPropMenu(TITLE_LINKS_PROPS, LINK_PROP, NetSpeed::Property::link_props);
+-    subMenu->setFont(font);
+     subMenu->setVisible(bridges_supported);
+     menu->addMenu(subMenu);
+     subMenu = createPropMenu(TITLE_ROUTER_PROPS, ROUTER_PROP, NetSpeed::Property::router_props);
+-    subMenu->setFont(font);
+     subMenu->setVisible(bridges_supported);
+     menu->addMenu(subMenu);
+-    menu->setFont(font);
+ 
+     propTbl = viewMenu->addMenu(menu);
+     propTbl->setIcon(QIcon(ICON_PROP_TBLS));
+@@ -1537,12 +1504,9 @@ void MainWindow::createViewMenu()
+         QMenu* newMenu = new QMenu(this);
+         QMenu* newSubMenu;
+         newSubMenu = createNewRouteMenu(NEW_ROUTE_TBL_TITLE, NEW_ROUTE_TBL);
+-        newSubMenu->setFont(font);
+         newMenu->addMenu(newSubMenu);
+         newSubMenu = createNewRouteMenu(POLARITY_TBL_TITLE, POLARITY_TBL);
+-        newSubMenu->setFont(font);
+         newMenu->addMenu(newSubMenu);
+-        newMenu->setFont(font);
+ 
+         newTbl = viewMenu->addMenu(newMenu);
+         newTbl->setIcon(QIcon(ICON_ROUTE_TABLE));
+@@ -1556,7 +1520,6 @@ void MainWindow::createViewMenu()
+     viewMenu->addAction(instrumentsActMap[RESET_TOOLBARS]);
+     viewMenu->addSeparator();
+     QMenu* enableMenu = new QMenu("Enable Starting Dialogs" ,this);
+-    enableMenu->setFont(font);
+     for (const auto& ins : viewMenuEnum)
+     {
+         if (ins == CLOSE_ALL_TOOLTIP_DIALOGS) continue;
+@@ -2469,9 +2432,6 @@ void MainWindow::changeFontSizeFinder(QLineEdit* lineEdit, QPushButton* button)
+ void MainWindow::createPanels()
+ {
+     /* text finder widget */
+-    QFont font;
+-    font.setPointSize(10);
+-    font.setFamily("Consolas");
+     QHBoxLayout* finderLayout = new QHBoxLayout;
+     finderWidget = new QWidget;
+     finderWidget->setFixedHeight(50);
+@@ -2482,7 +2442,6 @@ void MainWindow::createPanels()
+     findButton->setIconSize(QSize(16, 16));
+     findButton->setFixedWidth(60);
+     consoleFinder = new QLineEdit;
+-    consoleFinder->setFont(font);
+     finderLayout->addWidget(findButton);
+     finderLayout->addWidget(consoleFinder);
+ 
+@@ -2525,7 +2484,6 @@ void MainWindow::createPanels()
+     QVBoxLayout* consoleLayout = new QVBoxLayout;
+     QWidget* consoleWidget = new QWidget;
+     nConsole = new QTabWidget;
+-    nConsole->setFont(font);
+     console->setTabWidget(nConsole);
+ #ifdef ROTATE_TEXT_TAB_WIDGET
+     nConsole->tabBar()->setStyle(new MyProxyStyle);
+@@ -2551,7 +2509,6 @@ void MainWindow::createPanels()
+     nocFindButton->setIconSize(QSize(16, 16));
+     nocFindButton->setFixedWidth(60);
+     nocFinder = new QLineEdit;
+-    nocFinder->setFont(font);
+     nocFinderLayout->addWidget(nocFindButton);
+     nocFinderLayout->addWidget(nocFinder);
+ 

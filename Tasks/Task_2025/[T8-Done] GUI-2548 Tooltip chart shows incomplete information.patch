@@ -1,0 +1,282 @@
+ src/sw/noc_dev/GUICore/NsTypes.cpp                 | 59 +++++++++++++++++-----
+ src/sw/noc_dev/GUICore/NsTypes.h                   |  2 +-
+ src/sw/noc_dev/GUICore_qt6/NsTypes.cpp             | 59 +++++++++++++++++-----
+ src/sw/noc_dev/GUICore_qt6/NsTypes.h               |  2 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     |  7 +--
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.h       |  2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp |  7 +--
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h   |  2 +-
+ 8 files changed, 102 insertions(+), 38 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/NsTypes.cpp b/src/sw/noc_dev/GUICore/NsTypes.cpp
+index 66071701c5d..107d1441d70 100644
+--- a/src/sw/noc_dev/GUICore/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore/NsTypes.cpp
+@@ -60,33 +60,64 @@ QColor text_color_for_bg(const QColor & background) {
+ * @return String format HTML
+ * @author Tai.Vu
+ */
+-QString toolTip2Html(QString toolTipString)
++QString toolTip2Html(QString toolTipString, int dis)
+ {
+     QString toolTip = "";
+-    if (!toolTipString.isEmpty())
+-    {
++    if (!toolTipString.isEmpty()) {
+         toolTipString.replace("\bblue\b", "#27aae2");
+         toolTipString.replace("\bgreen\b", "#00ff00");
+         toolTipString.replace("\bred\b", "#fa8072");
+         toolTipString.replace("\borange\b", "#f69220");
+ 
+         QStringList alist = toolTipString.split("\n");
+-        int n = alist.size();
+         const int NUM_LINES_TOOLTIP = 5;
+-        if (n < NUM_LINES_TOOLTIP)
+-        {
++
++        if (alist.size() < NUM_LINES_TOOLTIP) {
+             toolTipString = "<p style='white-space:pre'>" + toolTipString + "</p>";
+             toolTip = toolTipString.replace("\n", "<br />");
+-        }
+-        else
+-        {
++        } else {
+             QString newlist;
+-            for (int i = 0; i < NUM_LINES_TOOLTIP - 1; ++i)
+-            {
+-                newlist.append(alist.at(i) + "<br />");
++            if (dis > 0) {
++                QStringList row = alist.at(0).split("<tr>");
++                if (row.size() > 1) {
++                    QStringList colunm = row.at(1).split("<th>");
++                    auto cols = dis / (colunm.size() * 0.75);
++                    if (colunm.size() > cols) {
++                        newlist.append(row.at(0) + "<tr>");
++                        for (int i = 0; i < cols; ++i) {
++                            newlist.append("<th>" + colunm.at(i));
++                        }
++                        newlist.append("<th> ... </th> </tr>");
++                        newlist.append("<tr>" + row.at(2));
++                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
++                            newlist.append(alist.at(i) + "<br />");
++                        }
++                        newlist.append("...");
++                    } else {
++                        newlist.append(alist.at(0));
++                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
++                            newlist.append(alist.at(i) + "<br />");
++                        }
++                        newlist.append("...");
++                    }
++                } else {
++                    auto alistBrSplit = alist.at(0).split("<br>");
++                    if (alistBrSplit.size() > 16) {
++                        for (int i = 0; i < 16; i++) {
++                            newlist.append(alistBrSplit.at(i) + "<br>");
++                        }
++                    } else newlist.append(alist.at(0));
++                    newlist.append("...");
++                }
++            } else {
++                auto alistBrSplit = alist.at(0).split("<br>");
++                if (alistBrSplit.size() > 16) {
++                    for (int i = 0; i < 16; i++) {
++                        newlist.append(alistBrSplit.at(i) + "<br>");
++                    }
++                } else newlist.append(alist.at(0));
++                newlist.append("...");
+             }
+-            newlist.append("...");
+-
+             toolTip = newlist;
+         }
+     }
+diff --git a/src/sw/noc_dev/GUICore/NsTypes.h b/src/sw/noc_dev/GUICore/NsTypes.h
+index 8ce8ba425d0..b7d999b7ea4 100644
+--- a/src/sw/noc_dev/GUICore/NsTypes.h
++++ b/src/sw/noc_dev/GUICore/NsTypes.h
+@@ -34,7 +34,7 @@ QColor text_color_for_bg(const QColor& background);
+ * @return String format HTML
+ * @author Tai.Vu
+ */
+-QString toolTip2Html(QString toolTipString);
++QString toolTip2Html(QString toolTipString, int dis = 0);
+ QString toolTip2Html(std::string toolTipString);
+ 
+ QString wrapTextForTooltip(const QString& text, int width);
+diff --git a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+index 5a9465e499b..06186c2e41d 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+@@ -61,33 +61,64 @@ QColor text_color_for_bg(const QColor & background) {
+ * @return String format HTML
+ * @author Tai.Vu
+ */
+-QString toolTip2Html(QString toolTipString)
++QString toolTip2Html(QString toolTipString, int dis)
+ {
+     QString toolTip = "";
+-    if (!toolTipString.isEmpty())
+-    {
++    if (!toolTipString.isEmpty()) {
+         toolTipString.replace("\bblue\b", "#27aae2");
+         toolTipString.replace("\bgreen\b", "#00ff00");
+         toolTipString.replace("\bred\b", "#fa8072");
+         toolTipString.replace("\borange\b", "#f69220");
+ 
+         QStringList alist = toolTipString.split("\n");
+-        int n = alist.size();
+         const int NUM_LINES_TOOLTIP = 5;
+-        if (n < NUM_LINES_TOOLTIP)
+-        {
++
++        if (alist.size() < NUM_LINES_TOOLTIP) {
+             toolTipString = "<p style='white-space:pre'>" + toolTipString + "</p>";
+             toolTip = toolTipString.replace("\n", "<br />");
+-        }
+-        else
+-        {
++        } else {
+             QString newlist;
+-            for (int i = 0; i < NUM_LINES_TOOLTIP - 1; ++i)
+-            {
+-                newlist.append(alist.at(i) + "<br />");
++            if (dis > 0) {
++                QStringList row = alist.at(0).split("<tr>");
++                if (row.size() > 1) {
++                    QStringList colunm = row.at(1).split("<th>");
++                    auto cols = dis / (colunm.size() * 0.75);
++                    if (colunm.size() > cols) {
++                        newlist.append(row.at(0) + "<tr>");
++                        for (int i = 0; i < cols; ++i) {
++                            newlist.append("<th>" + colunm.at(i));
++                        }
++                        newlist.append("<th> ... </th> </tr>");
++                        newlist.append("<tr>" + row.at(2));
++                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
++                            newlist.append(alist.at(i) + "<br />");
++                        }
++                        newlist.append("...");
++                    } else {
++                        newlist.append(alist.at(0));
++                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
++                            newlist.append(alist.at(i) + "<br />");
++                        }
++                        newlist.append("...");
++                    }
++                } else {
++                    auto alistBrSplit = alist.at(0).split("<br>");
++                    if (alistBrSplit.size() > 16) {
++                        for (int i = 0; i < 16; i++) {
++                            newlist.append(alistBrSplit.at(i) + "<br>");
++                        }
++                    } else newlist.append(alist.at(0));
++                    newlist.append("...");
++                }
++            } else {
++                auto alistBrSplit = alist.at(0).split("<br>");
++                if (alistBrSplit.size() > 16) {
++                    for (int i = 0; i < 16; i++) {
++                        newlist.append(alistBrSplit.at(i) + "<br>");
++                    }
++                } else newlist.append(alist.at(0));
++                newlist.append("...");
+             }
+-            newlist.append("...");
+-
+             toolTip = newlist;
+         }
+     }
+diff --git a/src/sw/noc_dev/GUICore_qt6/NsTypes.h b/src/sw/noc_dev/GUICore_qt6/NsTypes.h
+index 8ce8ba425d0..b7d999b7ea4 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NsTypes.h
++++ b/src/sw/noc_dev/GUICore_qt6/NsTypes.h
+@@ -34,7 +34,7 @@ QColor text_color_for_bg(const QColor& background);
+ * @return String format HTML
+ * @author Tai.Vu
+ */
+-QString toolTip2Html(QString toolTipString);
++QString toolTip2Html(QString toolTipString, int dis = 0);
+ QString toolTip2Html(std::string toolTipString);
+ 
+ QString wrapTextForTooltip(const QString& text, int width);
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 2e560edf50f..021cd7f7ea0 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -415,7 +415,8 @@ void NsRouter::disableRouterActionInViewMode()
+ 
+ void NsRouter::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    setToolTip();
++    if (event->screenPos().x() < 0) setToolTip(event->screenPos().x() * (-1));
++    else setToolTip(event->screenPos().x());
+     QGraphicsRectItem::hoverEnterEvent(event);
+ }
+ 
+@@ -466,10 +467,10 @@ void NsRouter::setOrientation() {
+         new NsRouterOrientation(orientation, isSCFMode, this);
+ }
+ 
+-void NsRouter::setToolTip()
++void NsRouter::setToolTip(int dis)
+ {
+     if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty() && router->is_enabled()) {
+-        QGraphicsItem::setToolTip(toolTip2Html(QString::fromStdString(router->get_tooltip())));
++        QGraphicsItem::setToolTip(toolTip2Html(QString::fromStdString(router->get_tooltip()), dis));
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+index 12a8a55d0a8..c2ce4d487ab 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+@@ -59,7 +59,7 @@ public:
+     QRectF getSceneRect() const;
+ 
+     void setOrientation();
+-    void setToolTip();
++    void setToolTip(int dis = 0);
+     QString getName() const { return routerName; }
+     NetSpeed::Layer_id getLayerID() { return layer; }
+     bool isRTLGroup(QString name);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+index c36db8f8c6b..54c164f0105 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+@@ -415,7 +415,8 @@ void NsRouter::disableRouterActionInViewMode()
+ 
+ void NsRouter::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    setToolTip();
++    if (event->screenPos().x() < 0) setToolTip(event->screenPos().x() * (-1));
++    else setToolTip(event->screenPos().x());
+     QGraphicsRectItem::hoverEnterEvent(event);
+ }
+ 
+@@ -466,10 +467,10 @@ void NsRouter::setOrientation() {
+         new NsRouterOrientation(orientation, isSCFMode, this);
+ }
+ 
+-void NsRouter::setToolTip()
++void NsRouter::setToolTip(int dis)
+ {
+     if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty() && router->is_enabled()) {
+-        QGraphicsItem::setToolTip(toolTip2Html(QString::fromStdString(router->get_tooltip())));
++        QGraphicsItem::setToolTip(toolTip2Html(QString::fromStdString(router->get_tooltip()), dis));
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
+index ade7a915ebf..edcbbbe6678 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
+@@ -59,7 +59,7 @@ public:
+     QRectF getSceneRect() const;
+ 
+     void setOrientation();
+-    void setToolTip();
++    void setToolTip(int dis = 0);
+     QString getName() const { return routerName; }
+     NetSpeed::Layer_id getLayerID() { return layer; }
+     bool isRTLGroup(QString name);

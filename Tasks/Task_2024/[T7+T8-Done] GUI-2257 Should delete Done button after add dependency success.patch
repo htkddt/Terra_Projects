@@ -1,0 +1,65 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp | 5 +++--
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp   | 6 +++---
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 4 ----
+ 3 files changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index a57249ab7bb..4bf874214e3 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -394,6 +394,7 @@ void NsNormalBridge::disableBridgeActionInViewMode()
+ */
+ void NsNormalBridge::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
++    auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     meshScene->clearSelection();
+     if (!meshScene->getNsWorkArea()) return;
+@@ -402,8 +403,8 @@ void NsNormalBridge::mousePressEvent(QGraphicsSceneMouseEvent * event)
+         event->ignore();
+     }
+     else {
+-        if (!isAddBridgeNoc(meshScene->getInsType()) && !isAddAgentMeshView(meshScene->getInsType())) {
+-            auto mw = static_cast<MainWindow*>(QApplication::activeWindow());
++        if (!isAddBridgeNoc(meshScene->getInsType()) && !isAddAgentMeshView(meshScene->getInsType()) &&
++            !mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked()) {
+             if(mw) {
+                 auto proPanel = mw->getPropertyPanel();
+                 proPanel->updateBridgeProperties(bridge, true);
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index fd38d539f8f..4d8f55c1c85 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -324,14 +324,14 @@ void NsNormalHost::paint(QPainter * painter, const QStyleOptionGraphicsItem * op
+ */
+ void NsNormalHost::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+-    auto mw = static_cast<MainWindow*>(QApplication::activeWindow());
++    auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+     if (!mw) return;
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     if (!meshScene->getNsWorkArea()) return;
+     const bool isDomainView = meshScene->isDomainView();
+     bool isAddAgentNoc = isAddAgentMeshView(meshScene->getInsType());
+-    if (!isDomainView && !isAddBridgeNoc(meshScene->getInsType()) && !isAddAgentNoc) {
+-        auto mw = meshScene->getNsWorkArea()->getMainWindow();
++    if (!isDomainView && !isAddBridgeNoc(meshScene->getInsType()) && !isAddAgentNoc &&
++        !mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked()) {
+         auto proPanel = mw->getPropertyPanel();
+         proPanel->updateHostProperties(host, true);
+         proPanel->raiseSelectionTab();
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 403de5bc85e..45b0a4a0391 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -7634,10 +7634,6 @@ void PropertyPanel::okButtonClickedMeshView()
+     clearSelection();
+     if (isAddAgentMeshView(ins) || isAddBridgeNoc(ins) || actionType == CLONE_NODE_ACT)
+         setShowButtonProperty(PropertyButton::HideAll);
+-    else {
+-        setShowButtonProperty(PropertyButton::Cancel);
+-        setTextCancelButton("Done");
+-    }
+ }
+ 
+ void PropertyPanel::cancelButtonClickedMeshView()

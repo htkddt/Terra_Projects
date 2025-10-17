@@ -1,0 +1,56 @@
+ src/sw/noc_dev/prototype/Gui/View/NsChipView.cpp | 11 +++++++----
+ src/sw/noc_dev/prototype/Gui/View/NsChipView.h   |  1 +
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp      |  1 +
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChipView.cpp b/src/sw/noc_dev/prototype/Gui/View/NsChipView.cpp
+index 873e8599f2a..34cbb936b47 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChipView.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChipView.cpp
+@@ -3,15 +3,18 @@
+ #include "NsChipViewBoundingBox.h"
+ #include <QDebug>
+ 
++MainWindow* mw = nullptr;
++
++void setMainWindow(MainWindow* mainWindow) { mw = mainWindow; }
++
+ void generateChipViewCallBack(const NetSpeed::generic_draw_tab_t& drawTab)
+ {
+-    auto mainWindow = qobject_cast<MainWindow*>(QApplication::activeWindow());
+-    if (!mainWindow) return;
+-    Q_CHECK_PTR(mainWindow);
++    if (!mw) return;
++    Q_CHECK_PTR(mw);
+     /* Invoke signal to main thread */
+     const NetSpeed::generic_draw_tab_t* gdt = new NetSpeed::generic_draw_tab_t(
+         drawTab.rects, drawTab.tab_name, drawTab.bounding_box_dimensions);
+-    emit mainWindow->generateChipViewSignal(gdt);
++    emit mw->generateChipViewSignal(gdt);
+ }
+ 
+ NsChipView::NsChipView(MainWindow* parent, const NetSpeed::generic_draw_tab_t& gdt)
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChipView.h b/src/sw/noc_dev/prototype/Gui/View/NsChipView.h
+index a951c6178a4..abf2eb40b60 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChipView.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChipView.h
+@@ -15,6 +15,7 @@ class MainWindow;
+  * @author Tai.Vu
+  */
+ void generateChipViewCallBack(const NetSpeed::generic_draw_tab_t& drawTab);
++void setMainWindow(MainWindow* mainWindow);
+ 
+ class NsChipView : public NsView
+ {
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a3b97d5fe85..791bf0d1e75 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -284,6 +284,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     });
+ 
+     /* Register the callback function to create the Chip View */
++    setMainWindow(this);
+     c->get_container().set_chip_view_callback(generateChipViewCallBack);
+     connect(this, SIGNAL(generateChipViewSignal(const NetSpeed::generic_draw_tab_t*)),
+         this, SLOT(generateChipViewSlot(const NetSpeed::generic_draw_tab_t*)), Qt::BlockingQueuedConnection);

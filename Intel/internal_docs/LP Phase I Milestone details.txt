@@ -1,0 +1,67 @@
+LP v2 Phase-I deliverable details:
+	Verification execution of LP v2 Phase I is done first on AXI-4 handwritten configs to NW configs enabling LP and host checkers along with code and functional coverage in different milestones. Conformal, CDC and RC are also part of this execution.
+	Phase-I targets only for Orion-AMBA NoC and does NOT cover Orion-NSIP and GEMINI NoCs. In Orion-AMBA NoC also REGBUS is not supported and only Single Voltage domain NoC is assumed. 
+
+
+Milestone 1:
+-----------
+Goal: 
+	Compile LP RTL without CPFs and Verif collateral
+Details:
+	Complete LP aware RTL has to be ready for AMBA NoC
+	gen_ip integration for complete LP RTL
+	tune_power implementation for new v2 architecture
+	Test/Coverage plan documentation
+
+Milestone 2:
+-----------
+Goal:
+	Verification of only AXI-4 handwritten configs exercising different NocStudio features (multiclock, multilayer and async etc.,)without LP and host checkers
+Details:
+	CPFs generation for AXI-4 NoCs
+	PMXTOR design and integration (GenStreamX)
+	Test/Coverage Plan review
+
+Milestone 3:
+-----------
+Goal:
+	Verification of NW generated AXI-4 configs with LP checkers and without host checkers
+Details:
+	CPFs generation for non AXI-4 NoCs
+	LP checkers development
+	Code coverage for LP on AXI-4 NoCs
+	NW regression health on AXI-4 to be 80%
+	CDC+RC on AXI-4 handwritten configs
+
+Milestone 4:
+-----------
+Goal:
+	Non AXI-4 and AXI-4 configs verification with all checkers enabled with LP code coverage
+Details:
+	TB Sync mechanism for enabling host checkers
+	NW regression health (70% for non AXI-4 and 100% for AXI-4)
+	Code coverage (AXI-4 100% and non AXI-4 70%)
+	Functional coverage coding (50%)
+	CDC+RC on AXI-4 configs
+
+Milestone 5:
+-----------
+Goal:
+	SW Verification and functional coverage goals with full blown NW regressions
+Details:
+	SW verification
+	Functional coverage coding (100%) and goal (50%)
+	CDC+RC on Non-AXI-4 configs
+
+Milestone 6:
+-----------
+Goal:
+	Meeting checklist items, documentation and reviews
+Details:
+	Functional and Code coverage (100%) with daily NW regressions
+	CDC+RC on customer and super configs
+	Checklist status review
+	
+
+
+

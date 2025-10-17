@@ -1,0 +1,62 @@
+ src/sw/noc_dev/prototype/Gui/statsview.cpp     | 11 +++++++++++
+ src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp | 11 +++++++++++
+ 2 files changed, 22 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/statsview.cpp b/src/sw/noc_dev/prototype/Gui/statsview.cpp
+index 1d99b9ac695..598fb0f9d5e 100644
+--- a/src/sw/noc_dev/prototype/Gui/statsview.cpp
++++ b/src/sw/noc_dev/prototype/Gui/statsview.cpp
+@@ -303,13 +303,24 @@ void all_stats_data_t::write_csv(std::ostream & os, const std::string & cmd) con
+         }
+     }
+ }
++
+ void StatsView::triggerAutoFit(bool en)
+ {
++    QRectF tight_bound;
++    for (auto layer : layer_groups) {
++        if (layer && layer->isVisible()) tight_bound |= layer->sceneBoundingRect();
++    }
++    const qreal border_width = 0.3 * ((tight_bound.width() + tight_bound.height()) / 2);
++    auto loose_bound = tight_bound.adjusted(-border_width, -border_width, border_width, border_width);
++    if (loose_bound.isValid() && loose_bound != sceneRect()) setSceneRect(loose_bound);
++    if (en) QGraphicsView::fitInView(loose_bound, Qt::KeepAspectRatio);
++    else if(alignment() != Qt::AlignCenter) setAlignment(Qt::AlignCenter);
+     setAutoFit(en);
+     if (en) {
+         viewAutoFit(this);
+     }
+ }
++
+ void StatsView::refresh()
+ {
+     //TODO: compute layer columns dynamically
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp b/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp
+index b7a581a2366..be410a17d3b 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp
+@@ -298,13 +298,24 @@ void all_stats_data_t::write_csv(std::ostream & os, const std::string & cmd) con
+         }
+     }
+ }
++
+ void StatsView::triggerAutoFit(bool en)
+ {
++    QRectF tight_bound;
++    for (auto layer : layer_groups) {
++        if (layer && layer->isVisible()) tight_bound |= layer->sceneBoundingRect();
++    }
++    const qreal border_width = 0.3 * ((tight_bound.width() + tight_bound.height()) / 2);
++    auto loose_bound = tight_bound.adjusted(-border_width, -border_width, border_width, border_width);
++    if (loose_bound.isValid() && loose_bound != sceneRect()) setSceneRect(loose_bound);
++    if (en) QGraphicsView::fitInView(loose_bound, Qt::KeepAspectRatio);
++    else if(alignment() != Qt::AlignCenter) setAlignment(Qt::AlignCenter);
+     setAutoFit(en);
+     if (en) {
+         viewAutoFit(this);
+     }
+ }
++
+ void StatsView::refresh()
+ {
+     //TODO: compute layer columns dynamically

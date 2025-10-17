@@ -1,0 +1,179 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     | 12 ++++++++++++
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.h       |  4 ++++
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp      | 12 ++++++++----
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp | 12 ++++++++++++
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h   |  3 +++
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp  | 10 +++++++---
+ 6 files changed, 46 insertions(+), 7 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 17179bcb037..10041ed2136 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -309,6 +309,7 @@ void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerNam
+ 
+     // Layout
+     customDialog* dialog = new customDialog(view, parent);
++    connect(this, &NsRouter::routerVisibleChanged, dialog, &customDialog::visibleUpdate);
+     QVBoxLayout* layout = new QVBoxLayout();
+     layout->setContentsMargins(0, 0, 0, 0);
+     layout->addWidget(aspectWrapper);
+@@ -322,6 +323,17 @@ void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerNam
+     dialog->show();
+ }
+ 
++void customDialog::visibleUpdate()
++{
++    if (auto routerItem = dynamic_cast<QGraphicsItem*>(QObject::sender())) {
++        if (routerItem->isVisible()) {
++            show();
++        } else {
++            hide();
++        }
++    }
++}
++
+ /**
+ * @brief to receive mouse press events for this item
+ * @param event of mouse
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+index 7754dc994ac..12a8a55d0a8 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+@@ -249,6 +249,7 @@ private:
+ 
+ class customDialog : public QDialog
+ {
++    Q_OBJECT
+ public:
+     customDialog(QGraphicsView* view, QWidget* parent = nullptr) : QDialog(parent) {
+         m_view = view; 
+@@ -260,6 +261,9 @@ public:
+ 
+ private:
+     QGraphicsView* m_view = nullptr;
++
++public slots:
++    void visibleUpdate();
+ };
+ 
+ class autoFitView : public QGraphicsView
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index 1f937eb727c..bcdd5972cf8 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -1042,14 +1042,16 @@ void NsMeshViewScene::display()
+     /* Update router diagram of huge dialogs */
+     for (const auto& dialog : mw->findChildren<QDialog*>("hugeDialogs")) {
+         auto hugeDialog = dynamic_cast<customDialog*>(dialog);
+-        if (!hugeDialog) return;
++        if (!hugeDialog) continue;
++        if (!hugeDialog->isVisible()) continue;
+         auto view = hugeDialog->getView();
+-        if (!view) return;
++        if (!view) continue;
+         auto scene  = view->scene();
+-        if (!scene) return;
++        if (!scene) continue;
+         QString name = hugeDialog->windowTitle().remove(QString("Router Diagram R"));
+         int l = name.split(".").first().toInt();
+         scene->clear();
++        bool updated = false;
+         for (const auto& item : layers[l]->collidingItems()) {
+             if (item->type() == ROUTER) {
+                 auto routerItem = dynamic_cast<NsRouter*>(item);
+@@ -1060,10 +1062,12 @@ void NsMeshViewScene::display()
+                     scene->addItem(newDiagram);
+                     autoFitView* viewFit = dynamic_cast<autoFitView*>(view);
+                     if (viewFit) viewFit->updateItem(newDiagram);
++                    updated = true;
+                     break;
+                 }
+             }
+-        }      
++        }
++        if (!updated) hugeDialog->close();
+     }
+ 
+     if (listRestoreDiagrams.isEmpty()) return;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+index c46d42976f0..323cf1067b6 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+@@ -309,6 +309,7 @@ void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerNam
+ 
+     // Layout
+     customDialog* dialog = new customDialog(view, parent);
++    connect(this, &NsRouter::routerVisibleChanged, dialog, &customDialog::visibleUpdate);
+     QVBoxLayout* layout = new QVBoxLayout();
+     layout->setContentsMargins(0, 0, 0, 0);
+     layout->addWidget(aspectWrapper);
+@@ -322,6 +323,17 @@ void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerNam
+     dialog->show();
+ }
+ 
++void customDialog::visibleUpdate()
++{
++    if (auto routerItem = dynamic_cast<QGraphicsItem*>(QObject::sender())) {
++        if (routerItem->isVisible()) {
++            show();
++        } else {
++            hide();
++        }
++    }
++}
++
+ /**
+ * @brief to receive mouse press events for this item
+ * @param event of mouse
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
+index a4942b88db0..ade7a915ebf 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
+@@ -261,6 +261,9 @@ public:
+ 
+ private:
+     QGraphicsView* m_view = nullptr;
++
++public slots:
++    void visibleUpdate();
+ };
+ 
+ class autoFitView : public QGraphicsView
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+index 71a64a9fabb..31491d31ba1 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+@@ -1042,14 +1042,16 @@ void NsMeshViewScene::display()
+     /* Update router diagram of huge dialogs */
+     for (const auto& dialog : mw->findChildren<QDialog*>("hugeDialogs")) {
+         auto hugeDialog = dynamic_cast<customDialog*>(dialog);
+-        if (!hugeDialog) return;
++        if (!hugeDialog) continue;
++        if (!hugeDialog->isVisible()) continue;
+         auto view = hugeDialog->getView();
+-        if (!view) return;
++        if (!view) continue;
+         auto scene  = view->scene();
+-        if (!scene) return;
++        if (!scene) continue;
+         QString name = hugeDialog->windowTitle().remove(QString("Router Diagram R"));
+         int l = name.split(".").first().toInt();
+         scene->clear();
++        bool updated = false;
+         for (const auto& item : layers[l]->collidingItems()) {
+             if (item->type() == ROUTER) {
+                 auto routerItem = dynamic_cast<NsRouter*>(item);
+@@ -1060,10 +1062,12 @@ void NsMeshViewScene::display()
+                     scene->addItem(newDiagram);
+                     autoFitView* viewFit = dynamic_cast<autoFitView*>(view);
+                     if (viewFit) viewFit->updateItem(newDiagram);
++                    updated = true;
+                     break;
+                 }
+             }
+         }
++        if (!updated) hugeDialog->close();
+     }
+ 
+     if (listRestoreDiagrams.isEmpty()) return;

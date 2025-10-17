@@ -1,0 +1,51 @@
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 30 ++++++++++++----------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 67b427718e2..d231eefd88f 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -882,12 +882,14 @@ void NsBridgeDiagram::initData()
+     QFontMetricsF metric = QFontMetrics(font);
+     const int headerHeight = metric.height();
+     //draw interface String
+-    QString interfaceText = "Interfaces";
+-    QRectF interfaceHeaderRect = QRectF(bridgeRect.topLeft(), QSizeF(maxWidthIfceName + lineWidth, headerHeight));
+-    auto interfaceBoundRect = metric.boundingRect(interfaceHeaderRect, Qt::AlignCenter, interfaceText);
+-    QPainterPath intefaceRectTextPath;
+-    intefaceRectTextPath.addText(interfaceBoundRect.bottomLeft(), font, interfaceText);
+-    new NsBridgeDiagramTextItem(intefaceRectTextPath, this);
++    if (!allIfces.empty()) {
++        QString interfaceText = "Interfaces";
++        QRectF interfaceHeaderRect = QRectF(bridgeRect.topLeft(), QSizeF(maxWidthIfceName + lineWidth, headerHeight));
++        auto interfaceBoundRect = metric.boundingRect(interfaceHeaderRect, Qt::AlignCenter, interfaceText);
++        QPainterPath intefaceRectTextPath;
++        intefaceRectTextPath.addText(interfaceBoundRect.bottomLeft(), font, interfaceText);
++        new NsBridgeDiagramTextItem(intefaceRectTextPath, this);
++    }
+ 
+     //draw Bridge String
+     QString bridgeText = "Bridge";
+@@ -899,13 +901,15 @@ void NsBridgeDiagram::initData()
+     new NsBridgeDiagramTextItem(bridgeRectTextPath, this);
+ 
+     //draw VCs String
+-    QString vcText = "VCs";
+-    QRectF vcHeaderRect = QRectF(QPointF(0, 0), QSizeF(lineWidth + maxWidthVcName, headerHeight));
+-    vcHeaderRect.moveTopLeft(bridgeRect.topLeft() + QPointF(maxWidthIfceName + lineWidth + bridgeWidth, 0));
+-    auto vcBoundRect = metric.boundingRect(vcHeaderRect, Qt::AlignCenter, vcText);
+-    QPainterPath vcRectTextPath;
+-    vcRectTextPath.addText(vcBoundRect.bottomLeft(), font, vcText);
+-    new NsBridgeDiagramTextItem(vcRectTextPath, this);
++    if (!allVcs.isEmpty()) {
++        QString vcText = "VCs";
++        QRectF vcHeaderRect = QRectF(QPointF(0, 0), QSizeF(lineWidth + maxWidthVcName, headerHeight));
++        vcHeaderRect.moveTopLeft(bridgeRect.topLeft() + QPointF(maxWidthIfceName + lineWidth + bridgeWidth, 0));
++        auto vcBoundRect = metric.boundingRect(vcHeaderRect, Qt::AlignCenter, vcText);
++        QPainterPath vcRectTextPath;
++        vcRectTextPath.addText(vcBoundRect.bottomLeft(), font, vcText);
++        new NsBridgeDiagramTextItem(vcRectTextPath, this);
++    }
+ 
+     //Set font for interfaces and vcs
+     int const interfaceVCtextSize = 10;

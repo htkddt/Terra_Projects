@@ -1,0 +1,18 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 6407266e261..3321fdcd1a5 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2419,7 +2419,9 @@ void MainWindow::consoleFinderButtonSlot()
+     console->setFocus();
+     if (!console->find(consoleFinder->text())) {
+         console->moveCursor(QTextCursor::Start);
+-        console->find(consoleFinder->text());
++        if (!console->find(consoleFinder->text())) {
++            console->moveCursor(QTextCursor::End);
++        }
+     }
+ }
+ 

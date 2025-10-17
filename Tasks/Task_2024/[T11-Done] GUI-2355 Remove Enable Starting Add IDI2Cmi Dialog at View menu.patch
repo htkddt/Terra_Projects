@@ -1,0 +1,17 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 535c7497d5c..0769a53fc87 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -1480,6 +1480,9 @@ void MainWindow::createViewMenu()
+     for (const auto& ins : viewMenuEnum)
+     {
+         if (ins == CLOSE_ALL_TOOLTIP_DIALOGS) continue;
++        if (ins == ENABLE_START_ADD_IDI2CMI_DIALOG) {
++            if (!c->get_command(NetSpeed::Command_idx(QString(CMD_ADD_IDI2CMI).toStdString()))) continue;
++        }
+         enableMenu->addAction(instrumentsActMap[ins]);
+     }
+ 

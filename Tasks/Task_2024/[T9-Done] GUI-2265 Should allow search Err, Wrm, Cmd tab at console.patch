@@ -1,0 +1,65 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 28 +++++++++++++++++++++-------
+ src/sw/noc_dev/prototype/Gui/mainwindow.h   |  2 ++
+ 2 files changed, 23 insertions(+), 7 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a99a0de9d33..1d8c1fa1afd 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2419,12 +2419,24 @@ void MainWindow::resizeEvent(QResizeEvent *event)
+     QMainWindow::resizeEvent(event);
+ }
+ 
++template <typename T> void MainWindow::find_log(T* c)
++{
++    c->setFocus();
++    if (!c->find(consoleFinder->text())) {
++        c->moveCursor(QTextCursor::Start);
++        if (!c->find(consoleFinder->text())) {
++            c->moveCursor(QTextCursor::End);
++        }
++    }
++}
++
+ void MainWindow::consoleFinderButtonSlot()
+ {
+-    console->setFocus();
+-    if (!console->find(consoleFinder->text())) {
+-        console->moveCursor(QTextCursor::Start);
+-        console->find(consoleFinder->text());
++    auto logConsole = dynamic_cast<LogConsole*>(nConsole->currentWidget());
++    if (logConsole) {
++        find_log(logConsole);
++    } else {
++        find_log(console);
+     }
+ }
+ 
+@@ -2477,9 +2489,11 @@ void MainWindow::nocFinderFocus() {
+ }
+ 
+ void MainWindow::consoleFinderFocus() {
+-    if (console == this->focusWidget()) {
+-        if (finderWidget->isVisible()) consoleFinder->setFocus();
+-        else {
++    if ((console == this->focusWidget()) || (errorConsole == this->focusWidget()) ||
++        (warningConsole == this->focusWidget()) || (cmdHistoryConsole == this->focusWidget())) {
++        if (finderWidget->isVisible()) {
++            consoleFinder->setFocus();
++        } else {
+             finderWidget->setVisible(true);
+             consoleFinder->setText("");
+             consoleFinder->setFocus();
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index f76abbe9ae5..d21e195ec28 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -469,6 +469,8 @@ public:
+     template <typename Dialog>
+     void handleDialogAction(Dialog* dialog, QString cmd);
+ 
++    template <typename T> void find_log(T* c);
++
+     //Refresh nocview(socview) scene instrument type and delete all CUSTOMIZE_ITEMS
+     void resetInstrument();
+ 

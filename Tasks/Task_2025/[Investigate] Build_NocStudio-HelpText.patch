@@ -1,0 +1,1673 @@
+ src/sw/noc_dev/GUICore/global.h                | 295 ++++++++++++++++++++++++-
+ src/sw/noc_dev/GUICore_qt6/global.h            | 295 ++++++++++++++++++++++++-
+ src/sw/noc_dev/NoC.sln                         |  12 +
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp     | 270 ----------------------
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp | 270 ----------------------
+ 5 files changed, 592 insertions(+), 550 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/global.h b/src/sw/noc_dev/GUICore/global.h
+index a75587a6143..233ff47b2db 100644
+--- a/src/sw/noc_dev/GUICore/global.h
++++ b/src/sw/noc_dev/GUICore/global.h
+@@ -46,32 +46,321 @@ const char* const TOOLTIP_MERGE_DOMAIN_BUTTON_UNCHECKED   = "Switch to Merge Vie
+ const char* const LICENSE_PATH_ENV                    = "LM_LICENSE_FILE";
+ 
+ const char* const GUI_ROUTE_TABLE                     = "gui_route_table";
++const char* const GUI_ROUTE_TABLE_ARGS 				  = "<on/off>";
++const char* const GUI_ROUTE_TABLE_SHORT_HELP 		  = "Show or hide the route table.";
++const char* const GUI_ROUTE_TABLE_LONG_HELP 		  = "\tRoute types between bridges can be specified either via this command or via the "
++                                                        "“Enable/Disable Route Table” button. "
++                                                        "All bridges in the design are listed in both the rows and columns of the Route Table and "
++                                                        "the user can choose to specify either the XY or YX route between any two bridges. "
++                                                        "This allows for a manual route enforcement/optimization method. "
++                                                        "Running map or map_opt commands after setting up the route types between certain bridges "
++                                                        "will ensure that the specified routes are always used on those bridges while routes at "
++                                                        "other bridges are being optimized. ";
++
+ const char* const GUI_BRIDGE_PROPS                    = "gui_bridge_props";
++const char* const GUI_BRIDGE_PROPS_ARGS 			  = "<on/off>";
++const char* const GUI_BRIDGE_PROPS_SHORT_HELP 		  = "Show or hide the bridge property table.";
++const char* const GUI_BRIDGE_PROPS_LONG_HELP 		  = "\tBridge property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify bridge properties through the Property Tables. "
++                                                        "The bridges in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_HOST_PROPS                      = "gui_host_props";
++const char* const GUI_HOST_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_HOST_PROPS_SHORT_HELP 		  = "Show or hide the host property table.";
++const char* const GUI_HOST_PROPS_LONG_HELP 			  = "\tHost property tables can be invoked by either this command or the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify host properties through the Property Tables. "
++                                                        "The hosts in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_ROUTER_PROPS                    = "gui_router_props";
++const char* const GUI_ROUTER_PROPS_ARGS 			  = "<on/off>";
++const char* const GUI_ROUTER_PROPS_SHORT_HELP 		  = "Show or hide the router property table.";
++const char* const GUI_ROUTER_PROPS_LONG_HELP 		  = "\tRouter property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify router properties through the Property Tables. "
++                                                        "The routers in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_LINK_PROPS                      = "gui_link_props";
++const char* const GUI_LINK_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_LINK_PROPS_SHORT_HELP 		  = "Show or hide the link property table.";
++const char* const GUI_LINK_PROPS_LONG_HELP 			  = "\tLink property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify link properties through the Property Tables. "
++                                                        "The links in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_IFCE_PROPS                      = "gui_ifce_props";
++const char* const GUI_IFCE_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_IFCE_PROPS_SHORT_HELP 		  = "Show or hide the interface property table.";
++const char* const GUI_IFCE_PROPS_LONG_HELP 			  = "\tInterface property tables can be invoked either by this command or by the "
++                                                        "“Enable/Disable Property Tables” toolbar buttons. "
++                                                        "The user can specify interface properties through the Property Tables. "
++                                                        "The interfaces in the design are listed in the table rows and the applicable properties "
++                                                        "are listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_VC_PROPS                        = "gui_vc_props";
++const char* const GUI_VC_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_VC_PROPS_SHORT_HELP 			  = "Show or hide the VC property table.";
++const char* const GUI_VC_PROPS_LONG_HELP 			  = "\tVC property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify VC properties through the Property Tables. "
++                                                        "The VC’s in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
+ 
+ const char* const CMD_LIVESIM                         = "gui_live_sim";
++const char* const CMD_LIVESIM_ARGS 					  = "<on/off>";
++const char* const CMD_LIVESIM_SHORT_HELP 			  = "Open/close live stattab.";
++const char* const CMD_LIVESIM_LONG_HELP 			  = "\tOpen/close live stattab. "
++                                                        "Live stattab is a running simulation stattab.";
++
+ const char* const CMD_MERGE                           = "gui_merge_group_labels";
++const char* const CMD_MERGE_ARGS 					  = "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
++const char* const CMD_MERGE_SHORT_HELP 				  = "Merge/Create a new stat plot";
++const char* const CMD_MERGE_LONG_HELP 				  = "\tMerge given trans/chains of given stat stat_id into one new group_label named merge_name";
++
+ const char* const CMD_COMPARE_PLOTS                   = "gui_compare_plots";
++const char* const CMD_COMPARE_PLOTS_ARGS 			  = "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
++const char* const CMD_COMPARE_PLOTS_SHORT_HELP 		  = "Compare among stat plots";
++const char* const CMD_COMPARE_PLOTS_LONG_HELP 		  = "\tCompare given trans/chains of given stat stat_id and name the comparison compare_name";
++
+ const char* const CMD_DEL_MERGE                       = "gui_del_merge";
++const char* const CMD_DEL_MERGE_ARGS                  = "-stat <stat_id> <-name merge_name>+";
++const char* const CMD_DEL_MERGE_SHORT_HELP            = "Delete one or more merged plot.";
++const char* const CMD_DEL_MERGE_LONG_HELP             = "\tDelete one or more merge.";
++
+ const char* const CMD_DEL_COMP                        = "gui_del_comp";
++const char* const CMD_DEL_COMP_ARGS 				  = "-stat <stat_id> <-name compare_name>+";
++const char* const CMD_DEL_COMP_SHORT_HELP 			  = "Delete one or more comparisons.";
++const char* const CMD_DEL_COMP_LONG_HELP 			  = "\tDelete one or more comparisons";
++
+ const char* const CMD_SAVE_STATTAB                    = "gui_save_stattab";
++const char* const CMD_SAVE_STATTAB_ARGS 			  = "-path <file_path> -stat <stattab_id>";
++const char* const CMD_SAVE_STATTAB_SHORT_HELP 		  = "Save a stattab with stattab_id into file file_path.";
++const char* const CMD_SAVE_STATTAB_LONG_HELP 		  = "\tSave a stattab with stattab_id into file file_path. File is saved as a json format.";
++
+ const char* const CMD_LOAD_STATTAB                    = "gui_load_stattab";
++const char* const CMD_LOAD_STATTAB_ARGS 			  = "<file_path>";
++const char* const CMD_LOAD_STATTAB_SHORT_HELP 		  = "Load a stattab json file into a new stattab.";
++const char* const CMD_LOAD_STATTAB_LONG_HELP 		  = "\tCreate a new stattab with data read from file <file_path> which is json file.";
++
+ const char* const CMD_LOAD_AND_MERGE                  = "gui_load_and_merge_stattab";
++const char* const CMD_LOAD_AND_MERGE_ARGS 			  = "-path <file_path> -stat <stattab_id>";
++const char* const CMD_LOAD_AND_MERGE_SHORT_HELP 	  = "Load a file then merge it with an existing stattab.";
++const char* const CMD_LOAD_AND_MERGE_LONG_HELP 		  = "\tLoad a json file then merge it with an existing stattab.";
++
+ const char* const CMD_LIST_STATTABS                   = "gui_list_stattabs";
++const char* const CMD_LIST_STATTABS_ARGS 			  = "";
++const char* const CMD_LIST_STATTABS_SHORT_HELP 		  = "Command on behalf of helping user to know current available stattab_id";
++const char* const CMD_LIST_STATTABS_LONG_HELP 		  = "\tCommand on behalf of helping user to know current available stattab_id for many command like gui_close_stattab.";
++
+ const char* const CMD_CLOSE_STATTAB                   = "gui_close_stattab";
+-const char* const CMD_SHOW_VIDEO_LINK                 = "gui_show_video";
++const char* const CMD_CLOSE_STATTAB_ARGS 			  = "<stat_id>";
++const char* const CMD_CLOSE_STATTAB_SHORT_HELP 		  = "Close an existing stat tab (Live/Perf Visualization). \n";
++const char* const CMD_CLOSE_STATTAB_LONG_HELP 		  = "\tClose an existing stat tab base on it name number"
++                                                        "\tEx: There's a stat tab ""Live Visualization Tab 0"", use ""gui_close_stattab 0"" to close the tab.";
++
++const char* const CMD_CLEAR_CONSOLE                   = "clear_console";
++const char* const CMD_CLEAR_CONSOLE_ARGS              = "[-main] [-err] [-wrn] [-cmd]";
++const char* const CMD_CLEAR_CONSOLE_SHORT_HELP        = "clear console log";
++const char* const CMD_CLEAR_CONSOLE_LONG_HELP         = "[-main] clear  \"all\" console\n"
++                                                        "[-err] clear  \"error\" console\n"
++                                                        "[-wrn] clear  \"warning\" console\n"
++                                                        "[-cmd] clear  \"command\" console\n"
++                                                        "[*] clear all consoles";
++
++const char* const CMD_RESIZE_WINDOW                   = "resize_window";
++const char* const CMD_RESIZE_WINDOW_ARGS 			  = "<width> <height>";
++const char* const CMD_RESIZE_WINDOW_SHORT_HELP 		  = "Set window size";
++const char* const CMD_RESIZE_WINDOW_LONG_HELP 		  = "Resize application window to input width and height";
++
+ const char* const CMD_OPEN_TOOLTIP                    = "gui_global_tooltip";
++const char* const CMD_OPEN_TOOLTIP_ARGS               = "<tooltip_id> -name <tab_name>";
++const char* const CMD_OPEN_TOOLTIP_SHORT_HELP         = "Open a global tooltip tab";
++const char* const CMD_OPEN_TOOLTIP_LONG_HELP          = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name option, user can rename the tooltip tab name.\n\n Arguments:\n\n";
++const char* const CMD_OPEN_TOOLTIP_LONG_HELP_HTML     = "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">tooltip_id</th><th>Detail</th></tr>"
++                                                        "<tr><td>cost</td><td>ListCosts</td></tr>"
++                                                        "<tr><td>list</td><td>ListHosts</td></tr>"
++                                                        "<tr><td>traf</td><td>ListTraffic</td></tr>"
++                                                        "<tr><td>perf</td><td> ShowPerformance</td></tr>"
++                                                        "<tr><td> dynamic</td><td> Dynamic</td></tr>"
++                                                        "</table>"
++                                                        "<br>Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip list<br>"
++                                                        "This opens a tab named 'list'<br><br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip traf -name new_tab_name<br>"
++                                                        "This opens a tab named 'traf' and rename tab to 'new_tab_name'";
++
+ const char* const CMD_ADD_TAB                         = "gui_add_tab";
++const char* const CMD_ADD_TAB_ARGS                    = "<arguments> -name <tab_name>";
++const char* const CMD_ADD_TAB_SHORT_HELP              = "Open a global tooltip tab";
++const char* const CMD_ADD_TAB_LONG_HELP               = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name option, user can rename the tooltip tab name.\n\n ";
++const char* const CMD_ADD_TAB_LONG_HELP_HTML          = "<br><table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">Arguments</th><th>Detail</th></tr>"
++                                                        "<tr><td>cost</td><td>ListCosts</td></tr>"
++                                                        "<tr><td>route</td><td>ListRoute</td></tr>"
++                                                        "<tr><td>rtl_groups</td><td>ListRTLGroup</td></tr>"
++                                                        "<tr><td>density</td><td> ShowDensity</td></tr>"
++                                                        "<tr><td> list</td><td>ListHosts</td></tr>"
++                                                        "<tr><td> traf</td><td>ListTraffic</td></tr>"
++                                                        "<tr><td> perf</td><td>ShowPerformance</td></tr>"
++                                                        "<tr><td> report</td><td>The GUI will add a tab to display the last run command in the console.</td></tr>"
++                                                        "</table>"
++                                                        "<br> Here are supported commands for the 'report' argument:<br>"
++                                                        "<table width =\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">No.</th><th>Supported commands</th></tr>"
++                                                        "<tr><td>1</td><td>analyze_traffic</td></tr>"
++                                                        "<tr><td>2</td><td>show_noc_density</td></tr>"
++                                                        "<tr><td>3</td><td>analyze_clock</td></tr>"
++                                                        "<tr><td>4</td><td>list_spine_gating_regions</td></tr>"
++                                                        "<tr><td>5</td><td>list_sync_reset_regions</td></tr>"
++                                                        "<tr><td>6</td><td>list_chops</td></tr>"
++                                                        "<tr><td>7</td><td>list_rtl_groups</td></tr>"
++                                                        "<tr><td>8</td><td>lint</td></tr>"
++                                                        "<tr><td>9</td><td>list_transfer_columns</td></tr>"
++                                                        "<tr><td>10</td><td>list_ranges</td></tr>"
++                                                        "<tr><td>11</td><td>list_registers</td></tr>"
++                                                        "<tr><td>12</td><td>show_route</td></tr>"
++                                                        "<tr><td>13</td><td>show_data_header_delay</td></tr>"
++                                                        "<tr><td>14</td><td>list_payloads</td></tr>"
++                                                        "<tr><td>15</td><td>show_latency</td></tr>"
++                                                        "<tr><td>16</td><td>bench_map</td></tr>"
++                                                        "<tr><td>17</td><td>calculate_ev_efficiency</td></tr>"
++                                                        "<tr><td>18</td><td>bench_noc</td></tr>"
++                                                        "<tr><td>19</td><td>bench_traffic</td></tr>"
++                                                        "<tr><td>20</td><td>analyze_power</td></tr>"
++                                                        "</table><br>"
++                                                        "Example:<br>"
++                                                        "list_rtl_groups<br>"
++                                                        "gui_add_tab report<br>"
++                                                        "The RTL Groups tab should be opened.<br><br><br>";
++
+ const char* const CMD_CHANGE_TABNAME                  = "tabname_change";
++const char* const CMD_CHANGE_TABNAME_ARGS 			  = "<tab_number> <new_tab_name>";
++const char* const CMD_CHANGE_TABNAME_SHORT_HELP 	  = "change an existing tab name";
++const char* const CMD_CHANGE_TABNAME_LONG_HELP        = "   change an existing tab name.\n\nArguments:\n\n";
++const char* const CMD_CHANGE_TABNAME_LONG_HELP_HTML   = "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">tab_number</th><th>Detail</th></tr>"
++                                                        "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"  
++                                                        "<tr><td>1</td><td>Tab 1</td></tr>"
++                                                        "<tr><td>2</td><td>Tab 2</td></tr>"
++                                                        "<tr><td>...</td><td></td></tr>"
++                                                        "<tr><td>n</td><td>Tab n</td></tr>"
++                                                        "</table> <br>"
++                                                        "Tabs location:<br>"
++                                                        "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br>"
++                                                        "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th>new_tab_name</th><th>Detail</th></tr>"
++                                                        "<tr><td>NetSpeed</td><td> change tab name to NetSpeed</td></tr>"
++                                                        "</table><br>"
++                                                        "Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;tabname_change 1 NetSpeed<br>"
++                                                        "This changes 'tab 1' name to 'NetSpeed'";
++
+ const char* const CMD_LIST_TOOLTIPS                   = "gui_list_tooltips";
++const char* const CMD_LIST_TOOLTIPS_ARGS 			  = "";
++const char* const CMD_LIST_TOOLTIPS_SHORT_HELP 		  = "Show available tooltips";
++const char* const CMD_LIST_TOOLTIPS_LONG_HELP 		  = "\tList all available tooltips can be used in global tooltip command";
++
+ const char* const CMD_CLOSE_TAB                       = "gui_close_tab";
++const char* const CMD_CLOSE_TAB_ARGS 				  = "<tab_id>";
++const char* const CMD_CLOSE_TAB_SHORT_HELP 			  = "Close an existing tab or all tabs except Grid View and FloorPlan View tab.";
++const char* const CMD_CLOSE_TAB_LONG_HELP 			  = "\tClose an existing tab or all tabs on Displaying Panel."
++                                                        " Tab id order will be ascending from left to right and always starting from the Grid View tab with id is 0."
++                                                        " This command cannot use to close Grid View or FloorPlan View tab.\n\n"
++                                                        "Arguments:\n\n";
++const char* const CMD_CLOSE_TAB_LONG_HELP_HTML        = "<table width=\"600\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\"> tab_id</th><th>Detail</th></tr>"
++                                                        "<tr><td>all</td><td> Close all tabs except both Grid View and FoorPlan View tab</td></tr>"
++                                                        "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"
++                                                        "<tr><td> 1</td><td> Available except only FloorPlan View tab</td></tr>"
++                                                        "<tr><td> 2</td><td> Available</td></tr>"
++                                                        "<tr><td> 3</td><td> Available</td></tr>"
++                                                        "<tr><td>...</td><td></td></tr>"
++                                                        "<tr><td>n</td><td> Available</td></tr>"
++                                                        "</table><br>"
++                                                        "Tabs location:<br>"
++                                                        "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br><br>"                                                 
++                                                        "Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab 1<br>"
++                                                        "This closes tab 1<br><br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab all<br>"
++                                                        "This closes all tabs except both Grid View and FoorPlan View tab";
++
+ const char* const CMD_SHOW_TAB                        = "gui_show_tab";
++const char* const CMD_SHOW_TAB_ARGS 				  = "<tab_id>";
++const char* const CMD_SHOW_TAB_SHORT_HELP 			  = "Switch to an existing tab";
++const char* const CMD_SHOW_TAB_LONG_HELP 			  = "\tSwitch to an existing tab on Displaying Panel";
++
+ const char* const CMD_VIEW_MODE                       = "gui_view_mode";
++const char* const CMD_VIEW_MODE_ARGS 				  = "<mode_id>";
++const char* const CMD_VIEW_MODE_SHORT_HELP 			  = "Switch to a view mode";
++const char* const CMD_VIEW_MODE_LONG_HELP 			  = "\tSwitch to a view mode with mode_id."
++                                                        "  The view modes can be: NOC view, CLOCK DOMAIN "
++                                                        "view, VOLTAGE DOMAIN view, POWER DOMAIN view, ALL-NOC LAYER, "
++                                                        "BLOCKAGE view, MERGE view and RTL GROUP view.\n\n"
++                                                        "Arguments:\n\n";
++const char* const CMD_VIEW_MODE_LONG_HELP_HTML        = "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">mode_id</th><th> Detail</th><th> Shortcuts</th></tr>"
++                                                        "<tr><td> 0</td><td> NOC view</td><td>ALT+N</td></tr>"
++                                                        "<tr><td> 1</td><td> CLOCK DOMAIN view</td><td>ALT+C</td></tr>"
++                                                        "<tr><td> 2</td><td> VOLTAGE DOMAIN view</td><td>ALT+V</td></tr>"
++                                                        "<tr><td> 3</td><td> POWER DOMAIN view</td><td>ALT+P</td></tr>"
++                                                        "<tr><td> 4</td><td> BLOCKAGE view</td><td>ALT+B</td></tr>"
++                                                        "<tr><td> 5</td><td> MERGE view</td><td>ALT+M</td></tr>"
++                                                        "<tr><td> 6</td><td> RTL GROUP view</td><td>ALT+R</td></tr>"
++                                                        "</table><br>"
++                                                        "Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_view_mode 0<br>"
++                                                        "Switch to NOC view ";
++
++const char* const CMD_SAVE_LINT_REPORT                = "save_lint_report";
++const char* const CMD_SAVE_LINT_REPORT_ARGS 		  = "<file_name> [relative_folder_path]";
++const char* const CMD_SAVE_LINT_REPORT_SHORT_HELP 	  = "Save the lint report as a .csv file.";
++const char* const CMD_SAVE_LINT_REPORT_LONG_HELP      = "\tSave the lint report as a .csv file \"file_name\" in relative path \"folder_path\". "
++                                                        "If no folder with name \"folder_path\" can be found in relative path, a new folder is "
++                                                        "created. ";
++
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING                 = "show_route_waypoints";
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING_ARGS            = "-src <src_ifce> -dest <dest_ifce>";
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING_SHORT_HELP      = "Shows route waypoint if present between src and dest interface.";
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING_LONG_HELP       = "\tThis command shows route waypoints between src and dest interface.\n\n"
++                                                                   "Example:\n"
++                                                                   "\tshow_route_waypoints -src disp0/m -dest ddr0/s\n"
++                                                                   "This command will show waypoints of the route between bridge \"m\" of disp0 and bridge "
++                                                                   "\"s\" of ddr0.";
++
+ const char* const CMD_ZOOM_ON                         = "zoom_on";
++const char* const CMD_ZOOM_ON_ARGS                    = "<component name>";
++const char* const CMD_ZOOM_ON_SHORT_HELP              = "Zoom on a specified component.";
++const char* const CMD_ZOOM_ON_LONG_HELP               = "  This command will zoom to the specified component in the GUI.\n\n"
++                                                        "Example:\n"
++                                                        "  zoom_on h_cpu\n"
++                                                        "  # Zoom on a particular host.  This command will find the position of the host\n"
++                                                        "  # \"h_cpu\" and place it in the center of the GUI Grid View.\n\n"
++                                                        "  zoom_on R0.22N.0.in\n"
++                                                        "  # Zoom on a particular link.  This command will find the position of the\n"
++                                                        "  # connected router (R22 on layer 0) of specified link (its north input\n"
++                                                        "  # port VC0), zoom in to the router, pop up the router in GUI view and\n"
++                                                        "  # show the traffic flow on the link.\n";
++
++const char* const CMD_SHOW_VIDEO_LINK                 = "gui_show_video";
+ const char* const CMD_MOVE_HOST                       = "move_host";
+ const char* const CMD_MOVE_HOSTS                      = "permute_hosts";
+ const char* const CMD_MOVE_BRIDGE                     = "move_bridge";
+@@ -85,7 +374,6 @@ const char* const CMD_VC_PROP                         = "vc_prop";
+ const char* const CMD_LINK_PROP                       = "link_prop";
+ const char* const CMD_ROUTER_PROP                     = "router_prop";
+ const char* const CMD_MOVE_MULTIPLE_HOST              = "permute_hosts";
+-const char* const CMD_RESIZE_WINDOW                   = "resize_window";
+ const char* const CMD_MAP                             = "map";
+ const char* const CMD_MAP_OPT                         = "map_opt";
+ const char* const CMD_ML_BUILD                        = "ml_build";
+@@ -160,19 +448,16 @@ const char* const CMD_SHOW_WAIVER_LIST                = "list_waivers";
+ const char* const CMD_SHOW_UNWAIVER_LIST              = "list_unwaivers";
+ const char* const CMD_SHOW_LATENCY                    = "show_latency";
+ const char* const CMD_SHOW_ROUTE_STRING               = "show_route";
+-const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING      = "show_route_waypoints";
+ const char* const CMD_RESET_UNWAIVER_LIST             = "reset_unwaivers";
+ const char* const CMD_RESET_WAIVER_LIST               = "reset_waivers";
+ const char* const CMD_UPGRADE_WARNING                 = "upgrade_warning";
+ const char* const CMD_RESET_UPGRADE_WARNING           = "reset_upgraded_warning";
+-const char* const CMD_SAVE_LINT_REPORT                = "save_lint_report";
+ const char* const CMD_EXIT_NOC                        = "exit";
+ const char* const CMD_EXIT_IP                         = "exit";
+ const char* const CMD_APPLY                           = "CMD";
+ const char* const CMD_RUN_BOX                         = "run_box ";
+ const char* const CMD_USER_MANUAL                     = "gen_user_manual_suppl";
+ const char* const CMD_ANALYZE_POWER                   = "analyze_power";
+-const char* const CMD_CLEAR_CONSOLE                   = "clear_console";
+ const char* const CMD_RESET_MESH                      = "reset_mesh";
+ const char* const CMD_RESET_MAP                       = "reset_map";
+ const char* const CMD_DEL_CHOP                        = "del_chop";
+diff --git a/src/sw/noc_dev/GUICore_qt6/global.h b/src/sw/noc_dev/GUICore_qt6/global.h
+index 6d08d336052..990abea27e4 100644
+--- a/src/sw/noc_dev/GUICore_qt6/global.h
++++ b/src/sw/noc_dev/GUICore_qt6/global.h
+@@ -46,32 +46,321 @@ const char* const TOOLTIP_MERGE_DOMAIN_BUTTON_UNCHECKED   = "Switch to Merge Vie
+ const char* const LICENSE_PATH_ENV                    = "LM_LICENSE_FILE";
+ 
+ const char* const GUI_ROUTE_TABLE                     = "gui_route_table";
++const char* const GUI_ROUTE_TABLE_ARGS 				  = "<on/off>";
++const char* const GUI_ROUTE_TABLE_SHORT_HELP 		  = "Show or hide the route table.";
++const char* const GUI_ROUTE_TABLE_LONG_HELP 		  = "\tRoute types between bridges can be specified either via this command or via the "
++                                                        "“Enable/Disable Route Table” button. "
++                                                        "All bridges in the design are listed in both the rows and columns of the Route Table and "
++                                                        "the user can choose to specify either the XY or YX route between any two bridges. "
++                                                        "This allows for a manual route enforcement/optimization method. "
++                                                        "Running map or map_opt commands after setting up the route types between certain bridges "
++                                                        "will ensure that the specified routes are always used on those bridges while routes at "
++                                                        "other bridges are being optimized. ";
++
+ const char* const GUI_BRIDGE_PROPS                    = "gui_bridge_props";
++const char* const GUI_BRIDGE_PROPS_ARGS 			  = "<on/off>";
++const char* const GUI_BRIDGE_PROPS_SHORT_HELP 		  = "Show or hide the bridge property table.";
++const char* const GUI_BRIDGE_PROPS_LONG_HELP 		  = "\tBridge property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify bridge properties through the Property Tables. "
++                                                        "The bridges in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_HOST_PROPS                      = "gui_host_props";
++const char* const GUI_HOST_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_HOST_PROPS_SHORT_HELP 		  = "Show or hide the host property table.";
++const char* const GUI_HOST_PROPS_LONG_HELP 			  = "\tHost property tables can be invoked by either this command or the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify host properties through the Property Tables. "
++                                                        "The hosts in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_ROUTER_PROPS                    = "gui_router_props";
++const char* const GUI_ROUTER_PROPS_ARGS 			  = "<on/off>";
++const char* const GUI_ROUTER_PROPS_SHORT_HELP 		  = "Show or hide the router property table.";
++const char* const GUI_ROUTER_PROPS_LONG_HELP 		  = "\tRouter property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify router properties through the Property Tables. "
++                                                        "The routers in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_LINK_PROPS                      = "gui_link_props";
++const char* const GUI_LINK_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_LINK_PROPS_SHORT_HELP 		  = "Show or hide the link property table.";
++const char* const GUI_LINK_PROPS_LONG_HELP 			  = "\tLink property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify link properties through the Property Tables. "
++                                                        "The links in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_IFCE_PROPS                      = "gui_ifce_props";
++const char* const GUI_IFCE_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_IFCE_PROPS_SHORT_HELP 		  = "Show or hide the interface property table.";
++const char* const GUI_IFCE_PROPS_LONG_HELP 			  = "\tInterface property tables can be invoked either by this command or by the "
++                                                        "“Enable/Disable Property Tables” toolbar buttons. "
++                                                        "The user can specify interface properties through the Property Tables. "
++                                                        "The interfaces in the design are listed in the table rows and the applicable properties "
++                                                        "are listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
++
+ const char* const GUI_VC_PROPS                        = "gui_vc_props";
++const char* const GUI_VC_PROPS_ARGS 				  = "<on/off>";
++const char* const GUI_VC_PROPS_SHORT_HELP 			  = "Show or hide the VC property table.";
++const char* const GUI_VC_PROPS_LONG_HELP 			  = "\tVC property tables can be invoked either by this command or by the “Enable/Disable "
++                                                        "Property Tables” toolbar buttons. "
++                                                        "The user can specify VC properties through the Property Tables. "
++                                                        "The VC’s in the design are listed in the table rows and the applicable properties are "
++                                                        "listed in the table columns. "
++                                                        "The appropriate property value for a certain NoC element can be specified by either "
++                                                        "entering the desired value or by choosing from a drop-down menu (where applicable).";
+ 
+ const char* const CMD_LIVESIM                         = "gui_live_sim";
++const char* const CMD_LIVESIM_ARGS 					  = "<on/off>";
++const char* const CMD_LIVESIM_SHORT_HELP 			  = "Open/close live stattab.";
++const char* const CMD_LIVESIM_LONG_HELP 			  = "\tOpen/close live stattab. "
++                                                        "Live stattab is a running simulation stattab.";
++
+ const char* const CMD_MERGE                           = "gui_merge_group_labels";
++const char* const CMD_MERGE_ARGS 					  = "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
++const char* const CMD_MERGE_SHORT_HELP 				  = "Merge/Create a new stat plot";
++const char* const CMD_MERGE_LONG_HELP 				  = "\tMerge given trans/chains of given stat stat_id into one new group_label named merge_name";
++
+ const char* const CMD_COMPARE_PLOTS                   = "gui_compare_plots";
++const char* const CMD_COMPARE_PLOTS_ARGS 			  = "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
++const char* const CMD_COMPARE_PLOTS_SHORT_HELP 		  = "Compare among stat plots";
++const char* const CMD_COMPARE_PLOTS_LONG_HELP 		  = "\tCompare given trans/chains of given stat stat_id and name the comparison compare_name";
++
+ const char* const CMD_DEL_MERGE                       = "gui_del_merge";
++const char* const CMD_DEL_MERGE_ARGS                  = "-stat <stat_id> <-name merge_name>+";
++const char* const CMD_DEL_MERGE_SHORT_HELP            = "Delete one or more merged plot.";
++const char* const CMD_DEL_MERGE_LONG_HELP             = "\tDelete one or more merge.";
++
+ const char* const CMD_DEL_COMP                        = "gui_del_comp";
++const char* const CMD_DEL_COMP_ARGS 				  = "-stat <stat_id> <-name compare_name>+";
++const char* const CMD_DEL_COMP_SHORT_HELP 			  = "Delete one or more comparisons.";
++const char* const CMD_DEL_COMP_LONG_HELP 			  = "\tDelete one or more comparisons";
++
+ const char* const CMD_SAVE_STATTAB                    = "gui_save_stattab";
++const char* const CMD_SAVE_STATTAB_ARGS 			  = "-path <file_path> -stat <stattab_id>";
++const char* const CMD_SAVE_STATTAB_SHORT_HELP 		  = "Save a stattab with stattab_id into file file_path.";
++const char* const CMD_SAVE_STATTAB_LONG_HELP 		  = "\tSave a stattab with stattab_id into file file_path. File is saved as a json format.";
++
+ const char* const CMD_LOAD_STATTAB                    = "gui_load_stattab";
++const char* const CMD_LOAD_STATTAB_ARGS 			  = "<file_path>";
++const char* const CMD_LOAD_STATTAB_SHORT_HELP 		  = "Load a stattab json file into a new stattab.";
++const char* const CMD_LOAD_STATTAB_LONG_HELP 		  = "\tCreate a new stattab with data read from file <file_path> which is json file.";
++
+ const char* const CMD_LOAD_AND_MERGE                  = "gui_load_and_merge_stattab";
++const char* const CMD_LOAD_AND_MERGE_ARGS 			  = "-path <file_path> -stat <stattab_id>";
++const char* const CMD_LOAD_AND_MERGE_SHORT_HELP 	  = "Load a file then merge it with an existing stattab.";
++const char* const CMD_LOAD_AND_MERGE_LONG_HELP 		  = "\tLoad a json file then merge it with an existing stattab.";
++
+ const char* const CMD_LIST_STATTABS                   = "gui_list_stattabs";
++const char* const CMD_LIST_STATTABS_ARGS 			  = "";
++const char* const CMD_LIST_STATTABS_SHORT_HELP 		  = "Command on behalf of helping user to know current available stattab_id";
++const char* const CMD_LIST_STATTABS_LONG_HELP 		  = "\tCommand on behalf of helping user to know current available stattab_id for many command like gui_close_stattab.";
++
+ const char* const CMD_CLOSE_STATTAB                   = "gui_close_stattab";
+-const char* const CMD_SHOW_VIDEO_LINK                 = "gui_show_video";
++const char* const CMD_CLOSE_STATTAB_ARGS 			  = "<stat_id>";
++const char* const CMD_CLOSE_STATTAB_SHORT_HELP 		  = "Close an existing stat tab (Live/Perf Visualization). \n";
++const char* const CMD_CLOSE_STATTAB_LONG_HELP 		  = "\tClose an existing stat tab base on it name number"
++                                                        "\tEx: There's a stat tab ""Live Visualization Tab 0"", use ""gui_close_stattab 0"" to close the tab.";
++
++const char* const CMD_CLEAR_CONSOLE                   = "clear_console";
++const char* const CMD_CLEAR_CONSOLE_ARGS              = "[-main] [-err] [-wrn] [-cmd]";
++const char* const CMD_CLEAR_CONSOLE_SHORT_HELP        = "clear console log";
++const char* const CMD_CLEAR_CONSOLE_LONG_HELP         = "[-main] clear  \"all\" console\n"
++                                                        "[-err] clear  \"error\" console\n"
++                                                        "[-wrn] clear  \"warning\" console\n"
++                                                        "[-cmd] clear  \"command\" console\n"
++                                                        "[*] clear all consoles";
++
++const char* const CMD_RESIZE_WINDOW                   = "resize_window";
++const char* const CMD_RESIZE_WINDOW_ARGS 			  = "<width> <height>";
++const char* const CMD_RESIZE_WINDOW_SHORT_HELP 		  = "Set window size";
++const char* const CMD_RESIZE_WINDOW_LONG_HELP 		  = "Resize application window to input width and height";
++
+ const char* const CMD_OPEN_TOOLTIP                    = "gui_global_tooltip";
++const char* const CMD_OPEN_TOOLTIP_ARGS               = "<tooltip_id> -name <tab_name>";
++const char* const CMD_OPEN_TOOLTIP_SHORT_HELP         = "Open a global tooltip tab";
++const char* const CMD_OPEN_TOOLTIP_LONG_HELP          = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name option, user can rename the tooltip tab name.\n\n Arguments:\n\n";
++const char* const CMD_OPEN_TOOLTIP_LONG_HELP_HTML     = "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">tooltip_id</th><th>Detail</th></tr>"
++                                                        "<tr><td>cost</td><td>ListCosts</td></tr>"
++                                                        "<tr><td>list</td><td>ListHosts</td></tr>"
++                                                        "<tr><td>traf</td><td>ListTraffic</td></tr>"
++                                                        "<tr><td>perf</td><td> ShowPerformance</td></tr>"
++                                                        "<tr><td> dynamic</td><td> Dynamic</td></tr>"
++                                                        "</table>"
++                                                        "<br>Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip list<br>"
++                                                        "This opens a tab named 'list'<br><br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip traf -name new_tab_name<br>"
++                                                        "This opens a tab named 'traf' and rename tab to 'new_tab_name'";
++
+ const char* const CMD_ADD_TAB                         = "gui_add_tab";
++const char* const CMD_ADD_TAB_ARGS                    = "<arguments> -name <tab_name>";
++const char* const CMD_ADD_TAB_SHORT_HELP              = "Open a global tooltip tab";
++const char* const CMD_ADD_TAB_LONG_HELP               = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name option, user can rename the tooltip tab name.\n\n ";
++const char* const CMD_ADD_TAB_LONG_HELP_HTML          = "<br><table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">Arguments</th><th>Detail</th></tr>"
++                                                        "<tr><td>cost</td><td>ListCosts</td></tr>"
++                                                        "<tr><td>route</td><td>ListRoute</td></tr>"
++                                                        "<tr><td>rtl_groups</td><td>ListRTLGroup</td></tr>"
++                                                        "<tr><td>density</td><td> ShowDensity</td></tr>"
++                                                        "<tr><td> list</td><td>ListHosts</td></tr>"
++                                                        "<tr><td> traf</td><td>ListTraffic</td></tr>"
++                                                        "<tr><td> perf</td><td>ShowPerformance</td></tr>"
++                                                        "<tr><td> report</td><td>The GUI will add a tab to display the last run command in the console.</td></tr>"
++                                                        "</table>"
++                                                        "<br> Here are supported commands for the 'report' argument:<br>"
++                                                        "<table width =\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">No.</th><th>Supported commands</th></tr>"
++                                                        "<tr><td>1</td><td>analyze_traffic</td></tr>"
++                                                        "<tr><td>2</td><td>show_noc_density</td></tr>"
++                                                        "<tr><td>3</td><td>analyze_clock</td></tr>"
++                                                        "<tr><td>4</td><td>list_spine_gating_regions</td></tr>"
++                                                        "<tr><td>5</td><td>list_sync_reset_regions</td></tr>"
++                                                        "<tr><td>6</td><td>list_chops</td></tr>"
++                                                        "<tr><td>7</td><td>list_rtl_groups</td></tr>"
++                                                        "<tr><td>8</td><td>lint</td></tr>"
++                                                        "<tr><td>9</td><td>list_transfer_columns</td></tr>"
++                                                        "<tr><td>10</td><td>list_ranges</td></tr>"
++                                                        "<tr><td>11</td><td>list_registers</td></tr>"
++                                                        "<tr><td>12</td><td>show_route</td></tr>"
++                                                        "<tr><td>13</td><td>show_data_header_delay</td></tr>"
++                                                        "<tr><td>14</td><td>list_payloads</td></tr>"
++                                                        "<tr><td>15</td><td>show_latency</td></tr>"
++                                                        "<tr><td>16</td><td>bench_map</td></tr>"
++                                                        "<tr><td>17</td><td>calculate_ev_efficiency</td></tr>"
++                                                        "<tr><td>18</td><td>bench_noc</td></tr>"
++                                                        "<tr><td>19</td><td>bench_traffic</td></tr>"
++                                                        "<tr><td>20</td><td>analyze_power</td></tr>"
++                                                        "</table><br>"
++                                                        "Example:<br>"
++                                                        "list_rtl_groups<br>"
++                                                        "gui_add_tab report<br>"
++                                                        "The RTL Groups tab should be opened.<br><br><br>";
++
+ const char* const CMD_CHANGE_TABNAME                  = "tabname_change";
++const char* const CMD_CHANGE_TABNAME_ARGS 			  = "<tab_number> <new_tab_name>";
++const char* const CMD_CHANGE_TABNAME_SHORT_HELP 	  = "change an existing tab name";
++const char* const CMD_CHANGE_TABNAME_LONG_HELP        = "   change an existing tab name.\n\nArguments:\n\n";
++const char* const CMD_CHANGE_TABNAME_LONG_HELP_HTML   = "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">tab_number</th><th>Detail</th></tr>"
++                                                        "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"  
++                                                        "<tr><td>1</td><td>Tab 1</td></tr>"
++                                                        "<tr><td>2</td><td>Tab 2</td></tr>"
++                                                        "<tr><td>...</td><td></td></tr>"
++                                                        "<tr><td>n</td><td>Tab n</td></tr>"
++                                                        "</table> <br>"
++                                                        "Tabs location:<br>"
++                                                        "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br>"
++                                                        "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th>new_tab_name</th><th>Detail</th></tr>"
++                                                        "<tr><td>NetSpeed</td><td> change tab name to NetSpeed</td></tr>"
++                                                        "</table><br>"
++                                                        "Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;tabname_change 1 NetSpeed<br>"
++                                                        "This changes 'tab 1' name to 'NetSpeed'";
++
+ const char* const CMD_LIST_TOOLTIPS                   = "gui_list_tooltips";
++const char* const CMD_LIST_TOOLTIPS_ARGS 			  = "";
++const char* const CMD_LIST_TOOLTIPS_SHORT_HELP 		  = "Show available tooltips";
++const char* const CMD_LIST_TOOLTIPS_LONG_HELP 		  = "\tList all available tooltips can be used in global tooltip command";
++
+ const char* const CMD_CLOSE_TAB                       = "gui_close_tab";
++const char* const CMD_CLOSE_TAB_ARGS 				  = "<tab_id>";
++const char* const CMD_CLOSE_TAB_SHORT_HELP 			  = "Close an existing tab or all tabs except Grid View and FloorPlan View tab.";
++const char* const CMD_CLOSE_TAB_LONG_HELP 			  = "\tClose an existing tab or all tabs on Displaying Panel."
++                                                        " Tab id order will be ascending from left to right and always starting from the Grid View tab with id is 0."
++                                                        " This command cannot use to close Grid View or FloorPlan View tab.\n\n"
++                                                        "Arguments:\n\n";
++const char* const CMD_CLOSE_TAB_LONG_HELP_HTML        = "<table width=\"600\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\"> tab_id</th><th>Detail</th></tr>"
++                                                        "<tr><td>all</td><td> Close all tabs except both Grid View and FoorPlan View tab</td></tr>"
++                                                        "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"
++                                                        "<tr><td> 1</td><td> Available except only FloorPlan View tab</td></tr>"
++                                                        "<tr><td> 2</td><td> Available</td></tr>"
++                                                        "<tr><td> 3</td><td> Available</td></tr>"
++                                                        "<tr><td>...</td><td></td></tr>"
++                                                        "<tr><td>n</td><td> Available</td></tr>"
++                                                        "</table><br>"
++                                                        "Tabs location:<br>"
++                                                        "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br><br>"                                                 
++                                                        "Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab 1<br>"
++                                                        "This closes tab 1<br><br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab all<br>"
++                                                        "This closes all tabs except both Grid View and FoorPlan View tab";
++
+ const char* const CMD_SHOW_TAB                        = "gui_show_tab";
++const char* const CMD_SHOW_TAB_ARGS 				  = "<tab_id>";
++const char* const CMD_SHOW_TAB_SHORT_HELP 			  = "Switch to an existing tab";
++const char* const CMD_SHOW_TAB_LONG_HELP 			  = "\tSwitch to an existing tab on Displaying Panel";
++
+ const char* const CMD_VIEW_MODE                       = "gui_view_mode";
++const char* const CMD_VIEW_MODE_ARGS 				  = "<mode_id>";
++const char* const CMD_VIEW_MODE_SHORT_HELP 			  = "Switch to a view mode";
++const char* const CMD_VIEW_MODE_LONG_HELP 			  = "\tSwitch to a view mode with mode_id."
++                                                        "  The view modes can be: NOC view, CLOCK DOMAIN "
++                                                        "view, VOLTAGE DOMAIN view, POWER DOMAIN view, ALL-NOC LAYER, "
++                                                        "BLOCKAGE view, MERGE view and RTL GROUP view.\n\n"
++                                                        "Arguments:\n\n";
++const char* const CMD_VIEW_MODE_LONG_HELP_HTML        = "<table width=\"500\" border=1 cellspacing=1>"
++                                                        "<tr><th width=\"100\">mode_id</th><th> Detail</th><th> Shortcuts</th></tr>"
++                                                        "<tr><td> 0</td><td> NOC view</td><td>ALT+N</td></tr>"
++                                                        "<tr><td> 1</td><td> CLOCK DOMAIN view</td><td>ALT+C</td></tr>"
++                                                        "<tr><td> 2</td><td> VOLTAGE DOMAIN view</td><td>ALT+V</td></tr>"
++                                                        "<tr><td> 3</td><td> POWER DOMAIN view</td><td>ALT+P</td></tr>"
++                                                        "<tr><td> 4</td><td> BLOCKAGE view</td><td>ALT+B</td></tr>"
++                                                        "<tr><td> 5</td><td> MERGE view</td><td>ALT+M</td></tr>"
++                                                        "<tr><td> 6</td><td> RTL GROUP view</td><td>ALT+R</td></tr>"
++                                                        "</table><br>"
++                                                        "Example:<br>"
++                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_view_mode 0<br>"
++                                                        "Switch to NOC view ";
++
++const char* const CMD_SAVE_LINT_REPORT                = "save_lint_report";
++const char* const CMD_SAVE_LINT_REPORT_ARGS 		  = "<file_name> [relative_folder_path]";
++const char* const CMD_SAVE_LINT_REPORT_SHORT_HELP 	  = "Save the lint report as a .csv file.";
++const char* const CMD_SAVE_LINT_REPORT_LONG_HELP      = "\tSave the lint report as a .csv file \"file_name\" in relative path \"folder_path\". "
++                                                        "If no folder with name \"folder_path\" can be found in relative path, a new folder is "
++                                                        "created. ";
++
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING                 = "show_route_waypoints";
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING_ARGS            = "-src <src_ifce> -dest <dest_ifce>";
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING_SHORT_HELP      = "Shows route waypoint if present between src and dest interface.";
++const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING_LONG_HELP       = "\tThis command shows route waypoints between src and dest interface.\n\n"
++                                                                   "Example:\n"
++                                                                   "\tshow_route_waypoints -src disp0/m -dest ddr0/s\n"
++                                                                   "This command will show waypoints of the route between bridge \"m\" of disp0 and bridge "
++                                                                   "\"s\" of ddr0.";
++
+ const char* const CMD_ZOOM_ON                         = "zoom_on";
++const char* const CMD_ZOOM_ON_ARGS                    = "<component name>";
++const char* const CMD_ZOOM_ON_SHORT_HELP              = "Zoom on a specified component.";
++const char* const CMD_ZOOM_ON_LONG_HELP               = "  This command will zoom to the specified component in the GUI.\n\n"
++                                                        "Example:\n"
++                                                        "  zoom_on h_cpu\n"
++                                                        "  # Zoom on a particular host.  This command will find the position of the host\n"
++                                                        "  # \"h_cpu\" and place it in the center of the GUI Grid View.\n\n"
++                                                        "  zoom_on R0.22N.0.in\n"
++                                                        "  # Zoom on a particular link.  This command will find the position of the\n"
++                                                        "  # connected router (R22 on layer 0) of specified link (its north input\n"
++                                                        "  # port VC0), zoom in to the router, pop up the router in GUI view and\n"
++                                                        "  # show the traffic flow on the link.\n";
++
++const char* const CMD_SHOW_VIDEO_LINK                 = "gui_show_video";
+ const char* const CMD_MOVE_HOST                       = "move_host";
+ const char* const CMD_MOVE_HOSTS                      = "permute_hosts";
+ const char* const CMD_MOVE_BRIDGE                     = "move_bridge";
+@@ -85,7 +374,6 @@ const char* const CMD_VC_PROP                         = "vc_prop";
+ const char* const CMD_LINK_PROP                       = "link_prop";
+ const char* const CMD_ROUTER_PROP                     = "router_prop";
+ const char* const CMD_MOVE_MULTIPLE_HOST              = "permute_hosts";
+-const char* const CMD_RESIZE_WINDOW                   = "resize_window";
+ const char* const CMD_MAP                             = "map";
+ const char* const CMD_MAP_OPT                         = "map_opt";
+ const char* const CMD_ML_BUILD                        = "ml_build";
+@@ -159,19 +447,16 @@ const char* const CMD_SHOW_WAIVER_LIST                = "list_waivers";
+ const char* const CMD_SHOW_UNWAIVER_LIST              = "list_unwaivers";
+ const char* const CMD_SHOW_LATENCY                    = "show_latency";
+ const char* const CMD_SHOW_ROUTE_STRING               = "show_route";
+-const char* const CMD_SHOW_ROUTE_WAYPOINT_STRING      = "show_route_waypoints";
+ const char* const CMD_RESET_UNWAIVER_LIST             = "reset_unwaivers";
+ const char* const CMD_RESET_WAIVER_LIST               = "reset_waivers";
+ const char* const CMD_UPGRADE_WARNING                 = "upgrade_warning";
+ const char* const CMD_RESET_UPGRADE_WARNING           = "reset_upgraded_warning";
+-const char* const CMD_SAVE_LINT_REPORT                = "save_lint_report";
+ const char* const CMD_EXIT_NOC                        = "exit";
+ const char* const CMD_EXIT_IP                         = "exit";
+ const char* const CMD_APPLY                           = "CMD";
+ const char* const CMD_RUN_BOX                         = "run_box ";
+ const char* const CMD_USER_MANUAL                     = "gen_user_manual_suppl";
+ const char* const CMD_ANALYZE_POWER                   = "analyze_power";
+-const char* const CMD_CLEAR_CONSOLE                   = "clear_console";
+ const char* const CMD_RESET_MESH                      = "reset_mesh";
+ const char* const CMD_RESET_MAP                       = "reset_map";
+ const char* const CMD_DEL_CHOP                        = "del_chop";
+diff --git a/src/sw/noc_dev/NoC.sln b/src/sw/noc_dev/NoC.sln
+index 339a1ca1c5b..b81321887ef 100644
+--- a/src/sw/noc_dev/NoC.sln
++++ b/src/sw/noc_dev/NoC.sln
+@@ -79,6 +79,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NocStudio_qt6", "prototype_
+ 		{A01D1618-1FEE-4180-B46A-38733CC076CC} = {A01D1618-1FEE-4180-B46A-38733CC076CC}
+ 	EndProjectSection
+ EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NocStudio-HelpText", "NocStudio-HelpText\NocStudio-HelpText.vcxproj", "{80C395D0-7D24-43E9-8118-BF311DF97A6D}"
++EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|x64 = Debug|x64
+@@ -255,6 +257,16 @@ Global
+ 		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
+ 		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x86.ActiveCfg = Debug|x64
+ 		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x86.Build.0 = Debug|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Debug|x64.ActiveCfg = Debug|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Debug|x64.Build.0 = Debug|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Debug|x86.ActiveCfg = Debug|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release|x64.ActiveCfg = Release|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release|x64.Build.0 = Release|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release|x86.ActiveCfg = Release|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release-NETSPEED_BUILD|x64.ActiveCfg = Release|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release-NETSPEED_BUILD|x86.ActiveCfg = Release|x64
++		{80C395D0-7D24-43E9-8118-BF311DF97A6D}.Release-NETSPEED_BUILD|x86.Build.0 = Release|x64
+ 	EndGlobalSection
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index db9e5c580d3..00b8aa418be 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -1907,11 +1907,6 @@ void INIConsole::registerGuiCommands()
+         return true;
+     };
+ 
+-    const char* const CMD_CLOSE_STATTAB_ARGS 			= "<stat_id>";
+-    const char* const CMD_CLOSE_STATTAB_SHORT_HELP 		= "Close an existing stat tab (Live/Perf Visualization). \n";
+-    const char* const CMD_CLOSE_STATTAB_LONG_HELP 		= "\tClose an existing stat tab base on it name number"
+-                                                        "\tEx: There's a stat tab ""Live Visualization Tab 0"", use ""gui_close_stattab 0"" to close the tab.";
+-
+     auto close_stattab_impl = [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& cmd,
+         const std::vector<std::string>& args) {
+         if (args.size() != 1) { NetSpeed::ConsoleParsing::usage(cmd.info); return false; }
+@@ -1936,14 +1931,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CLOSE_STATTAB_LONG_HELP
+     );
+ 
+-    const char* const CMD_CLEAR_CONSOLE_ARGS 		    = "[-main] [-err] [-wrn] [-cmd]";
+-    const char* const CMD_CLEAR_CONSOLE_SHORT_HELP 	    = "clear console log";
+-    const char* const CMD_CLEAR_CONSOLE_LONG_HELP 	    = "[-main] clear  \"all\" console\n"
+-                                                          "[-err] clear  \"error\" console\n"
+-                                                          "[-wrn] clear  \"warning\" console\n"
+-                                                          "[-cmd] clear  \"command\" console\n"
+-                                                          "[*] clear all consoles";
+-
+     auto console_clear_impl = [this](NetSpeed::NocConsole* c, const NetSpeed::NocConsoleCommand& cmd,
+         const std::vector<std::string>& args) {
+         if(args.size() < 1) { NetSpeed::ConsoleParsing::usage(cmd.info); return false; }
+@@ -1982,11 +1969,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CLEAR_CONSOLE_LONG_HELP
+     );
+ 
+-    const char* const CMD_LIVESIM_ARGS 					= "<on/off>";
+-    const char* const CMD_LIVESIM_SHORT_HELP 			= "Open/close live stattab.";
+-    const char* const CMD_LIVESIM_LONG_HELP 			= "\tOpen/close live stattab. "
+-                                                          "Live stattab is a running simulation stattab.";
+-
+     auto processLiveSim = [&](NetSpeed::NocConsole* /*c*/,
+         const NetSpeed::NocConsoleCommand & f,
+         const std::vector<std::string> & args) {
+@@ -2019,10 +2001,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LIVESIM_LONG_HELP
+     );
+ 
+-    const char* const CMD_MERGE_ARGS 					= "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
+-    const char* const CMD_MERGE_SHORT_HELP 				= "Merge/Create a new stat plot";
+-    const char* const CMD_MERGE_LONG_HELP 				= "\tMerge given trans/chains of given stat stat_id into one new group_label named merge_name";
+-
+     auto merge_comp_graph_impl = [this](bool merge) -> NetSpeed::CMD_FUNC<NetSpeed::NocContainer> {
+         return [merge, this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand & f,
+             const std::vector<std::string> & args) {
+@@ -2125,10 +2103,6 @@ void INIConsole::registerGuiCommands()
+         CMD_MERGE_LONG_HELP
+     );
+ 
+-    const char* const CMD_COMPARE_PLOTS_ARGS 			= "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
+-    const char* const CMD_COMPARE_PLOTS_SHORT_HELP 		= "Compare among stat plots";
+-    const char* const CMD_COMPARE_PLOTS_LONG_HELP 		= "\tCompare given trans/chains of given stat stat_id and name the comparison compare_name";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(CMD_COMPARE_PLOTS),
+         NetSpeed::state_t::Mapped,
+@@ -2139,10 +2113,6 @@ void INIConsole::registerGuiCommands()
+         CMD_COMPARE_PLOTS_LONG_HELP
+     );
+ 
+-    const char* const CMD_RESIZE_WINDOW_ARGS 			= "<width> <height>";
+-    const char* const CMD_RESIZE_WINDOW_SHORT_HELP 		= "Set window size";
+-    const char* const CMD_RESIZE_WINDOW_LONG_HELP 		= "Resize application window to input width and height";
+-
+     auto resizeWindow = [&](NetSpeed::NocConsole* /*c*/,
+             const NetSpeed::NocConsoleCommand &f,
+             const std::vector<std::string> &args){
+@@ -2164,11 +2134,6 @@ void INIConsole::registerGuiCommands()
+         CMD_RESIZE_WINDOW_LONG_HELP
+     );
+ 
+-    
+-    const char* const CMD_DEL_MERGE_ARGS 				= "-stat <stat_id> <-name merge_name>+";
+-    const char* const CMD_DEL_MERGE_SHORT_HELP 			= "Delete one or more merged plot.";
+-    const char* const CMD_DEL_MERGE_LONG_HELP 			= "\tDelete one or more merge.";
+-
+     auto del_merge_comp_impl = [this](bool merge) -> NetSpeed::CMD_FUNC<NetSpeed::NocContainer> {
+         return [merge, this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f,
+                 const std::vector<std::string> &args) {
+@@ -2298,10 +2263,6 @@ void INIConsole::registerGuiCommands()
+         CMD_DEL_MERGE_LONG_HELP
+     );
+ 
+-    const char* const CMD_DEL_COMP_ARGS 				= "-stat <stat_id> <-name compare_name>+";
+-    const char* const CMD_DEL_COMP_SHORT_HELP 			= "Delete one or more comparisons.";
+-    const char* const CMD_DEL_COMP_LONG_HELP 			= "\tDelete one or more comparisons";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(CMD_DEL_COMP),
+         NetSpeed::state_t::Mapped,
+@@ -2312,10 +2273,6 @@ void INIConsole::registerGuiCommands()
+         CMD_DEL_COMP_LONG_HELP
+     );
+ 
+-    const char* const CMD_SAVE_STATTAB_ARGS 			= "-path <file_path> -stat <stattab_id>";
+-    const char* const CMD_SAVE_STATTAB_SHORT_HELP 		= "Save a stattab with stattab_id into file file_path.";
+-    const char* const CMD_SAVE_STATTAB_LONG_HELP 		= "\tSave a stattab with stattab_id into file file_path. File is saved as a json format.";
+-
+     auto save_stattab_impl= [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& f,
+                                     const std::vector<std::string>& args) {
+         using namespace NetSpeed::ArgParse;
+@@ -2367,10 +2324,6 @@ void INIConsole::registerGuiCommands()
+          CMD_SAVE_STATTAB_LONG_HELP
+      );
+ 
+-    const char* const CMD_LOAD_STATTAB_ARGS 			= "<file_path>";
+-    const char* const CMD_LOAD_STATTAB_SHORT_HELP 		= "Load a stattab json file into a new stattab.";
+-    const char* const CMD_LOAD_STATTAB_LONG_HELP 		= "\tCreate a new stattab with data read from file <file_path> which is json file.";
+-
+     auto handleLoadStattab= [this](NetSpeed::NocConsole* /*c*/,
+             const NetSpeed::NocConsoleCommand& f,
+             const std::vector<std::string>& args) {
+@@ -2395,10 +2348,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LOAD_STATTAB_LONG_HELP
+     );
+ 
+-    const char* const CMD_LOAD_AND_MERGE_ARGS 			= "-path <file_path> -stat <stattab_id>";
+-    const char* const CMD_LOAD_AND_MERGE_SHORT_HELP 	= "Load a file then merge it with an existing stattab.";
+-    const char* const CMD_LOAD_AND_MERGE_LONG_HELP 		= "\tLoad a json file then merge it with an existing stattab.";
+-
+     auto load_and_merge_impl= [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& f,
+                                     const std::vector<std::string>& args) {
+         using namespace NetSpeed::ArgParse;
+@@ -2454,11 +2403,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LOAD_AND_MERGE_LONG_HELP
+     );
+ 
+-    
+-    const char* const CMD_LIST_STATTABS_ARGS 			= "";
+-    const char* const CMD_LIST_STATTABS_SHORT_HELP 		= "Command on behalf of helping user to know current available stattab_id";
+-    const char* const CMD_LIST_STATTABS_LONG_HELP 		= "\tCommand on behalf of helping user to know current available stattab_id for many command like gui_close_stattab.";
+-
+     auto list_stattab_impl= [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& f,
+             const std::vector<std::string>& args) {
+         if (!args.empty()) return isInvalidArgument(&f.info);
+@@ -2525,25 +2469,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LIST_STATTABS_LONG_HELP
+     );
+ 
+-
+-    const char* const CMD_OPEN_TOOLTIP_ARGS             = "<tooltip_id> -name <tab_name>";
+-    const char* const CMD_OPEN_TOOLTIP_SHORT_HELP       = "Open a global tooltip tab";
+-    const char* const CMD_OPEN_TOOLTIP_LONG_HELP        = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name option, user can rename the tooltip tab name.\n\n "
+-                                                            "Arguments:\n\n";
+-    const char* const CMD_OPEN_TOOLTIP_LONG_HELP_HTML   = "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">tooltip_id</th><th>Detail</th></tr>"
+-                                                              "<tr><td>cost</td><td>ListCosts</td></tr>"
+-                                                              "<tr><td>list</td><td>ListHosts</td></tr>"
+-                                                              "<tr><td>traf</td><td>ListTraffic</td></tr>"
+-                                                              "<tr><td>perf</td><td> ShowPerformance</td></tr>"
+-                                                              "<tr><td> dynamic</td><td> Dynamic</td></tr>"
+-                                                          "</table>"
+-                                                          "<br>Example:<br>"
+-                                                          "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip list<br>"
+-                                                          "This opens a tab named 'list'<br><br>"
+-                                                          "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip traf -name new_tab_name<br>"
+-                                                          "This opens a tab named 'traf' and rename tab to 'new_tab_name'";
+-
+     //helper to check if parameter is a tooltip type
+     auto is_Tooltip_type = [](const std::vector<std::string> & args) {
+         if (args[0] == "traf" || args[0] == "list" || args[0] == "cost" || args[0] == "perf" || args[0] == "dynamic")
+@@ -2613,49 +2538,6 @@ void INIConsole::registerGuiCommands()
+         CMD_OPEN_TOOLTIP_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_ADD_TAB_ARGS           = "<arguments> -name <tab_name>";
+-    const char* const CMD_ADD_TAB_SHORT_HELP     = "Open a global tooltip tab";
+-    const char* const CMD_ADD_TAB_LONG_HELP      = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name "
+-                                                   "option, user can rename the tooltip tab name.\n\n ";
+-    const char* const CMD_ADD_TAB_LONG_HELP_HTML = "<br><table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">Arguments</th><th>Detail</th></tr>"
+-                                                              "<tr><td>cost</td><td>ListCosts</td></tr>"
+-                                                              "<tr><td>route</td><td>ListRoute</td></tr>"
+-                                                              "<tr><td>rtl_groups</td><td>ListRTLGroup</td></tr>"
+-                                                              "<tr><td>density</td><td> ShowDensity</td></tr>"
+-                                                              "<tr><td> list</td><td>ListHosts</td></tr>"
+-                                                              "<tr><td> traf</td><td>ListTraffic</td></tr>"
+-                                                              "<tr><td> perf</td><td>ShowPerformance</td></tr>"
+-                                                              "<tr><td> report</td><td>The GUI will add a tab to display the last run command in the console.</td></tr>"
+-                                                        "</table>"
+-                                                        "<br> Here are supported commands for the 'report' argument:<br>"
+-                                                        "<table width =\"500\" border=1 cellspacing=1>"
+-                                                               "<tr><th width=\"100\">No.</th><th>Supported commands</th></tr>"
+-                                                               "<tr><td>1</td><td>analyze_traffic</td></tr>"
+-                                                               "<tr><td>2</td><td>show_noc_density</td></tr>"
+-                                                               "<tr><td>3</td><td>analyze_clock</td></tr>"
+-                                                               "<tr><td>4</td><td>list_spine_gating_regions</td></tr>"
+-                                                               "<tr><td>5</td><td>list_sync_reset_regions</td></tr>"
+-                                                               "<tr><td>6</td><td>list_chops</td></tr>"
+-                                                               "<tr><td>7</td><td>list_rtl_groups</td></tr>"
+-                                                               "<tr><td>8</td><td>lint</td></tr>"
+-                                                               "<tr><td>9</td><td>list_transfer_columns</td></tr>"
+-                                                               "<tr><td>10</td><td>list_ranges</td></tr>"
+-                                                               "<tr><td>11</td><td>list_registers</td></tr>"
+-                                                               "<tr><td>12</td><td>show_route</td></tr>"
+-                                                               "<tr><td>13</td><td>show_data_header_delay</td></tr>"
+-                                                               "<tr><td>14</td><td>list_payloads</td></tr>"
+-                                                               "<tr><td>15</td><td>show_latency</td></tr>"
+-                                                               "<tr><td>16</td><td>bench_map</td></tr>"
+-                                                               "<tr><td>17</td><td>calculate_ev_efficiency</td></tr>"
+-                                                               "<tr><td>18</td><td>bench_noc</td></tr>"
+-                                                               "<tr><td>19</td><td>bench_traffic</td></tr>"
+-                                                               "<tr><td>20</td><td>analyze_power</td></tr>"
+-                                                         "</table><br>"
+-                                                         "Example:<br>"
+-                                                         "list_rtl_groups<br>"
+-                                                         "gui_add_tab report<br>"
+-                                                         "The RTL Groups tab should be opened.<br><br><br>";
+         // helper to check if parameter is a tooltip type
+     auto is_gui_add_tab_type = [](const std::vector<std::string>& args){
+         if (args[0] == "cost" || args[0] == "route" || args[0] == "rtl_groups" || args[0] == "density" ||
+@@ -2759,28 +2641,6 @@ void INIConsole::registerGuiCommands()
+         CMD_ADD_TAB_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_CHANGE_TABNAME_ARGS 			= "<tab_number> <new_tab_name>";
+-    const char* const CMD_CHANGE_TABNAME_SHORT_HELP 	= "change an existing tab name";
+-    const char* const CMD_CHANGE_TABNAME_LONG_HELP      = "   change an existing tab name.\n\n"
+-                                                          "Arguments:\n\n";
+-    const char* const CMD_CHANGE_TABNAME_LONG_HELP_HTML = "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">tab_number</th><th>Detail</th></tr>"
+-                                                              "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"  
+-                                                              "<tr><td>1</td><td>Tab 1</td></tr>"
+-                                                              "<tr><td>2</td><td>Tab 2</td></tr>"
+-                                                              "<tr><td>...</td><td></td></tr>"
+-                                                              "<tr><td>n</td><td>Tab n</td></tr>"
+-                                                          "</table> <br>"
+-                                                          "Tabs location:<br>"
+-                                                          "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br>"
+-                                                          "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th>new_tab_name</th><th>Detail</th></tr>"
+-                                                              "<tr><td>NetSpeed</td><td> change tab name to NetSpeed</td></tr>"
+-                                                          "</table><br>"
+-                                                          "Example:<br>"
+-                                                          "&nbsp;&nbsp;&nbsp;&nbsp;tabname_change 1 NetSpeed<br>"
+-                                                          "This changes 'tab 1' name to 'NetSpeed'";
+-
+     auto handleTabNameChange = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args){
+         if (args.size() != 2) {
+             NetSpeed::LOG_ERROR("2808") << "Invalid argument" << endl;
+@@ -2835,10 +2695,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CHANGE_TABNAME_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_LIST_TOOLTIPS_ARGS 			= "";
+-    const char* const CMD_LIST_TOOLTIPS_SHORT_HELP 		= "Show available tooltips";
+-    const char* const CMD_LIST_TOOLTIPS_LONG_HELP 		= "\tList all available tooltips can be used in global tooltip command";
+-
+     auto handleGuiListTooltipCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args){
+         if (!args.empty()) {
+             NetSpeed::LOG_ERROR("2808") << "Invalid argument" << endl;
+@@ -2871,31 +2727,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LIST_TOOLTIPS_LONG_HELP
+     );
+ 
+-    const char* const CMD_CLOSE_TAB_ARGS 				= "<tab_id>";
+-    const char* const CMD_CLOSE_TAB_SHORT_HELP 			= "Close an existing tab or all tabs except Grid View and FloorPlan View tab.";
+-    const char* const CMD_CLOSE_TAB_LONG_HELP 			= "\tClose an existing tab or all tabs on Displaying Panel."
+-                                                          " Tab id order will be ascending from left to right and always starting from the Grid View tab with id is 0."
+-                                                          " This command cannot use to close Grid View or FloorPlan View tab.\n\n"
+-                                                          "Arguments:\n\n";
+-    const char* const CMD_CLOSE_TAB_LONG_HELP_HTML      = "<table width=\"600\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\"> tab_id</th><th>Detail</th></tr>"
+-                                                              "<tr><td>all</td><td> Close all tabs except both Grid View and FoorPlan View tab</td></tr>"
+-                                                              "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"
+-                                                              "<tr><td> 1</td><td> Available except only FloorPlan View tab</td></tr>"
+-                                                              "<tr><td> 2</td><td> Available</td></tr>"
+-                                                              "<tr><td> 3</td><td> Available</td></tr>"
+-                                                              "<tr><td>...</td><td></td></tr>"
+-                                                              "<tr><td>n</td><td> Available</td></tr>"
+-                                                           "</table><br>"
+-                                                           "Tabs location:<br>"
+-                                                           "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br><br>"                                                 
+-                                                           "Example:<br>"
+-                                                           "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab 1<br>"
+-                                                           "This closes tab 1<br><br>"
+-                                                           "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab all<br>"
+-                                                           "This closes all tabs except both Grid View and FoorPlan View tab";
+-                                                           
+-
+     auto handleGuiCloseTooltipCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args)
+     {
+         if (args.empty()) return isEmptyArgument(&f.info);
+@@ -2922,10 +2753,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CLOSE_TAB_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_SHOW_TAB_ARGS 				= "<tab_id>";
+-    const char* const CMD_SHOW_TAB_SHORT_HELP 			= "Switch to an existing tab";
+-    const char* const CMD_SHOW_TAB_LONG_HELP 			= "\tSwitch to an existing tab on Displaying Panel";
+-
+     auto handleGuiShowTabCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args)
+     {
+         /* This is called when user "source" a file that has gui commands in it
+@@ -2956,27 +2783,6 @@ void INIConsole::registerGuiCommands()
+         CMD_SHOW_TAB_LONG_HELP
+     );
+ 
+-    const char* const CMD_VIEW_MODE_ARGS 				= "<mode_id>";
+-    const char* const CMD_VIEW_MODE_SHORT_HELP 			= "Switch to a view mode";
+-    const char* const CMD_VIEW_MODE_LONG_HELP 			= "\tSwitch to a view mode with mode_id."
+-                                                            "  The view modes can be: NOC view, CLOCK DOMAIN "
+-                                                            "view, VOLTAGE DOMAIN view, POWER DOMAIN view, ALL-NOC LAYER, "
+-                                                            "BLOCKAGE view, MERGE view and RTL GROUP view.\n\n"
+-                                                            "Arguments:\n\n";
+-    const char* const CMD_VIEW_MODE_LONG_HELP_HTML =  "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">mode_id</th><th> Detail</th><th> Shortcuts</th></tr>"
+-                                                              "<tr><td> 0</td><td> NOC view</td><td>ALT+N</td></tr>"
+-                                                              "<tr><td> 1</td><td> CLOCK DOMAIN view</td><td>ALT+C</td></tr>"
+-                                                              "<tr><td> 2</td><td> VOLTAGE DOMAIN view</td><td>ALT+V</td></tr>"
+-                                                              "<tr><td> 3</td><td> POWER DOMAIN view</td><td>ALT+P</td></tr>"
+-                                                              "<tr><td> 4</td><td> BLOCKAGE view</td><td>ALT+B</td></tr>"
+-                                                              "<tr><td> 5</td><td> MERGE view</td><td>ALT+M</td></tr>"
+-                                                              "<tr><td> 6</td><td> RTL GROUP view</td><td>ALT+R</td></tr>"
+-                                                        "</table><br>"
+-                                                        "Example:<br>"
+-                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_view_mode 0<br>"
+-                                                        "Switch to NOC view ";
+-
+     auto handleGuiViewModeCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand & f, const std::vector<std::string> & args)
+     {
+         /* This is called when user "source" a file that has gui commands in it
+@@ -3012,17 +2818,6 @@ void INIConsole::registerGuiCommands()
+         CMD_VIEW_MODE_LONG_HELP_HTML
+     );
+ 
+-    const char* const GUI_ROUTE_TABLE_ARGS 				= "<on/off>";
+-    const char* const GUI_ROUTE_TABLE_SHORT_HELP 		= "Show or hide the route table.";
+-    const char* const GUI_ROUTE_TABLE_LONG_HELP 		= 	"\tRoute types between bridges can be specified either via this command or via the "
+-                                                            "“Enable/Disable Route Table” button. "
+-                                                            "All bridges in the design are listed in both the rows and columns of the Route Table and "
+-                                                            "the user can choose to specify either the XY or YX route between any two bridges. "
+-                                                            "This allows for a manual route enforcement/optimization method. "
+-                                                            "Running map or map_opt commands after setting up the route types between certain bridges "
+-                                                            "will ensure that the specified routes are always used on those bridges while routes at "
+-                                                            "other bridges are being optimized. ";
+-
+     auto gen_tbl_handler = [this](MainWindow::GuiProp tbl_type) -> NetSpeed::CMD_FUNC<NetSpeed::NocContainer> {
+         return [tbl_type, this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand & f, const std::vector<std::string> & args) {
+             if (!handleGuiCommandCheck(f, args)) return false;
+@@ -3041,15 +2836,6 @@ void INIConsole::registerGuiCommands()
+         GUI_ROUTE_TABLE_LONG_HELP
+     );
+ 
+-    const char* const GUI_BRIDGE_PROPS_ARGS 			= "<on/off>";
+-    const char* const GUI_BRIDGE_PROPS_SHORT_HELP 		= "Show or hide the bridge property table.";
+-    const char* const GUI_BRIDGE_PROPS_LONG_HELP 		= 	"\tBridge property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify bridge properties through the Property Tables. "
+-                                                            "The bridges in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_BRIDGE_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3060,16 +2846,6 @@ void INIConsole::registerGuiCommands()
+         GUI_BRIDGE_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_HOST_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_HOST_PROPS_SHORT_HELP 		= "Show or hide the host property table.";
+-    const char* const GUI_HOST_PROPS_LONG_HELP 			= 	"\tHost property tables can be invoked by either this command or the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify host properties through the Property Tables. "
+-                                                            "The hosts in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_HOST_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3080,16 +2856,6 @@ void INIConsole::registerGuiCommands()
+         GUI_HOST_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_ROUTER_PROPS_ARGS 			= "<on/off>";
+-    const char* const GUI_ROUTER_PROPS_SHORT_HELP 		= "Show or hide the router property table.";
+-    const char* const GUI_ROUTER_PROPS_LONG_HELP 		= 	"\tRouter property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify router properties through the Property Tables. "
+-                                                            "The routers in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_ROUTER_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3100,16 +2866,6 @@ void INIConsole::registerGuiCommands()
+         GUI_ROUTER_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_LINK_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_LINK_PROPS_SHORT_HELP 		= "Show or hide the link property table.";
+-    const char* const GUI_LINK_PROPS_LONG_HELP 			= 	"\tLink property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify link properties through the Property Tables. "
+-                                                            "The links in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_LINK_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3120,16 +2876,6 @@ void INIConsole::registerGuiCommands()
+         GUI_LINK_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_IFCE_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_IFCE_PROPS_SHORT_HELP 		= "Show or hide the interface property table.";
+-    const char* const GUI_IFCE_PROPS_LONG_HELP 			= 	"\tInterface property tables can be invoked either by this command or by the "
+-                                                            "“Enable/Disable Property Tables” toolbar buttons. "
+-                                                            "The user can specify interface properties through the Property Tables. "
+-                                                            "The interfaces in the design are listed in the table rows and the applicable properties "
+-                                                            "are listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_IFCE_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3140,16 +2886,6 @@ void INIConsole::registerGuiCommands()
+         GUI_IFCE_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_VC_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_VC_PROPS_SHORT_HELP 			= "Show or hide the VC property table.";
+-    const char* const GUI_VC_PROPS_LONG_HELP 			= 	"\tVC property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify VC properties through the Property Tables. "
+-                                                            "The VC’s in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_VC_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3160,12 +2896,6 @@ void INIConsole::registerGuiCommands()
+         GUI_VC_PROPS_LONG_HELP
+     );
+ 
+-    const char* const CMD_SAVE_LINT_REPORT_ARGS 		= "<file_name> [relative_folder_path]";
+-    const char* const CMD_SAVE_LINT_REPORT_SHORT_HELP 	= "Save the lint report as a .csv file.";
+-    const char* const CMD_SAVE_LINT_REPORT_LONG_HELP = "\tSave the lint report as a .csv file \"file_name\" in relative path \"folder_path\". "
+-                                                        "If no folder with name \"folder_path\" can be found in relative path, a new folder is "
+-                                                        "created. ";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(CMD_SAVE_LINT_REPORT),
+         NetSpeed::state_t::Mapped,
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 753886cd8d7..ad1f4b31e3b 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -1906,11 +1906,6 @@ void INIConsole::registerGuiCommands()
+         return true;
+     };
+ 
+-    const char* const CMD_CLOSE_STATTAB_ARGS 			= "<stat_id>";
+-    const char* const CMD_CLOSE_STATTAB_SHORT_HELP 		= "Close an existing stat tab (Live/Perf Visualization). \n";
+-    const char* const CMD_CLOSE_STATTAB_LONG_HELP 		= "\tClose an existing stat tab base on it name number"
+-                                                        "\tEx: There's a stat tab ""Live Visualization Tab 0"", use ""gui_close_stattab 0"" to close the tab.";
+-
+     auto close_stattab_impl = [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& cmd,
+         const std::vector<std::string>& args) {
+         if (args.size() != 1) { NetSpeed::ConsoleParsing::usage(cmd.info); return false; }
+@@ -1935,14 +1930,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CLOSE_STATTAB_LONG_HELP
+     );
+ 
+-    const char* const CMD_CLEAR_CONSOLE_ARGS 		    = "[-main] [-err] [-wrn] [-cmd]";
+-    const char* const CMD_CLEAR_CONSOLE_SHORT_HELP 	    = "clear console log";
+-    const char* const CMD_CLEAR_CONSOLE_LONG_HELP 	    = "[-main] clear  \"all\" console\n"
+-                                                          "[-err] clear  \"error\" console\n"
+-                                                          "[-wrn] clear  \"warning\" console\n"
+-                                                          "[-cmd] clear  \"command\" console\n"
+-                                                          "[*] clear all consoles";
+-
+     auto console_clear_impl = [this](NetSpeed::NocConsole* c, const NetSpeed::NocConsoleCommand& cmd,
+         const std::vector<std::string>& args) {
+         if(args.size() < 1) { NetSpeed::ConsoleParsing::usage(cmd.info); return false; }
+@@ -1981,11 +1968,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CLEAR_CONSOLE_LONG_HELP
+     );
+ 
+-    const char* const CMD_LIVESIM_ARGS 					= "<on/off>";
+-    const char* const CMD_LIVESIM_SHORT_HELP 			= "Open/close live stattab.";
+-    const char* const CMD_LIVESIM_LONG_HELP 			= "\tOpen/close live stattab. "
+-                                                          "Live stattab is a running simulation stattab.";
+-
+     auto processLiveSim = [&](NetSpeed::NocConsole* /*c*/,
+         const NetSpeed::NocConsoleCommand & f,
+         const std::vector<std::string> & args) {
+@@ -2018,10 +2000,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LIVESIM_LONG_HELP
+     );
+ 
+-    const char* const CMD_MERGE_ARGS 					= "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
+-    const char* const CMD_MERGE_SHORT_HELP 				= "Merge/Create a new stat plot";
+-    const char* const CMD_MERGE_LONG_HELP 				= "\tMerge given trans/chains of given stat stat_id into one new group_label named merge_name";
+-
+     auto merge_comp_graph_impl = [this](bool merge) -> NetSpeed::CMD_FUNC<NetSpeed::NocContainer> {
+         return [merge, this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand & f,
+             const std::vector<std::string> & args) {
+@@ -2124,10 +2102,6 @@ void INIConsole::registerGuiCommands()
+         CMD_MERGE_LONG_HELP
+     );
+ 
+-    const char* const CMD_COMPARE_PLOTS_ARGS 			= "-name <merge_name> -stat <stat_id> -glname <trans_name/chain_name>+";
+-    const char* const CMD_COMPARE_PLOTS_SHORT_HELP 		= "Compare among stat plots";
+-    const char* const CMD_COMPARE_PLOTS_LONG_HELP 		= "\tCompare given trans/chains of given stat stat_id and name the comparison compare_name";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(CMD_COMPARE_PLOTS),
+         NetSpeed::state_t::Mapped,
+@@ -2138,10 +2112,6 @@ void INIConsole::registerGuiCommands()
+         CMD_COMPARE_PLOTS_LONG_HELP
+     );
+ 
+-    const char* const CMD_RESIZE_WINDOW_ARGS 			= "<width> <height>";
+-    const char* const CMD_RESIZE_WINDOW_SHORT_HELP 		= "Set window size";
+-    const char* const CMD_RESIZE_WINDOW_LONG_HELP 		= "Resize application window to input width and height";
+-
+     auto resizeWindow = [&](NetSpeed::NocConsole* /*c*/,
+             const NetSpeed::NocConsoleCommand &f,
+             const std::vector<std::string> &args){
+@@ -2163,11 +2133,6 @@ void INIConsole::registerGuiCommands()
+         CMD_RESIZE_WINDOW_LONG_HELP
+     );
+ 
+-    
+-    const char* const CMD_DEL_MERGE_ARGS 				= "-stat <stat_id> <-name merge_name>+";
+-    const char* const CMD_DEL_MERGE_SHORT_HELP 			= "Delete one or more merged plot.";
+-    const char* const CMD_DEL_MERGE_LONG_HELP 			= "\tDelete one or more merge.";
+-
+     auto del_merge_comp_impl = [this](bool merge) -> NetSpeed::CMD_FUNC<NetSpeed::NocContainer> {
+         return [merge, this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f,
+                 const std::vector<std::string> &args) {
+@@ -2297,10 +2262,6 @@ void INIConsole::registerGuiCommands()
+         CMD_DEL_MERGE_LONG_HELP
+     );
+ 
+-    const char* const CMD_DEL_COMP_ARGS 				= "-stat <stat_id> <-name compare_name>+";
+-    const char* const CMD_DEL_COMP_SHORT_HELP 			= "Delete one or more comparisons.";
+-    const char* const CMD_DEL_COMP_LONG_HELP 			= "\tDelete one or more comparisons";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(CMD_DEL_COMP),
+         NetSpeed::state_t::Mapped,
+@@ -2311,10 +2272,6 @@ void INIConsole::registerGuiCommands()
+         CMD_DEL_COMP_LONG_HELP
+     );
+ 
+-    const char* const CMD_SAVE_STATTAB_ARGS 			= "-path <file_path> -stat <stattab_id>";
+-    const char* const CMD_SAVE_STATTAB_SHORT_HELP 		= "Save a stattab with stattab_id into file file_path.";
+-    const char* const CMD_SAVE_STATTAB_LONG_HELP 		= "\tSave a stattab with stattab_id into file file_path. File is saved as a json format.";
+-
+     auto save_stattab_impl= [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& f,
+                                     const std::vector<std::string>& args) {
+         using namespace NetSpeed::ArgParse;
+@@ -2366,10 +2323,6 @@ void INIConsole::registerGuiCommands()
+          CMD_SAVE_STATTAB_LONG_HELP
+      );
+ 
+-    const char* const CMD_LOAD_STATTAB_ARGS 			= "<file_path>";
+-    const char* const CMD_LOAD_STATTAB_SHORT_HELP 		= "Load a stattab json file into a new stattab.";
+-    const char* const CMD_LOAD_STATTAB_LONG_HELP 		= "\tCreate a new stattab with data read from file <file_path> which is json file.";
+-
+     auto handleLoadStattab= [this](NetSpeed::NocConsole* /*c*/,
+             const NetSpeed::NocConsoleCommand& f,
+             const std::vector<std::string>& args) {
+@@ -2394,10 +2347,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LOAD_STATTAB_LONG_HELP
+     );
+ 
+-    const char* const CMD_LOAD_AND_MERGE_ARGS 			= "-path <file_path> -stat <stattab_id>";
+-    const char* const CMD_LOAD_AND_MERGE_SHORT_HELP 	= "Load a file then merge it with an existing stattab.";
+-    const char* const CMD_LOAD_AND_MERGE_LONG_HELP 		= "\tLoad a json file then merge it with an existing stattab.";
+-
+     auto load_and_merge_impl= [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& f,
+                                     const std::vector<std::string>& args) {
+         using namespace NetSpeed::ArgParse;
+@@ -2453,11 +2402,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LOAD_AND_MERGE_LONG_HELP
+     );
+ 
+-    
+-    const char* const CMD_LIST_STATTABS_ARGS 			= "";
+-    const char* const CMD_LIST_STATTABS_SHORT_HELP 		= "Command on behalf of helping user to know current available stattab_id";
+-    const char* const CMD_LIST_STATTABS_LONG_HELP 		= "\tCommand on behalf of helping user to know current available stattab_id for many command like gui_close_stattab.";
+-
+     auto list_stattab_impl= [this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand& f,
+             const std::vector<std::string>& args) {
+         if (!args.empty()) return isInvalidArgument(&f.info);
+@@ -2524,25 +2468,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LIST_STATTABS_LONG_HELP
+     );
+ 
+-
+-    const char* const CMD_OPEN_TOOLTIP_ARGS             = "<tooltip_id> -name <tab_name>";
+-    const char* const CMD_OPEN_TOOLTIP_SHORT_HELP       = "Open a global tooltip tab";
+-    const char* const CMD_OPEN_TOOLTIP_LONG_HELP        = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name option, user can rename the tooltip tab name.\n\n "
+-                                                            "Arguments:\n\n";
+-    const char* const CMD_OPEN_TOOLTIP_LONG_HELP_HTML   = "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">tooltip_id</th><th>Detail</th></tr>"
+-                                                              "<tr><td>cost</td><td>ListCosts</td></tr>"
+-                                                              "<tr><td>list</td><td>ListHosts</td></tr>"
+-                                                              "<tr><td>traf</td><td>ListTraffic</td></tr>"
+-                                                              "<tr><td>perf</td><td> ShowPerformance</td></tr>"
+-                                                              "<tr><td> dynamic</td><td> Dynamic</td></tr>"
+-                                                          "</table>"
+-                                                          "<br>Example:<br>"
+-                                                          "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip list<br>"
+-                                                          "This opens a tab named 'list'<br><br>"
+-                                                          "&nbsp;&nbsp;&nbsp;&nbsp;gui_global_tooltip traf -name new_tab_name<br>"
+-                                                          "This opens a tab named 'traf' and rename tab to 'new_tab_name'";
+-
+     //helper to check if parameter is a tooltip type
+     auto is_Tooltip_type = [](const std::vector<std::string> & args) {
+         if (args[0] == "traf" || args[0] == "list" || args[0] == "cost" || args[0] == "perf" || args[0] == "dynamic")
+@@ -2612,49 +2537,6 @@ void INIConsole::registerGuiCommands()
+         CMD_OPEN_TOOLTIP_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_ADD_TAB_ARGS           = "<arguments> -name <tab_name>";
+-    const char* const CMD_ADD_TAB_SHORT_HELP     = "Open a global tooltip tab";
+-    const char* const CMD_ADD_TAB_LONG_HELP      = "\tOpen a tooltip tab which provides specifications about the designed item. Using -name "
+-                                                   "option, user can rename the tooltip tab name.\n\n ";
+-    const char* const CMD_ADD_TAB_LONG_HELP_HTML = "<br><table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">Arguments</th><th>Detail</th></tr>"
+-                                                              "<tr><td>cost</td><td>ListCosts</td></tr>"
+-                                                              "<tr><td>route</td><td>ListRoute</td></tr>"
+-                                                              "<tr><td>rtl_groups</td><td>ListRTLGroup</td></tr>"
+-                                                              "<tr><td>density</td><td> ShowDensity</td></tr>"
+-                                                              "<tr><td> list</td><td>ListHosts</td></tr>"
+-                                                              "<tr><td> traf</td><td>ListTraffic</td></tr>"
+-                                                              "<tr><td> perf</td><td>ShowPerformance</td></tr>"
+-                                                              "<tr><td> report</td><td>The GUI will add a tab to display the last run command in the console.</td></tr>"
+-                                                        "</table>"
+-                                                        "<br> Here are supported commands for the 'report' argument:<br>"
+-                                                        "<table width =\"500\" border=1 cellspacing=1>"
+-                                                               "<tr><th width=\"100\">No.</th><th>Supported commands</th></tr>"
+-                                                               "<tr><td>1</td><td>analyze_traffic</td></tr>"
+-                                                               "<tr><td>2</td><td>show_noc_density</td></tr>"
+-                                                               "<tr><td>3</td><td>analyze_clock</td></tr>"
+-                                                               "<tr><td>4</td><td>list_spine_gating_regions</td></tr>"
+-                                                               "<tr><td>5</td><td>list_sync_reset_regions</td></tr>"
+-                                                               "<tr><td>6</td><td>list_chops</td></tr>"
+-                                                               "<tr><td>7</td><td>list_rtl_groups</td></tr>"
+-                                                               "<tr><td>8</td><td>lint</td></tr>"
+-                                                               "<tr><td>9</td><td>list_transfer_columns</td></tr>"
+-                                                               "<tr><td>10</td><td>list_ranges</td></tr>"
+-                                                               "<tr><td>11</td><td>list_registers</td></tr>"
+-                                                               "<tr><td>12</td><td>show_route</td></tr>"
+-                                                               "<tr><td>13</td><td>show_data_header_delay</td></tr>"
+-                                                               "<tr><td>14</td><td>list_payloads</td></tr>"
+-                                                               "<tr><td>15</td><td>show_latency</td></tr>"
+-                                                               "<tr><td>16</td><td>bench_map</td></tr>"
+-                                                               "<tr><td>17</td><td>calculate_ev_efficiency</td></tr>"
+-                                                               "<tr><td>18</td><td>bench_noc</td></tr>"
+-                                                               "<tr><td>19</td><td>bench_traffic</td></tr>"
+-                                                               "<tr><td>20</td><td>analyze_power</td></tr>"
+-                                                         "</table><br>"
+-                                                         "Example:<br>"
+-                                                         "list_rtl_groups<br>"
+-                                                         "gui_add_tab report<br>"
+-                                                         "The RTL Groups tab should be opened.<br><br><br>";
+         // helper to check if parameter is a tooltip type
+     auto is_gui_add_tab_type = [](const std::vector<std::string>& args){
+         if (args[0] == "cost" || args[0] == "route" || args[0] == "rtl_groups" || args[0] == "density" ||
+@@ -2758,28 +2640,6 @@ void INIConsole::registerGuiCommands()
+         CMD_ADD_TAB_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_CHANGE_TABNAME_ARGS 			= "<tab_number> <new_tab_name>";
+-    const char* const CMD_CHANGE_TABNAME_SHORT_HELP 	= "change an existing tab name";
+-    const char* const CMD_CHANGE_TABNAME_LONG_HELP      = "   change an existing tab name.\n\n"
+-                                                          "Arguments:\n\n";
+-    const char* const CMD_CHANGE_TABNAME_LONG_HELP_HTML = "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">tab_number</th><th>Detail</th></tr>"
+-                                                              "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"  
+-                                                              "<tr><td>1</td><td>Tab 1</td></tr>"
+-                                                              "<tr><td>2</td><td>Tab 2</td></tr>"
+-                                                              "<tr><td>...</td><td></td></tr>"
+-                                                              "<tr><td>n</td><td>Tab n</td></tr>"
+-                                                          "</table> <br>"
+-                                                          "Tabs location:<br>"
+-                                                          "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br>"
+-                                                          "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th>new_tab_name</th><th>Detail</th></tr>"
+-                                                              "<tr><td>NetSpeed</td><td> change tab name to NetSpeed</td></tr>"
+-                                                          "</table><br>"
+-                                                          "Example:<br>"
+-                                                          "&nbsp;&nbsp;&nbsp;&nbsp;tabname_change 1 NetSpeed<br>"
+-                                                          "This changes 'tab 1' name to 'NetSpeed'";
+-
+     auto handleTabNameChange = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args){
+         if (args.size() != 2) {
+             NetSpeed::LOG_ERROR("2808") << "Invalid argument" << endl;
+@@ -2834,10 +2694,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CHANGE_TABNAME_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_LIST_TOOLTIPS_ARGS 			= "";
+-    const char* const CMD_LIST_TOOLTIPS_SHORT_HELP 		= "Show available tooltips";
+-    const char* const CMD_LIST_TOOLTIPS_LONG_HELP 		= "\tList all available tooltips can be used in global tooltip command";
+-
+     auto handleGuiListTooltipCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args){
+         if (!args.empty()) {
+             NetSpeed::LOG_ERROR("2808") << "Invalid argument" << endl;
+@@ -2870,31 +2726,6 @@ void INIConsole::registerGuiCommands()
+         CMD_LIST_TOOLTIPS_LONG_HELP
+     );
+ 
+-    const char* const CMD_CLOSE_TAB_ARGS 				= "<tab_id>";
+-    const char* const CMD_CLOSE_TAB_SHORT_HELP 			= "Close an existing tab or all tabs except Grid View and FloorPlan View tab.";
+-    const char* const CMD_CLOSE_TAB_LONG_HELP 			= "\tClose an existing tab or all tabs on Displaying Panel."
+-                                                          " Tab id order will be ascending from left to right and always starting from the Grid View tab with id is 0."
+-                                                          " This command cannot use to close Grid View or FloorPlan View tab.\n\n"
+-                                                          "Arguments:\n\n";
+-    const char* const CMD_CLOSE_TAB_LONG_HELP_HTML      = "<table width=\"600\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\"> tab_id</th><th>Detail</th></tr>"
+-                                                              "<tr><td>all</td><td> Close all tabs except both Grid View and FoorPlan View tab</td></tr>"
+-                                                              "<tr style=\"background-color: #BEBEBE\"><td>0</td><td>Tab number of Grid view tab but it's not available.</td></tr>"
+-                                                              "<tr><td> 1</td><td> Available except only FloorPlan View tab</td></tr>"
+-                                                              "<tr><td> 2</td><td> Available</td></tr>"
+-                                                              "<tr><td> 3</td><td> Available</td></tr>"
+-                                                              "<tr><td>...</td><td></td></tr>"
+-                                                              "<tr><td>n</td><td> Available</td></tr>"
+-                                                           "</table><br>"
+-                                                           "Tabs location:<br>"
+-                                                           "| Grid View | Tab <b>1</b> | Tab <b>2</b> | Tab <b>3</b> | ... | Tab <b>n</b><br><br>"                                                 
+-                                                           "Example:<br>"
+-                                                           "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab 1<br>"
+-                                                           "This closes tab 1<br><br>"
+-                                                           "&nbsp;&nbsp;&nbsp;&nbsp;gui_close_tab all<br>"
+-                                                           "This closes all tabs except both Grid View and FoorPlan View tab";
+-                                                           
+-
+     auto handleGuiCloseTooltipCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args)
+     {
+         if (args.empty()) return isEmptyArgument(&f.info);
+@@ -2921,10 +2752,6 @@ void INIConsole::registerGuiCommands()
+         CMD_CLOSE_TAB_LONG_HELP_HTML
+     );
+ 
+-    const char* const CMD_SHOW_TAB_ARGS 				= "<tab_id>";
+-    const char* const CMD_SHOW_TAB_SHORT_HELP 			= "Switch to an existing tab";
+-    const char* const CMD_SHOW_TAB_LONG_HELP 			= "\tSwitch to an existing tab on Displaying Panel";
+-
+     auto handleGuiShowTabCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand &f, const std::vector<std::string> &args)
+     {
+         /* This is called when user "source" a file that has gui commands in it
+@@ -2955,27 +2782,6 @@ void INIConsole::registerGuiCommands()
+         CMD_SHOW_TAB_LONG_HELP
+     );
+ 
+-    const char* const CMD_VIEW_MODE_ARGS 				= "<mode_id>";
+-    const char* const CMD_VIEW_MODE_SHORT_HELP 			= "Switch to a view mode";
+-    const char* const CMD_VIEW_MODE_LONG_HELP 			= "\tSwitch to a view mode with mode_id."
+-                                                            "  The view modes can be: NOC view, CLOCK DOMAIN "
+-                                                            "view, VOLTAGE DOMAIN view, POWER DOMAIN view, ALL-NOC LAYER, "
+-                                                            "BLOCKAGE view, MERGE view and RTL GROUP view.\n\n"
+-                                                            "Arguments:\n\n";
+-    const char* const CMD_VIEW_MODE_LONG_HELP_HTML =  "<table width=\"500\" border=1 cellspacing=1>"
+-                                                              "<tr><th width=\"100\">mode_id</th><th> Detail</th><th> Shortcuts</th></tr>"
+-                                                              "<tr><td> 0</td><td> NOC view</td><td>ALT+N</td></tr>"
+-                                                              "<tr><td> 1</td><td> CLOCK DOMAIN view</td><td>ALT+C</td></tr>"
+-                                                              "<tr><td> 2</td><td> VOLTAGE DOMAIN view</td><td>ALT+V</td></tr>"
+-                                                              "<tr><td> 3</td><td> POWER DOMAIN view</td><td>ALT+P</td></tr>"
+-                                                              "<tr><td> 4</td><td> BLOCKAGE view</td><td>ALT+B</td></tr>"
+-                                                              "<tr><td> 5</td><td> MERGE view</td><td>ALT+M</td></tr>"
+-                                                              "<tr><td> 6</td><td> RTL GROUP view</td><td>ALT+R</td></tr>"
+-                                                        "</table><br>"
+-                                                        "Example:<br>"
+-                                                        "&nbsp;&nbsp;&nbsp;&nbsp;gui_view_mode 0<br>"
+-                                                        "Switch to NOC view ";
+-
+     auto handleGuiViewModeCommand = [&](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand & f, const std::vector<std::string> & args)
+     {
+         /* This is called when user "source" a file that has gui commands in it
+@@ -3011,17 +2817,6 @@ void INIConsole::registerGuiCommands()
+         CMD_VIEW_MODE_LONG_HELP_HTML
+     );
+ 
+-    const char* const GUI_ROUTE_TABLE_ARGS 				= "<on/off>";
+-    const char* const GUI_ROUTE_TABLE_SHORT_HELP 		= "Show or hide the route table.";
+-    const char* const GUI_ROUTE_TABLE_LONG_HELP 		= 	"\tRoute types between bridges can be specified either via this command or via the "
+-                                                            "“Enable/Disable Route Table” button. "
+-                                                            "All bridges in the design are listed in both the rows and columns of the Route Table and "
+-                                                            "the user can choose to specify either the XY or YX route between any two bridges. "
+-                                                            "This allows for a manual route enforcement/optimization method. "
+-                                                            "Running map or map_opt commands after setting up the route types between certain bridges "
+-                                                            "will ensure that the specified routes are always used on those bridges while routes at "
+-                                                            "other bridges are being optimized. ";
+-
+     auto gen_tbl_handler = [this](MainWindow::GuiProp tbl_type) -> NetSpeed::CMD_FUNC<NetSpeed::NocContainer> {
+         return [tbl_type, this](NetSpeed::NocConsole* /*c*/, const NetSpeed::NocConsoleCommand & f, const std::vector<std::string> & args) {
+             if (!handleGuiCommandCheck(f, args)) return false;
+@@ -3040,15 +2835,6 @@ void INIConsole::registerGuiCommands()
+         GUI_ROUTE_TABLE_LONG_HELP
+     );
+ 
+-    const char* const GUI_BRIDGE_PROPS_ARGS 			= "<on/off>";
+-    const char* const GUI_BRIDGE_PROPS_SHORT_HELP 		= "Show or hide the bridge property table.";
+-    const char* const GUI_BRIDGE_PROPS_LONG_HELP 		= 	"\tBridge property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify bridge properties through the Property Tables. "
+-                                                            "The bridges in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_BRIDGE_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3059,16 +2845,6 @@ void INIConsole::registerGuiCommands()
+         GUI_BRIDGE_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_HOST_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_HOST_PROPS_SHORT_HELP 		= "Show or hide the host property table.";
+-    const char* const GUI_HOST_PROPS_LONG_HELP 			= 	"\tHost property tables can be invoked by either this command or the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify host properties through the Property Tables. "
+-                                                            "The hosts in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_HOST_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3079,16 +2855,6 @@ void INIConsole::registerGuiCommands()
+         GUI_HOST_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_ROUTER_PROPS_ARGS 			= "<on/off>";
+-    const char* const GUI_ROUTER_PROPS_SHORT_HELP 		= "Show or hide the router property table.";
+-    const char* const GUI_ROUTER_PROPS_LONG_HELP 		= 	"\tRouter property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify router properties through the Property Tables. "
+-                                                            "The routers in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_ROUTER_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3099,16 +2865,6 @@ void INIConsole::registerGuiCommands()
+         GUI_ROUTER_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_LINK_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_LINK_PROPS_SHORT_HELP 		= "Show or hide the link property table.";
+-    const char* const GUI_LINK_PROPS_LONG_HELP 			= 	"\tLink property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify link properties through the Property Tables. "
+-                                                            "The links in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_LINK_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3119,16 +2875,6 @@ void INIConsole::registerGuiCommands()
+         GUI_LINK_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_IFCE_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_IFCE_PROPS_SHORT_HELP 		= "Show or hide the interface property table.";
+-    const char* const GUI_IFCE_PROPS_LONG_HELP 			= 	"\tInterface property tables can be invoked either by this command or by the "
+-                                                            "“Enable/Disable Property Tables” toolbar buttons. "
+-                                                            "The user can specify interface properties through the Property Tables. "
+-                                                            "The interfaces in the design are listed in the table rows and the applicable properties "
+-                                                            "are listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_IFCE_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3139,16 +2885,6 @@ void INIConsole::registerGuiCommands()
+         GUI_IFCE_PROPS_LONG_HELP
+     );
+ 
+-    const char* const GUI_VC_PROPS_ARGS 				= "<on/off>";
+-    const char* const GUI_VC_PROPS_SHORT_HELP 			= "Show or hide the VC property table.";
+-    const char* const GUI_VC_PROPS_LONG_HELP 			= 	"\tVC property tables can be invoked either by this command or by the “Enable/Disable "
+-                                                            "Property Tables” toolbar buttons. "
+-                                                            "The user can specify VC properties through the Property Tables. "
+-                                                            "The VC’s in the design are listed in the table rows and the applicable properties are "
+-                                                            "listed in the table columns. "
+-                                                            "The appropriate property value for a certain NoC element can be specified by either "
+-                                                            "entering the desired value or by choosing from a drop-down menu (where applicable).";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(GUI_VC_PROPS),
+         NetSpeed::state_t::XY_set,
+@@ -3159,12 +2895,6 @@ void INIConsole::registerGuiCommands()
+         GUI_VC_PROPS_LONG_HELP
+     );
+ 
+-    const char* const CMD_SAVE_LINT_REPORT_ARGS 		= "<file_name> [relative_folder_path]";
+-    const char* const CMD_SAVE_LINT_REPORT_SHORT_HELP 	= "Save the lint report as a .csv file.";
+-    const char* const CMD_SAVE_LINT_REPORT_LONG_HELP = "\tSave the lint report as a .csv file \"file_name\" in relative path \"folder_path\". "
+-                                                        "If no folder with name \"folder_path\" can be found in relative path, a new folder is "
+-                                                        "created. ";
+-
+     NetSpeed::NocConsole::add_command(
+         NetSpeed::Command_idx(CMD_SAVE_LINT_REPORT),
+         NetSpeed::state_t::Mapped,

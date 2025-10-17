@@ -1,0 +1,20 @@
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 8f71b6638c5..7aaa2a3546f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -4905,7 +4905,11 @@ void MainWindow::refreshTables(QString tableName, QString rowName, QString colum
+             previousColumn = tbl->propertyModel->getIndexFromColumnName(columnName);
+         }
+ 
+-        if (previousRow < 0 || previousColumn < 0) continue;
++        if (previousRow < 0 || previousColumn < 0) {
++            tbl->horizontalScrollBar()->setValue(hScrollValue);
++            tbl->verticalScrollBar()->setValue(vScrollValue);
++            continue;
++        }
+ 
+         // stores the number of columns before and after refreshing
+         int columnCountChange = tbl->horizontalHeader()->count();

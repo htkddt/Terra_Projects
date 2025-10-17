@@ -1,0 +1,226 @@
+ .../IPStudio_qt6/GUI/MainWindow/IPDesign.cpp       | 61 +++++++++++++++++++++-
+ .../noc_dev/IPStudio_qt6/GUI/WireItem/itemwire.h   |  3 ++
+ .../noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp   | 20 ++-----
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h  |  4 +-
+ src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h     |  1 +
+ 5 files changed, 70 insertions(+), 19 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+index eface63b842..05173016843 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+@@ -27,10 +27,11 @@ using namespace NetSpeed;
+ using namespace BDS;
+ extern QSemaphore gSem;
+ 
+-void completeWire(std::shared_ptr<QSchematic::Wire>& wire, int index = 0) {
++void completeWire(std::shared_ptr<QSchematic::Wire>& wire)
++{
+     wire->setAcceptHoverEvents(true);
+     wire->setFlag(QGraphicsItem::ItemIsSelectable, true);
+-    wire->simplify(index);
++    wire->simplify();
+ }
+ 
+ IPDesign::IPDesign(const NetSpeed::BDS::Module* module, QWidget* parent)
+@@ -568,6 +569,8 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+         }
+     }
+ 
++    optimizeWiresRedering();
++
+     return qMakePair(wireList, connList);
+ }
+ 
+@@ -621,6 +624,8 @@ QList<std::shared_ptr<Wire>> IPDesign::renderWires(QString instName, QString& if
+         }
+     }
+ 
++    optimizeWiresRedering();
++
+     return wireList;
+ }
+ 
+@@ -693,6 +698,7 @@ void IPDesign::renderWires(QMap<QString, QList<QString>> map, bool obstacle_avoi
+                 conn.first->setWire(wire);
+             }
+         }
++        optimizeWiresRedering();
+     }
+ }
+ 
+@@ -800,6 +806,8 @@ void IPDesign::updateWireOfCurrentPin(QString instName, QString ifce)
+             break;
+         }
+     }
++
++    optimizeWiresRedering();
+ }
+ 
+ void IPDesign::refreshWires()
+@@ -863,6 +871,54 @@ Avoid::ConnRef * IPDesign::computeWire(IPConnectivity * start, IPConnectivity *
+     return new Avoid::ConnRef(router, srcPt, dstPt);
+ }
+ 
++void IPDesign::optimizeWiresRedering()
++{
++    QList<QList<QPointF>> listDuplicatePoints;
++    QPoint pointMoveTo, pointCurrent;
++    int lastIndex;
++    if (auto manager = scene->wire_manager()) {
++        if (!manager->wires().isEmpty()) {
++            QList<QPoint> connetionsPoints;
++            auto connections = manager->getConnections();
++            if (!connections.isEmpty()) {
++                for (const auto& conn : connections.keys()) {
++                    connetionsPoints.append(_settings.snapToGrid(conn->position()));
++                }
++            }
++            for (auto& w : manager->wires()) {
++                if (auto itemWire = std::dynamic_pointer_cast<Wire>(w)) {
++                    itemWire->setSelected(true);
++                    listDuplicatePoints = itemWire->getDuplicatePoints();
++                    if (listDuplicatePoints.size() < 2) {
++                        for (int i = 0; i < listDuplicatePoints.at(0).size(); i++) {
++                            lastIndex = itemWire->getVectorPoints().size() - 1;
++                            pointCurrent = _settings.snapToGrid(itemWire->getVectorPoints().at(lastIndex).toPointF());
++                            pointMoveTo = _settings.snapToGrid(itemWire->getVectorPoints().at(lastIndex - 1).toPointF());
++                            if (connetionsPoints.contains(pointCurrent)) continue;
++                            itemWire->move_point_to(lastIndex, pointMoveTo);
++                            itemWire->simplify();
++                        }
++                    } else {
++                        int currentIndex = 0;
++                        for (auto& listPoints : listDuplicatePoints) {
++                            for (int i = 0; i < listPoints.size(); i++) {
++                                lastIndex = currentIndex + listPoints.size() * 2 + 1;
++                                pointCurrent = _settings.snapToGrid(itemWire->getVectorPoints().at(lastIndex).toPointF());
++                                pointMoveTo = _settings.snapToGrid(itemWire->getVectorPoints().at(lastIndex - 1).toPointF());
++                                if (connetionsPoints.contains(pointCurrent)) continue;
++                                itemWire->move_point_to(lastIndex, pointMoveTo);
++                                itemWire->simplify();
++                            }
++                            currentIndex += listPoints.size() + 1;
++                        }
++                    }
++                    itemWire->setSelected(false);
++                }
++            }
++        }
++    }
++}
++
+ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectivity* end, bool highlight, std::shared_ptr<Wire> wire)
+ {
+     bool swap = false;
+@@ -1215,6 +1271,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     for (auto& p : listTempPoint) {
+         wire->append_point(_settings.snapToGrid(p));
+     }
++    wire->setDuplicatePoints(listTempPoint);
+ 
+     if (auto wireNet = std::dynamic_pointer_cast<WireNet>(wire->net())) {
+         wireNet->set_name(QString::fromStdString(ptrSrc->get_net_name()));
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/itemwire.h b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/itemwire.h
+index aa3c8325d36..9fd88c88da0 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/itemwire.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/itemwire.h
+@@ -39,6 +39,8 @@ namespace QSchematic {
+         void move_point_to(int index, const QPointF& moveTo) override;
+         bool movingWirePoint() const;
+         void rename_net();
++        void setDuplicatePoints(QList<QPointF> list) { duplicatePoints.append(list); }
++        QList<QList<QPointF>> getDuplicatePoints() { return duplicatePoints; }
+ 
+     signals:
+         void pointMoved();
+@@ -76,6 +78,7 @@ namespace QSchematic {
+         QAction* _renameAction;
+         QVector<point> wireRelativePoints;
+         QVector<QPointF> relativePoints;
++        QList<QList<QPointF>> duplicatePoints;
+     };
+ 
+ }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp
+index d9474890e62..01933a00098 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp
+@@ -532,9 +532,9 @@ void wire::move(const QVector2D& movedBy)
+     //}
+ }
+ 
+-void wire::remove_duplicate_points(int index)
++void wire::remove_duplicate_points()
+ {
+-    int i = index;
++    int i = 0;
+     while (i < points_count() - 1 && points_count() > 2) {
+         point p1 = points().at(i);
+         point p2 = points().at(i + 1);
+@@ -549,17 +549,7 @@ void wire::remove_duplicate_points(int index)
+                 m_manager->point_removed(this, i + 1);
+             }
+             m_points.removeAt(i + 1);
+-        } /*else if (auto idx = points().indexOf(p1, index) >= 0) {
+-            if (!p1.is_junction()) {
+-                set_point_is_junction(i, true);
+-            }
+-            if (m_manager) {
+-                m_manager->point_removed(this, idx);
+-            }
+-            m_points.removeAt(idx);
+-            i++;
+-        }*/
+-        else i++;
++        } else i++;
+     }
+ }
+ 
+@@ -588,10 +578,10 @@ void wire::remove_obsolete_points()
+     }
+ }
+ 
+-void wire::simplify(int index)
++void wire::simplify()
+ {
+     about_to_change();
+-    remove_duplicate_points(index);
++    remove_duplicate_points();
+     remove_obsolete_points();
+     has_changed();
+ }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h
+index 71691ddd643..6c9d1490ea5 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h
+@@ -38,7 +38,7 @@ namespace wire_system
+         void move_point_by(int index, const QVector2D& moveBy);
+         bool point_is_on_wire(const QPointF& point) const;
+         void move(const QVector2D& movedBy);
+-        void simplify(int index = 0);
++        void simplify();
+         bool connect_wire(wire* wire);
+         void setNet(const std::shared_ptr<wire_system::net>& net);
+         std::shared_ptr<wire_system::net> net();
+@@ -55,7 +55,7 @@ namespace wire_system
+         QVector<point> m_points;
+ 
+     private:
+-        void remove_duplicate_points(int index = 0);
++        void remove_duplicate_points();
+         void remove_obsolete_points();
+         virtual void about_to_change();
+         virtual void has_changed();
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+index ae8d6997456..5c0d3ce1b1e 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+@@ -66,6 +66,7 @@ public:
+     int getWidthVerticalScrollbar() { return widthVerticalScrollbar; }
+     int getHeightHorizontalScrollBar() { return heightHorizontalScrollBar; }
+     ShowWiresDialog* getWiresDialog() { return wireDialog; }
++    void optimizeWiresRedering();
+ 
+ protected:
+     bool event(QEvent* event);

@@ -1,0 +1,336 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp       |  9 ++-
+ .../prototype/Gui/Item/NsMultipleBridges.cpp       | 55 ++++++++++++++++-
+ .../noc_dev/prototype/Gui/Item/NsMultipleBridges.h |  8 ++-
+ src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp   | 13 +++++
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 68 ++++++++++++++++++----
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h |  4 ++
+ 6 files changed, 141 insertions(+), 16 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp
+index 4f37a0d3f5a..ac5ba2657e3 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMesh.cpp
+@@ -65,8 +65,13 @@ NsMesh::NsMesh(NetSpeed::Layer_id l, const QVector<QString>& chops, NetSpeed::Gr
+     linkFlopCost->setBrush(Qt::black);
+ }
+ 
+-NsMesh::~NsMesh()
+-{
++NsMesh::~NsMesh() {
++    for (auto& w : childItems()) {
++        auto diagramLine = dynamic_cast<NsMultiBridgeDiagramLine*>(w);
++        if (diagramLine) {
++            diagramLine->setParentItem(nullptr);
++        }
++    }
+ }
+ 
+ /**
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index 4e57cc69687..ec4a0efcc60 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -159,6 +159,31 @@ void NsMultipleBridgesDiagramScrollBar::mousePressEvent(QMouseEvent* event)
+     if (scrollBarWidget && (scrollBarWidget->parentItem())) {
+         scrollBarWidget->parentItem()->setFocus();
+     }
++    if (meshScene && (meshScene->getInsType() == ADD_DEPENDENCY)) {
++        auto nocScene = dynamic_cast<NsNocViewScene*>(meshScene);
++        if (nocScene && nocScene->getAddDependencyBridgeClicked() && nocScene->instrumentMediator) {
++            NsMultipleBridgesDiagram* diagram1 = nullptr;
++            NsMultipleBridgesDiagram* diagram2 = nullptr;
++            auto itemSrc = nocScene->instrumentMediator->data(ITEM_POINTER).value<QGraphicsItem*>();
++            auto srcBridge = dynamic_cast<NsBridge*>(itemSrc);
++            auto itemDst = nocScene->instrumentMediator->data(ITEM_POINTER_DST).value<QGraphicsItem*>();
++            auto dstBridge = dynamic_cast<NsBridge*>(itemDst);
++
++            if (srcBridge) {
++                diagram1 = dynamic_cast<NsMultipleBridgesDiagram*>(srcBridge->parentItem());
++            }
++            if (dstBridge) {
++                diagram2 = dynamic_cast<NsMultipleBridgesDiagram*>(dstBridge->parentItem());
++            }
++            if ((diagram1 && (diagram1->getScrollBar()) && (diagram1->getScrollBar() == this)) ||
++                 (diagram2 && (diagram2->getScrollBar()) && (diagram2->getScrollBar() == this))) {
++                if (meshScene->getNsWorkArea() && meshScene->getNsWorkArea()->getMainWindow() &&
++                    meshScene->getNsWorkArea()->getMainWindow()->getPropertyPanel()) {
++                    meshScene->getNsWorkArea()->getMainWindow()->getPropertyPanel()->resetButtonClickedMeshView();
++                }
++            }
++        }
++    }
+     QScrollBar::mousePressEvent(event);
+ }
+ 
+@@ -182,15 +207,17 @@ void NsMultipleBridgesDiagram::createScrollBar()
+         scrollBarWidget = mesh->scene()->addWidget(scrollBar);
+         scrollBarWidget->setParentItem(this);
+         scrollBarWidget->setPos(this->rect().width() - scrollBar->width() - 1, 1);
++        scrollBar->meshScene = dynamic_cast<NsMeshViewScene*>(mesh->scene());
+     }
+ }
+ 
+ void NsMultipleBridgesDiagram::createLine()
+ {
+-    auto startPos = scenePos() - marginPos;
++    auto startPos = mesh->mapFromScene(scenePos() - marginPos);
+     diagramLine = std::unique_ptr<NsMultiBridgeDiagramLine>{new NsMultiBridgeDiagramLine(startPos.toPoint())};
+     if (scene()) scene()->addItem(diagramLine.get());
+     diagramLine->setZValue(NsMeshViewScene::HIGHEST_ORDER);
++    diagramLine.get()->setParentItem(mesh);
+ }
+ 
+ void NsMultipleBridgesDiagram::updateLineStartPoint()
+@@ -240,7 +267,7 @@ void NsMultipleBridgesDiagram::ensureBrVisible(QString brName)
+ QVariant NsMultipleBridgesDiagram::itemChange(GraphicsItemChange change, const QVariant& value)
+ {
+     if (change == QGraphicsItem::ItemPositionChange && diagramLine) {
+-        auto topLeft = scenePos();
++        auto topLeft = mesh->mapFromScene(scenePos());
+         diagramLine->moveLineToPosition(topLeft);
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
+         diagramLine->setLineVisible(value.toBool());
+@@ -276,6 +303,30 @@ void NsMultipleBridgesDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+ {
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     if (meshScene) {
++        if (meshScene->getInsType() == ADD_DEPENDENCY) {
++            auto nocScene = dynamic_cast<NsNocViewScene*>(meshScene);
++            if (nocScene && (nocScene->getAddDependencyBridgeClicked()) && (nocScene->instrumentMediator)) {
++                NsMultipleBridgesDiagram* diagram1 = nullptr;
++                NsMultipleBridgesDiagram* diagram2 = nullptr;
++                auto itemSrc = nocScene->instrumentMediator->data(ITEM_POINTER).value<QGraphicsItem*>();
++                auto srcBridge = dynamic_cast<NsBridge*>(itemSrc);
++                auto itemDst = nocScene->instrumentMediator->data(ITEM_POINTER_DST).value<QGraphicsItem*>();
++                auto dstBridge = dynamic_cast<NsBridge*>(itemDst);
++
++                if (srcBridge) {
++                    diagram1 = dynamic_cast<NsMultipleBridgesDiagram*>(srcBridge->parentItem());
++                }
++                if (dstBridge) {
++                    diagram2 = dynamic_cast<NsMultipleBridgesDiagram*>(dstBridge->parentItem());
++                }
++                if ((diagram1 && (diagram1 == this)) || (diagram2 && (diagram2 == this))) {
++                    if (meshScene->getNsWorkArea() && meshScene->getNsWorkArea()->getMainWindow() &&
++                        meshScene->getNsWorkArea()->getMainWindow()->getPropertyPanel()) {
++                        meshScene->getNsWorkArea()->getMainWindow()->getPropertyPanel()->resetButtonClickedMeshView();
++                    }
++                }
++            }
++        }
+         for (auto item : meshScene->selectedItems()) {
+             item->setSelected(false);
+         }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+index 96c3da09ece..d26dcd0fe03 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+@@ -6,7 +6,10 @@
+ #include "Grid.h"
+ #include "style.h"
+ #include "NsTypes.h"
+-
++#include "../View/NsScene.h"
++ 
++class NsMultipleBridgesDiagram;
++class NsMultipleBridges;
+ class NsMultipleBridgesDiagramScrollBar : public QScrollBar
+ {
+     Q_OBJECT
+@@ -14,6 +17,7 @@ public:
+     NsMultipleBridgesDiagramScrollBar(Qt::Orientation orientation, QWidget* parent = nullptr)
+     : QScrollBar(orientation, parent){};
+     NsMultipleBridgesDiagramScrollBar(QWidget* parent = nullptr) : QScrollBar(parent){};
++    NsMeshViewScene* meshScene = nullptr;
+ 
+ protected:
+     void mousePressEvent(QMouseEvent*) override;
+@@ -87,6 +91,8 @@ public:
+     void createScrollBar();
+     void showBridges(int startIndex = 0);
+     void ensureBrVisible(QString brName);
++    NsMultipleBridgesDiagramScrollBar* getScrollBar() const { return scrollBar; };
++    NsMultipleBridges* getMulBris() const { return mulBris; };
+     QGraphicsItem* getMesh() { return mesh; };
+     QList<QGraphicsRectItem*> bridgeList;
+     QList<NsBridgeLabel*> bridgeNameList;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+index 3c8de8edc12..6913d6e75db 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+@@ -4,6 +4,7 @@
+ #include "NsMultipleBridges.h"
+ #include "NsChopview.h"
+ #include "mainwindow.h"
++#include "Gui/propertypanel.h"
+ #include <QApplication>
+ #include <QDebug>
+ #include <QGraphicsSceneMouseEvent>
+@@ -126,9 +127,21 @@ void NsPlusItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ {
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     if (!meshScene) return;
++    auto nocScene = dynamic_cast<NsNocViewScene*>(meshScene);
+     if (event->button() == Qt::LeftButton && (flags() & ItemIsSelectable)
+         && !isAddBridgeNoc(meshScene->getInsType()))
+     {
++        if (nocScene && mw && nocScene->instrumentMediator && (meshScene->getInsType() == ADD_DEPENDENCY) &&
++            (nocScene && nocScene->getAddDependencyBridgeClicked())) {
++            auto itemSrc = nocScene->instrumentMediator->data(ITEM_POINTER).value<QGraphicsItem*>();
++            auto srcBridge = dynamic_cast<NsBridge*>(itemSrc);
++            auto itemDst = nocScene->instrumentMediator->data(ITEM_POINTER_DST).value<QGraphicsItem*>();
++            auto dstBridge = dynamic_cast<NsBridge*>(itemDst);
++
++            if ((srcBridge && hasBridge(srcBridge->getBridge())) || (dstBridge && hasBridge(dstBridge->getBridge()))) {
++                     mw->getPropertyPanel()->resetButtonClickedMeshView();
++            }
++        }
+         /* Only create multibridges when click on plus item */
+         if (mulBris) {
+             mulBris->deleteLater();
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index b804f96d007..23861401862 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -619,34 +619,59 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+                 auto nsBridge = gBridge->getBridge();
+                 auto propPanel = mw->getPropertyPanel();
+                 if (!nsBridge || !propPanel) break;
++                auto mesh = getFirst<NsMesh>(items(gBridge->scenePos()), MESH);
++                if (!mesh) break;
+                 if (!addDependencyBridgeClicked){
+-                    auto mesh = getFirst<NsMesh>(items(gBridge->scenePos()), MESH);
+-                    if(mesh){
+-                        const NetSpeed::Node_id nodeId = nsBridge->get_pos();
+-                        const QRectF nodeRectItem(gBridge->mapFromScene(gBridge->scenePos()) +
+-                                            QPointF(nodeId.x() * NODE_SIZE, nodeId.y() * NODE_SIZE) +
+-                                            toPoint(nsBridge->get_pos_rport()),
+-                                            QSizeF(BRIDGE_SIZE, BRIDGE_SIZE));
++                        auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(gBridge->parentItem());
++                        if (diagram) {
++                            diagram->resetTransform();
++                            auto multipleBridges = diagram->getMulBris();
++                            if (multipleBridges) {
++                                multipleBridges->setParentItem(mesh);
++                            }
++                        }
+                         // draw line instruction choose bridge
+                         instrumentMediator = new NsInstrumentMediator();
+                         connect(instrumentMediator, SIGNAL(destroyed(QObject*)), this, SLOT(instrumentMediatorDestroyed(QObject*)));
+                         instrumentMediator->setData(ITEM_POINTER, QVariant::fromValue(dynamic_cast<QGraphicsItem*>(gBridge)));
+-                        instrumentMediator->setData(ITEM_POS, nodeRectItem.center());
++                        instrumentMediator->setData(ITEM_POS, mesh->mapFromScene(event->scenePos()));
+                         instrumentMediator->setData(USER_DATA, false); //Detect update arrow path
+                         instrumentMediator->setParentItem(mesh);
+                         addDependencyBridgeClicked = true;
+                         propPanel->addDependencyProperties(nsBridge, nullptr);
+-                    }
++                    instrumentMediator->setZValue(NsMeshViewScene::HIGHEST_ORDER + 10);
+                 }
+                 else {
+                     auto item = instrumentMediator->data(ITEM_POINTER).value<QGraphicsItem*>();
+                     if (!item) return;
+                     auto bridge = dynamic_cast<NsBridge*>(item);
+                     if ((!bridge) || (bridge == gBridge)) return;
++                    auto itemDest = instrumentMediator->data(ITEM_POINTER_DST).value<QGraphicsItem*>();
++                    if (itemDest) {
++                        auto bridgeDst = dynamic_cast<NsBridge*>(itemDest);
++                        if (bridgeDst && bridgeDst == gBridge) {
++                            return;
++                        }
++                    } 
++                    instrumentMediator->setData(ITEM_POINTER_DST, QVariant::fromValue(dynamic_cast<QGraphicsItem*>(gBridge)));
+                     auto nsSourceBridge = bridge->getBridge();
+                     if (nsSourceBridge) {
+-                        propPanel->addDependencyProperties(nsSourceBridge, nsBridge);
+-                        instrumentMediator->setData(USER_DATA, true);  // Detect update arrow path
++                        auto meshSrcBridge = dynamic_cast<NsMesh*>(instrumentMediator->parentItem());
++                        if (meshSrcBridge && (meshSrcBridge == mesh)) {
++                            if (gBridge) {
++                                auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(gBridge->parentItem());
++                                if (diagram && diagram->getMulBris()) {
++                                    auto multipleBridges = diagram->getMulBris();
++                                    diagram->resetTransform();
++                                    multipleBridges->setParentItem(mesh);
++                                }
++                            }
++                            propPanel->addDependencyProperties(nsSourceBridge, nsBridge);
++                            instrumentMediator->setData(USER_DATA, true);
++                            auto line = QLineF(instrumentMediator->data(ITEM_POS).toPointF(), mesh->mapFromItem(gBridge,gBridge->boundingRect().center()));
++                            auto path = drawNormalArrow(line);
++                            instrumentMediator->updatePath(path);
++                        }
+                     }
+                 }
+                 break;
+@@ -820,6 +845,17 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+     }
+ }
+ 
++void NsNocViewScene::setMeshParentItem(NsMultipleBridges* item, NsMesh* mesh) {
++    for (auto& w : item->childItems()) {
++        auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(w->parentItem());
++        if (diagram) {
++            auto multipleBridges = diagram->getMulBris();
++            diagram->resetTransform();
++            multipleBridges->setParentItem(mesh);
++            break;
++        }
++    }
++}
+ void NsNocViewScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+ {
+     setFocusName("");
+@@ -861,6 +897,16 @@ void NsNocViewScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+             if (!instrumentMediator) return;
+             auto mesh = getFirst<NsMesh>(items(event->scenePos()), MESH);
+             if(!mesh) return;
++            if (getInsType() == ADD_DEPENDENCY) {
++                auto meshSrcBridge = dynamic_cast<NsMesh*>(instrumentMediator->parentItem());
++                if (meshSrcBridge && (mesh != meshSrcBridge)) {
++                    return;
++                }
++                auto multipleBridges = getFirst<NsMultipleBridges>(items(event->scenePos()), MULTIPLE_BRIDGE);
++                if (multipleBridges) {
++                    setMeshParentItem(multipleBridges, mesh);
++                }
++            }
+             auto line = QLineF(instrumentMediator->data(ITEM_POS).toPointF(),
+                                mesh->mapFromScene(event->scenePos()));
+             auto path = drawNormalArrow(line);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+index c935005238b..4fb8ed3ebc5 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+@@ -19,6 +19,7 @@
+ #include "View/NsScene.h"
+ #include "../Item/NsMesh.h"
+ #include "../Item/NsVC.h"
++#include "../Item/NsMultipleBridges.h"
+ #include "../Utils/infhost.h"
+ #include "Item/NsBridge.h"
+ 
+@@ -35,6 +36,7 @@ namespace INF { class Host; class Port; }
+ enum mediatorDataType {
+     USER_DATA,
+     ITEM_POINTER,
++    ITEM_POINTER_DST,
+     ITEM_TYPE,
+     ITEM_NAME,
+     ITEM_PORT,
+@@ -128,6 +130,7 @@ public:
+     void refresh();
+     void clearFlags() override;
+     void toggleAddRouter2RouterConn();
++    void setMeshParentItem(NsMultipleBridges* item, NsMesh* mesh);
+ 
+     inline void storePortDrawingItems(NsPortDrawingSetConnection* item) { portDrawingItems.push_back(item); }
+     inline std::vector<NsPortDrawingSetConnection*> getPortDrawingItems(QString point=QString()) {
+@@ -148,6 +151,7 @@ public:
+     NetSpeed::Node_id getNodeIdAtPoint() const {return nodeIdAtPoint;}
+     bool zoomOn(QString compName, QString color = "");
+     void setFocusName(QString focusName);
++    bool getAddDependencyBridgeClicked() const { return addDependencyBridgeClicked; }
+ 
+ protected:
+     void mousePressEvent(QGraphicsSceneMouseEvent* event);

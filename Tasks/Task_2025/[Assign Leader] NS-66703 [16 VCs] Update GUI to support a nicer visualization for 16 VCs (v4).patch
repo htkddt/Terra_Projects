@@ -1,0 +1,67 @@
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 34 +++++++++++-----------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 4dd8b0e01f3..f4d2c0be586 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -556,13 +556,20 @@ void NsRouterDiagramVC::mousePressEvent(QGraphicsSceneMouseEvent * event) {
+     if (event->button() == Qt::RightButton) {
+         vcContextMenu(event->screenPos(), vc->name());
+         event->accept();
+-    }
+-    else if (auto mw = qobject_cast<MainWindow*>(QApplication::activeWindow())) {
++    } else if (auto mw = qobject_cast<MainWindow*>(QApplication::activeWindow())) {
+         if (auto propPanel = mw->getPropertyPanel()) {
+             propPanel->updateLinkVcProperties(vc);
+             propPanel->raiseSelectionTab();
+             mw->raiseTooltipTab();
+         }
++    } else if (auto router_diagram = dynamic_cast<NsRouterDiagram*>(this->parentItem())) {
++        if (auto mw = router_diagram->getMainWindow()) {
++            if (auto propPanel = mw->getPropertyPanel()) {
++                propPanel->updateLinkVcProperties(vc);
++                propPanel->raiseSelectionTab();
++                mw->raiseTooltipTab();
++            }
++        }
+     }
+     QGraphicsPathItem::mousePressEvent(event);
+ }
+@@ -1410,6 +1417,14 @@ void NsRouterDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             item->update();
+         }
+     }
++    if ((event->button() != Qt::MidButton) && wScene && (!isAddBridgeNoc(wScene->getInsType())) && !isAddAgentMeshView(wScene->getInsType())) {
++        if (!mw) return;
++        if (auto propPanel = mw->getPropertyPanel()) {
++            propPanel->updateRouterProperties(router, true);
++            propPanel->raiseSelectionTab();
++            mw->raiseTooltipTab();
++        }
++    }
+ }
+ 
+ void NsRouterDiagram::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+@@ -1491,21 +1506,6 @@ void NsRouterPolyGon::hoverEnterEvent(QGraphicsSceneHoverEvent * event) {
+ void NsRouterPolyGon::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+     event->ignore();
+-    auto router_diagram = dynamic_cast<NsRouterDiagram*>(this->parentItem());
+-    if (!router_diagram) return;
+-    if (router_diagram->getFlowData()) return;
+-    auto meshScene = router_diagram->getMeshViewScene();
+-    if ((event->button() != Qt::MidButton) && meshScene && (!isAddBridgeNoc(meshScene->getInsType())) &&
+-        !isAddAgentMeshView(meshScene->getInsType())) {
+-        auto mw = router_diagram->getMainWindow();
+-        if (!mw) return;
+-        if (auto propPanel = mw->getPropertyPanel()) {
+-            propPanel->updateRouterProperties(router, true);
+-            propPanel->raiseSelectionTab();
+-            mw->raiseTooltipTab();
+-        }
+-    }
+-
+     QGraphicsPathItem::mousePressEvent(event);
+ }
+ 

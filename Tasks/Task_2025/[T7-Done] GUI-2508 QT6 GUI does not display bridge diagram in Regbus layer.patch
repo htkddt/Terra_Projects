@@ -1,0 +1,18 @@
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp
+index f794fe6cadc..b73af7f036f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp
+@@ -172,7 +172,9 @@ void NsRegbusBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+                 return;
+             }
+         }
+-    } else if (event->button() == Qt::RightButton) {
++    }
++
++    if (event->button() == Qt::RightButton) {
+         auto g = bridge->get_grid();
+         auto& rbRings = g->get_regbus_rings();
+         NetSpeed::Node_id regbus_ring_position;

@@ -1,0 +1,21 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a3b97d5fe85..50f66a8d88a 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -4217,7 +4217,12 @@ bool MainWindow::closePerfVisualizationTab(int stat_id)
+         console->printOutput("ERROR: The Stat Tab is not open\n");
+         return false;
+     }
+-    closeTab(tabId);
++
++    if (tabId == displayPanel->currentIndex() && tabId > 0) {
++        emit displayPanel->closeThis();
++    } else {
++        closeTab(tabId);
++    }
+     return true;
+ }
+ 

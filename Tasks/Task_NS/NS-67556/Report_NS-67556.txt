@@ -1,0 +1,90 @@
+ISSUE EXISTING:
+	Problems: The color of bridges display not the same the color of domain at regbus layer
+	Fixed version: GUI-2463 fixed the issue above
+
+ION Debug:
+	#0  std::_Rb_tree_increment (__x=0x7fffaaa4cd60)
+		at ../../../.././libstdc++-v3/src/c++98/tree.cc:86
+	#1  0x0000000001a267d0 in std::_Rb_tree_const_iterator<std::pair<NetSpeed::rtl_group_id const* const, NetSpeed::rtl_group_id const*> >::operator++ (
+		this=<optimized out>)
+		at /nfs/site/itools/em64t_SLES12SP5_legacy/pkgs/gcc/7.3.0/include/c++/7.3.0/bits/stl_tree.h:374
+	#2  NetSpeed::Grid::find_parent_group (this=<optimized out>, name=..., 
+		parents=...) at NocCore/src/Grid.cpp:20461
+	#3  0x0000000001a45acb in NetSpeed::Grid::get_rtl_group_parent_of (
+		this=this@entry=0x7fffcc024390, grp=grp@entry=0x7fffd33663b0)
+		at NocCore/src/Grid.cpp:19665
+	#4  0x0000000000c9cdee in MainWindow::getRtlGroupsTree (this=<optimized out>)
+		at Gui/mainwindow.cpp:594
+	#5  0x0000000000efe743 in NsNormalBridge::getBridgeColor (
+		this=this@entry=0x7fffb40dfc90) at Gui/Item/NsBridge.cpp:136
+	#6  0x0000000000eff282 in NsNormalBridge::setBridgeColor (
+		this=this@entry=0x7fffb40dfc90) at Gui/Item/NsBridge.cpp:205
+	#7  0x0000000000eff462 in NsNormalBridge::itemChange (this=0x7fffb40dfc90, 
+		change=QGraphicsItem::ItemSceneHasChanged, value=...)
+		at Gui/Item/NsBridge.cpp:895
+	#8  0x00007ffff792ba7f in QGraphicsScene::addItem(QGraphicsItem*) ()
+	   from /usr/intel/pkgs/libqt/5.11.2/bin/../lib/libQt5Widgets.so.5
+	#9  0x00007ffff792b9f9 in QGraphicsScene::addItem(QGraphicsItem*) ()
+	   from /usr/intel/pkgs/libqt/5.11.2/bin/../lib/libQt5Widgets.so.5
+	   
+	   
+WINDOWS OS:
+	- NOC --> RTL: 270
+		###########################################################
+		NsMeshViewScene::makeRTLColors()
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.0229286"
+		----------------------------------
+		Counter = 1
+		###########################################################
+		NsNormalBridge
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.0244114"
+		----------------------------------
+		Counter = 2
+		###########################################################
+		NsNormalBridge
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.0268687"
+		----------------------------------
+		Counter = 3
+		
+	- Refresh in RTL: 808
+		###########################################################
+		NsMeshViewScene::makeRTLColors()
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.0270444"
+		----------------------------------
+		Counter = 1
+		###########################################################
+		NsNormalBridge
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.02655"
+		----------------------------------
+		Counter = 2
+		###########################################################
+		NsNormalBridge
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.0279838"
+		----------------------------------
+		Counter = 3
+		###########################################################
+		NsNormalBridge
+		###########################################################
+		rtlGroups.size() 2921
+		----------------------------------
+		"Loop" "0.0275908"
+		----------------------------------
+		Counter = 4

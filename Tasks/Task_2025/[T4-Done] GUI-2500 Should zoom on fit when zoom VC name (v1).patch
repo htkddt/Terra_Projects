@@ -1,0 +1,16 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 3c4540ec689..4fe77af7017 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -411,7 +411,7 @@ bool NsNocViewScene::zoomOn(QString compName, QString color)
+             VC* vc = dynamic_cast<VC*>(routerLink);
+             if (vc) {
+                 if (!color.isEmpty()) routerLink->highlight_color = color.toStdString();
+-                nsWorkArea->setZoomFactor(qreal(1.3));
++                nsWorkArea->setZoomFactor(nsWorkArea->getZoomFitValue(diagram->boundingRect().width(), diagram->boundingRect().height()) - 0.1);
+                 nsWorkArea->centerOn(diagram);
+                 diagram->showFlowData(vc);
+                 diagram->showTooltip(vc->name());

@@ -1,0 +1,60 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp | 32 ++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index 19d70d17f35..112d9b66278 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -12,6 +12,7 @@
+ 
+ #include "NsHost.h"
+ #include "NsBridge.h"
++#include "NsPlusItem.h"
+ #include "Gui/mainwindow.h"
+ #include "Gui/propertypanel.h"
+ 
+@@ -471,6 +472,36 @@ void NsNormalHost::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+ 
+ void NsNormalHost::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+ {
++    auto removeDiagrams = [&](MainWindow* mw) -> void {
++        vector<QGraphicsItem*> to_be_deleted;
++        for (const auto& diagram : mw->getListDiagrams()) {
++            if (NetSpeed::is_member(diagram->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION})) {
++                to_be_deleted.push_back(diagram);
++            } else if (diagram->type() == MULTIPLE_BRIDGE) {
++                if (auto nsWorkArea = mw->getNsWorkArea()) {
++                    if (auto currentScene = nsWorkArea->scene()) {
++                        if (auto mulBris = dynamic_cast<NsMultipleBridges*>(diagram)) {
++                            if (auto diagramLine = dynamic_cast<NsMultiBridgeDiagramLine*>(mulBris->childItems().first())) {
++                                whenMatched(currentScene->items(QPointF(diagramLine->startPoint)), {PLUS}, [&](QGraphicsItem* item) {
++                                    auto plus = dynamic_cast<NsPlusItem*>(item);
++                                    if (plus) {
++                                        plus->toggleChecked();
++                                        emit plus->triggered(false);
++                                        item->update();
++                                        if (plus->getMulBr()) {
++                                            mw->removeDiagramItem(plus->getMulBr());
++                                        }
++                                    }
++                                });
++                            }
++                        }
++                    }
++                }
++            }
++        }
++        qDeleteAll(to_be_deleted);
++    };
++
+     if (!isDragged())
+     {
+         // get mesh scene
+@@ -512,6 +543,7 @@ void NsNormalHost::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+             auto actionType = actionSelected->property("type").toInt();
+             switch (actionType) {
+             case ADD_BRIDGE_ACT: {
++                removeDiagrams(mw);
+                 auto proPanel = mw->getPropertyPanel();
+                 if (proPanel && proPanel->getINFPort()) {
+                     proPanel->clearData();

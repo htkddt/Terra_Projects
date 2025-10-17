@@ -1,0 +1,37 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp | 3 ++-
+ src/sw/noc_dev/prototype/Gui/dialogs.h   | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index fabc98fd5b3..b2ee60dc756 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5196,7 +5196,7 @@ chooseArgumentDialog::chooseArgumentDialog(int numberOfLayers, int numberOfRoute
+     layoutOfLayers->addWidget(routers, row, 1, Qt::AlignCenter);
+     layoutOfLayers->addWidget(ports, row, 2, Qt::AlignCenter);
+ 
+-    auto addButton = new QPushButton("ADD ROW");
++    addButton = new QPushButton("ADD ROW");
+     addButton->setIcon(QIcon(ICON_ADD));
+     addButton->setFont(font);
+     addButton->setStyleSheet("QPushButton {"
+@@ -5242,6 +5242,7 @@ chooseArgumentDialog::chooseArgumentDialog(int numberOfLayers, int numberOfRoute
+     });
+ 
+     connect(cbAll, &QCheckBox::clicked, this, [&]() {
++        addButton->setEnabled(!cbAll->isChecked());
+         if (cbAll->isChecked()) {
+             for (int i = 0; i < layoutOfLayers->count(); i++) {
+                 auto item = layoutOfLayers->itemAt(i);
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index 4c9e08e480a..56ec136acdd 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -1180,6 +1180,7 @@ private:
+     int row = 0;
+     QString argument = QString();
+     QCheckBox* cbAll = nullptr;
++    QPushButton* addButton = nullptr;
+     QGridLayout* layoutOfLayers = nullptr;
+     QLineEdit* textRouterDest = nullptr;
+ 

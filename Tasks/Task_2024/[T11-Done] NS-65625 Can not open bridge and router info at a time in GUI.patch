@@ -1,0 +1,1306 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp  |  10 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h    |   1 +
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     |  63 +++--
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.h       |   2 +-
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 258 ++++++++++++---------
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.h   |  45 ++--
+ .../prototype/Gui/Item/NsMultipleBridges.cpp       |  95 ++++----
+ .../noc_dev/prototype/Gui/Item/NsMultipleBridges.h |   6 +-
+ src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp   |   8 +-
+ .../noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp  |  36 +--
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     |   8 +-
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  |  37 ++-
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp      |   9 +-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        |  32 +++
+ src/sw/noc_dev/prototype/Gui/mainwindow.h          |   7 +
+ 15 files changed, 367 insertions(+), 250 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+index 1d59e2c6e7c..7a223e017fb 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+@@ -139,14 +139,17 @@ void interfaceContextMenu(QPoint pos, std::string name)
+ 
+ void NsArrowItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+ {
+-    auto meshScene = static_cast<NsMeshViewScene*>(scene());
++    auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
+     if(!meshScene) return;
+     switch (type)
+     {
+     case VC_ITEM:
+-        if(auto parent = parentItem())
+-            if(dynamic_cast<NsRSSBDiagram*>(parent) && vC->get_parent()->is_noc_side_port())
++        if ((!openedLinkDiagram) && parentItem()) {
++            if (dynamic_cast<NsRSSBDiagram*>(parentItem()) && vC->get_parent()->is_noc_side_port()) {
+                 new NsLinkDiagram(event->pos(), vC->get_parent(), this);
++                openedLinkDiagram = true;
++            }
++        }
+         vcContextMenu(event->screenPos(), name, meshScene->getMenuDirection());
+         break;
+     case INTERFACE:
+@@ -169,6 +172,7 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+     else if(iFCE) propertyPanel->showInterfacePropertyOnSelectionTab(iFCE);
+     propertyPanel->raiseSelectionTab();
+     mw->raiseTooltipTab();
++    mw->updateZValueOfListDiagrams(this->parentItem());
+ }
+ 
+ void NsArrowItem::hoverEnterEvent(QGraphicsSceneHoverEvent* /*event*/)
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h
+index e2f5576b6c6..4138bcd5c46 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h
+@@ -41,6 +41,7 @@ private:
+     std::string link;
+     int type;
+     bool m_dirOut = false;
++    bool openedLinkDiagram = false;
+ };
+ 
+ #endif // NSARROWITEM_H
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 5258b45a4eb..4b588b49137 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -376,7 +376,30 @@ void bridgeContextMenu(QGraphicsItem* guiBridge, NetSpeed::Bridge* b, Qt::Layout
+     }
+ }
+ 
+-void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event) {
++void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
++{
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> bool {
++        for (const auto& diagram : listDiagrams) {
++            if (diagram->type() == BRIDGE_DIAGRAM) {
++                if (auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(diagram)) {
++                    if (rssbDiagram->parentBridge == this) {
++                        return true;
++                    }
++                } else if (auto brDiagram = dynamic_cast<NsBridgeDiagram*>(diagram)) {
++                    if (brDiagram->parentBridge == this) {
++                        return true;
++                    }
++                }
++            } else if (diagram->type() == RING_VISUALIZATION) {
++                auto regbusDiagram = dynamic_cast<NsRegbusRing*>(diagram);
++                if (regbusDiagram->parentBridge == this) {
++                    return true;
++                }
++            }
++        }
++        return false;
++    };
++
+     if (!isDragged())
+     {
+         auto meshScene = dynamic_cast<NsMeshViewScene*>(this->scene());
+@@ -385,6 +408,10 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event) {
+             NetSpeed::is_member(meshScene->getInsType(), {ADD_ROUTER_CONN, ADD_ROUTER2ROUTER})) return;
+         if (!meshScene->isDomainView() && !hasDraggedHost(scene(), event->pos())) {
+             event->accept();
++            auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
++            if (!mw) return;
++            auto isOpened = isOpenedDiagram(mw->getListDiagrams());
++            if (isOpened) return;
+             bool bridgeHasRSSB = bridge->has_external_switch();
+             if (bridge->is_regbus_bridge() || bridge->is_regbus_mst()) {
+                 auto node_id = bridge->get_pos();
+@@ -392,25 +419,23 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event) {
+                     auto g = bridge->get_grid();
+                     auto& rbRings = g->get_regbus_rings();
+                     auto it = rbRings[node_id];
+-                    std::vector<QGraphicsItem*> to_be_deleted;
+-                    for (auto const& item : childItems())
+-                        if (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, RING_VISUALIZATION, ROUTER_DIAGRAM}))
+-                            to_be_deleted.push_back(item);
+-                    qDeleteAll(to_be_deleted);
+-                    if (!it.empty()) new NsRegbusRing(bridge, node_id, this);
+-                    else if(bridgeHasRSSB) new NsRSSBDiagram(bridge, this);
++                    if (!it.empty()) {
++                        auto diagram = new NsRegbusRing(bridge, node_id, this);
++                        mw->appendListDiagrams(diagram);
++                    } else if (bridgeHasRSSB) {
++                        auto diagram = new NsRSSBDiagram(bridge, this);
++                        mw->appendListDiagrams(diagram);
++                    }
+                 }
+-            }
+-            else {
+-                auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+-                if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() &&
+-                    !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked()) {
+-                    if (bridgeHasRSSB)
+-                        new NsRSSBDiagram(bridge, this);
+-                    else
+-                        new NsBridgeDiagram(bridge, this);
+-                    bridgeContextMenu(this, bridge, meshScene->getMenuDirection());
+-                } 
++            } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() && !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked()) {
++                if (bridgeHasRSSB) {
++                    auto diagram = new NsRSSBDiagram(bridge, this);
++                    mw->appendListDiagrams(diagram);
++                } else {
++                    auto diagram = new NsBridgeDiagram(bridge, this);
++                    mw->appendListDiagrams(diagram);
++                }
++                bridgeContextMenu(this, bridge, meshScene->getMenuDirection());
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
+index b673c15d5f0..a10bfb308d6 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
+@@ -172,7 +172,7 @@ private:
+     const NetSpeed::Clock_domain_props_t* clockDomainBridge = nullptr;
+     const NetSpeed::Voltage_domain_props_t* volateDomainBridge = nullptr;
+     const NetSpeed::Power_domain_props_t* powerDomainBridge = nullptr;
+-    QRectF rec = QRectF();  
++    QRectF rec = QRectF();
+ };
+ 
+ class NsChopViewBridge: public QGraphicsRectItem
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 70ed13aa5f6..bce3468d89b 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -1,4 +1,5 @@
+ #include "NsBridgeDiagram.h"
++#include "NsMultipleBridges.h"
+ #include "NsRouter.h"
+ #include "mainwindow.h"
+ #include "vector"
+@@ -105,53 +106,50 @@ NsRouterDiagramManager* NsRouterDiagramManager::manager(QObject* scene)
+     return m_manager;
+ }
+ 
+-void NsRouterDiagramManager::handleMouseEvent(QGraphicsSceneMouseEvent* event)
++bool NsRouterDiagramManager::handleMouseEvent(QGraphicsSceneMouseEvent* event)
+ {
+-    if (m_diagrams.isEmpty()) return;
+-    auto scene = static_cast<QGraphicsScene*>(parent());
++    if (m_diagrams.isEmpty()) return false;
++
++    auto scene = dynamic_cast<QGraphicsScene*>(parent());
++    if (!scene) return false;
++
+     auto clickedItem = scene->itemAt(event->scenePos(), QTransform());
+     auto clickedItemList = scene->items(event->scenePos());
+ 
+-    auto isCreateRouterDiagram = [&](auto g_item) {
+-        return (g_item->type() == ROUTER &&
+-            event->button() == Qt::RightButton);
++    auto isCreateRouterDiagram = [&](auto g_item) -> bool {
++        return ((g_item->type() == ROUTER) && (event->button() == Qt::RightButton));
+     };
+-    auto isRouterDiagramClicked = [&](const QList<QGraphicsItem*>& g_items) {
++
++    auto isRouterDiagram = [&](const QList<QGraphicsItem*>& g_items) -> bool {
+         for (auto& item : g_items) {
+-            if (contains(item)) {
+-                return true;
+-            }
++            if (contains(item)) return true;
+         }
+         return false;
+     };
+     
+-    auto isRouterDiagramCloseClicked = [&](const QList<QGraphicsItem*>& g_items) {
++    auto isCloseItem = [&](const QList<QGraphicsItem*>& g_items) {
+         for (auto& item : g_items) {
+-            if (dynamic_cast<NsRouterDiagramXbg*>(item) || dynamic_cast<NsRouterDiagramX*>(item)) {
+-                return true;
+-            }
++            if (dynamic_cast<NsCloseSymbol*>(item)) return true;
+         }
+         return false;
+     };
+ 
+-    if (isRouterDiagramCloseClicked(clickedItemList) && event->button() == Qt::LeftButton) {     
+-        auto selectedItem = qgraphicsitem_cast<NsRouterDiagramXbg*>(clickedItem);
++    if (isCloseItem(clickedItemList) && (event->button() == Qt::LeftButton)) {
++        auto selectedItem = qgraphicsitem_cast<NsCloseSymbol*>(clickedItem);
+         if (selectedItem) {
+-            vector<QGraphicsItem*> to_be_deleted;
+-            auto nodeID = selectedItem->getNodeId();
+-            auto layerID = selectedItem->getLayerId();
+-            for (auto& item : m_diagrams) {
+-                if ((nodeID == item->getNodeId()) && (layerID == item->getLayerId())) {
+-                    to_be_deleted.push_back(item);
+-                    auto selectItem = m_diagrams.indexOf(item);
+-                    m_diagrams.removeAt(selectItem);
++            for (auto& diagram : m_diagrams) {
++                if (selectedItem->parentItem() == diagram) {
++                    mw->removeDiagramItem(diagram);
++                    delete diagram;
++                    return true;
+                 }
+             }
+-            qDeleteAll(to_be_deleted);
+         }       
+-    } else if (!clickedItem || (!isRouterDiagramClicked(clickedItemList) && !isCreateRouterDiagram(clickedItem))) {
+-        m_diagrams.clear();
++    } else if (!clickedItem || (!isRouterDiagram(clickedItemList) && !isCreateRouterDiagram(clickedItem))) {
++        return false;
+     }
++
++    return false;
+ }
+ 
+ NsRouterDiagramManager::~NsRouterDiagramManager()
+@@ -160,21 +158,24 @@ NsRouterDiagramManager::~NsRouterDiagramManager()
+ 
+ NsRouterDiagram* NsRouterDiagramManager::createDiagramFromRouter(NsRouter *guiRouter)
+ {
+-    for (auto& diagram : m_diagrams)
+-        if (guiRouter == static_cast<NsRouter*>(diagram->getGuiRouter())) return nullptr;
++    for (auto& diagram : m_diagrams) {
++        if (guiRouter == dynamic_cast<NsRouter*>(diagram->getGuiRouter())) return nullptr;
++    }
+     auto newDiagram = new NsRouterDiagram(guiRouter->getRouter(), guiRouter);
+-    int highestZValue = NsMeshViewScene::HIGHEST_ORDER + 4 + m_diagrams.count() * 2;
+     bool ok;
+     auto mesh = getFirst<NsMesh>(guiRouter->collidingItems(), MESH);
+     newDiagram->setParentItem(nullptr);
+-    newDiagram->setZValue(highestZValue + 1);
++    newDiagram->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+     auto transform = mesh->itemTransform(newDiagram, &ok);
+     if (ok) newDiagram->setTransform(transform);
+-    newDiagram->createLine(highestZValue);
++    newDiagram->createLine();
+     m_diagrams.append(newDiagram);
++    wScene = dynamic_cast<NsMeshViewScene*>(guiRouter->scene());
++    if (wScene) wView = dynamic_cast<NsView*>(wScene->views().first());
++    if (wView) mw = wView->getMainWindow();
+     connect(guiRouter, &NsRouter::routerPositionChanged, newDiagram, &NsRouterDiagram::positionUpdate);
+     connect(guiRouter, &NsRouter::routerVisibleChanged, newDiagram, &NsRouterDiagram::visibleUpdate);
+-    connect(newDiagram, &QObject::destroyed, this, [=](){
++    connect(newDiagram, &QObject::destroyed, this, [=]() {
+         auto itemIdx = m_diagrams.indexOf(newDiagram);
+         if (itemIdx != -1) {
+             m_diagrams.removeAt(itemIdx);
+@@ -375,29 +376,9 @@ void NsRouterDiagram::visibleUpdate()
+     }
+ }
+ 
+-void NsRouterDiagram::createLine(int value)
+-{
+-    diagramLine = std::unique_ptr<NsRouterDiagramLine>{new NsRouterDiagramLine(scenePos().toPoint() + arrowPos)};
+-    if (scene()) scene()->addItem(diagramLine.get());
+-    diagramLine->setZValue(value);
+-}
+-
+-void NsRouterDiagram::updateLineZValue(int value)
+-{
+-    diagramLine.get()->setZValue(value);
+-}
+-
+-void NsRouterDiagramManager::updateZValue(NsRouterDiagram *diagram)
++void NsRouterDiagram::createLine()
+ {
+-    if (m_diagrams.isEmpty() || !m_diagrams.contains(diagram) || m_diagrams.endsWith(diagram)) return;
+-    int z_priority = NsMeshViewScene::HIGHEST_ORDER + 4;
+-    int itemIndex = m_diagrams.indexOf(diagram);
+-    // Move diagram to end of list
+-    m_diagrams.move(itemIndex, m_diagrams.count() - 1);
+-    for (auto diagram : m_diagrams) {
+-        diagram->setZValue(++z_priority);
+-        diagram->updateLineZValue(z_priority++ - 1);
+-    }
++    diagramLine = std::unique_ptr<NsRouterDiagramLine>{new NsRouterDiagramLine(scenePos().toPoint() + arrowPos, this)};
+ }
+ 
+ void NsRouterDiagram::drawFeedBackArrow(int dir, QLineF & line, const NetSpeed::VC * vc, QGraphicsItem * parent)
+@@ -499,21 +480,17 @@ QPainterPath genArrowPath(QPointF start, const float arrowThickness, const bool
+     return path;
+ }
+ 
+- NsRouterDiagramX::NsRouterDiagramX(NetSpeed::Router* router, const QPainterPath& path, QGraphicsItem* parent) : QGraphicsPathItem(path, parent)
+- {
+-    node_id = router->get_id();
+-    layer_id = router->get_layer();
+-    setFlag(QGraphicsItem::ItemIsSelectable);
+-}
+-
+-NsRouterDiagramXbg::NsRouterDiagramXbg(NetSpeed::Router* router, const QPainterPath& path, QGraphicsItem* parent) : QGraphicsPathItem(path, parent)
++NsCloseSymbol::NsCloseSymbol(const QPainterPath& path, bool enableHover, QGraphicsItem* parent)
++: QGraphicsPathItem(path, parent)
+ {
+-    node_id = router->get_id();
+-    layer_id = router->get_layer();
+-    m_brush = Qt::white;
+-    setAcceptHoverEvents(true);
++    m_enableHover = enableHover;
++    if (enableHover) {
++        m_brush = Qt::white;
++        setAcceptHoverEvents(true);
++        setToolTip("Close");
++    }
++
+     setFlag(QGraphicsItem::ItemIsSelectable);
+-    setToolTip("Close");
+ }
+ 
+ NsRouterDiagramVC::NsRouterDiagramVC(const QPainterPath & path, const QColor color, const NetSpeed::VC * v, QGraphicsItem* parent)
+@@ -572,7 +549,7 @@ void NsRouterDiagramVC::mousePressEvent(QGraphicsSceneMouseEvent * event) {
+     }
+     else if (auto mw = qobject_cast<MainWindow*>(QApplication::activeWindow())) {
+         if (auto routerDiagram = dynamic_cast<NsRouterDiagram*>(this->parentItem())) {
+-            NsRouterDiagramManager::manager(scene())->updateZValue(routerDiagram);
++            mw->updateZValueOfListDiagrams(routerDiagram);
+         }
+         if (auto propPanel = mw->getPropertyPanel()) {
+             propPanel->updateLinkVcProperties(vc);
+@@ -625,37 +602,32 @@ QVariant NsRouterDiagramVC::itemChange(GraphicsItemChange change, const QVariant
+     return QGraphicsItem::itemChange(change, value);
+ }
+ 
+-void NsRouterDiagramXbg::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
++void NsCloseSymbol::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+ {
+     m_brush = Qt::gray;
+     QGraphicsItem::hoverEnterEvent(event);
+ }
+ 
+-void NsRouterDiagramXbg::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
++void NsCloseSymbol::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+ {
+     m_brush = Qt::white;
+     QGraphicsItem::hoverLeaveEvent(event);
+ }
+ 
+-void NsRouterDiagramX::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+-    Q_UNUSED(option);
+-    Q_UNUSED(widget);
+-
+-    painter->setRenderHint(QPainter::Antialiasing);
+-    QPainterPath p = path();
+-    painter->setPen(QPen(Qt::black, 1.5));
+-    painter->setBrush(Qt::NoBrush);
+-    painter->drawPath(p);
+-}
+-
+-void NsRouterDiagramXbg::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
++void NsCloseSymbol::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
++{
+     Q_UNUSED(option);
+     Q_UNUSED(widget);
+ 
+     painter->setRenderHint(QPainter::Antialiasing);
+     QPainterPath p = path();
+-    painter->setPen(Qt::NoPen);
+-    painter->setBrush(m_brush);
++    if (m_enableHover) {
++        painter->setPen(Qt::NoPen);
++        painter->setBrush(m_brush);
++    } else {
++        painter->setPen(QPen(Qt::black, 1.5));
++        painter->setBrush(Qt::NoBrush);
++    }
+     painter->drawPath(p);
+ }
+ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath & path)
+@@ -714,6 +686,7 @@ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath &
+ NsBridgeDiagram::NsBridgeDiagram(NetSpeed::Bridge * b, QGraphicsItem * p) : QGraphicsPathItem(p), guiBridge(p), bridge(b)
+ {
+     setFlags(QGraphicsItem::ItemIsMovable);
++    parentBridge = p;
+     auto pItem = guiBridge->parentItem();
+     int layerID = static_cast<NsNormalBridge*>(p)->getLayerID().as_int();
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+@@ -738,7 +711,7 @@ NsBridgeDiagram::NsBridgeDiagram(NetSpeed::Bridge * b, QGraphicsItem * p) : QGra
+             bool ok;
+             auto mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+             setParentItem(nullptr);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER + 4);
++            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             auto transform = mesh->itemTransform(this, &ok);
+             if (ok) setTransform(transform);
+             diagramLine = new NsBridgeDiagramLine(scenePos().toPoint() + arrowPos, this);
+@@ -746,6 +719,9 @@ NsBridgeDiagram::NsBridgeDiagram(NetSpeed::Bridge * b, QGraphicsItem * p) : QGra
+             pItem->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             diagramLine = new NsBridgeDiagramLine(arrowPos, this);
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            }
+         }
+     }
+ }
+@@ -772,6 +748,18 @@ void NsBridgeDiagram::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+ 
+ void NsBridgeDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
++    if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
++            mw->updateZValueOfListDiagrams(diagram->getMulBris());
++        }
++    } else {
++        mw->updateZValueOfListDiagrams(this);
++    }
++    if (wScene) {
++        for (auto& item : wScene->selectedItems()) {
++            item->setSelected(false);
++        }
++    }
+     event->accept();
+ }
+ 
+@@ -781,9 +769,9 @@ void NsBridgeDiagram::hoverEnterEvent(QGraphicsSceneHoverEvent * event) {
+     QGraphicsPathItem::hoverEnterEvent(event);
+ }
+ 
+-QVariant NsBridgeDiagram::itemChange(GraphicsItemChange change, const QVariant& value) {
+-    if ((change == QGraphicsItem::ItemPositionChange || change == QGraphicsItem::ItemPositionHasChanged) &&
+-        diagramLine) {
++QVariant NsBridgeDiagram::itemChange(GraphicsItemChange change, const QVariant& value)
++{
++    if (((change == QGraphicsItem::ItemPositionChange) || (change == QGraphicsItem::ItemPositionHasChanged)) && diagramLine) {
+         QPointF topLeft;
+         if (diagramLine->parentItem()->parentItem()) {
+             topLeft = pos() + arrowPos;
+@@ -791,13 +779,17 @@ QVariant NsBridgeDiagram::itemChange(GraphicsItemChange change, const QVariant&
+             topLeft = scenePos().toPoint() + arrowPos;
+         }
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
++        if (!value.toBool() && guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++            mw->removeDiagramItem(this);
++        }
+         diagramLine->setLineVisible(value.toBool());
+     }
+ 
+     return QGraphicsItem::itemChange(change, value);
+ }
+ 
+-void NsBridgeDiagram::initData() {
++void NsBridgeDiagram::initData()
++{
+     if (!bridge || !wScene || !wView) return;
+     qDeleteAll(childItems());
+     auto allIfces = bridge->get_all_ifs(); // making a copy
+@@ -1170,9 +1162,8 @@ void NsRouterDiagram::initData()
+     auto viewPortSize = wView->viewport()->rect().size();
+     QRectF routerRecBox;
+     bool isDiagramDisplayLeft = false;
+-    auto diagramPath =
+-        getBridgeRouterWindowPath(guiRouterSceneRect, maxWidth, maxHeight, verticalScrollBarValue,
+-                                  viewPortSize, nullptr, routerRecBox, &isDiagramDisplayLeft);
++    auto diagramPath = getBridgeRouterWindowPath(guiRouterSceneRect, maxWidth, maxHeight, verticalScrollBarValue,
++                                                 viewPortSize, nullptr, routerRecBox, &isDiagramDisplayLeft);
+     if (isDiagramDisplayLeft) {  // show window on the left of router
+         arrowPos = guiRouterSceneRect.topLeft() + QPoint(0, guiRouterSceneRect.height() / 2);
+     } else {
+@@ -1203,25 +1194,24 @@ void NsRouterDiagram::initData()
+     for (auto& it : out_vcs) addVCtoDiagram(it.first, it.second, true, polyGonStartPoint);
+ 
+     /* Adding a backgound for 'X' symbol */
+-    QPainterPath bgPath;
++    QPainterPath background;
+     const float bg_margin = 33.0;
+     QPointF startPointbg = routerRecBox.topRight() + QPointF(-34.0, 1.0);
+     QSizeF recSize(bg_margin, bg_margin);
+     QRectF recBounding(startPointbg, recSize);
+-    bgPath.addRect(recBounding);
+-    new NsRouterDiagramXbg(router, bgPath, this);
++    background.addRect(recBounding);
++    new NsCloseSymbol(background, true, this);
+ 
+     /* Adding a 'X' symbol */
+-    QPainterPath xPath;
++    QPainterPath closeSymbol;
+     const float x_margin = 15.0;
+-    QPointF startPointx = routerRecBox.topRight() + QPointF(-25.0, 10.0);
+-    xPath.moveTo(startPointx);
+-    xPath.lineTo(startPointx + QPointF(x_margin, x_margin));
+-    xPath.moveTo(startPointx + QPointF(0.0, x_margin));
+-    xPath.lineTo(startPointx + QPointF(x_margin, 0.0));
+-    new NsRouterDiagramX(router, xPath, this);
++    QPointF startPointx  = routerRecBox.topRight() + QPointF(-25.0, 10.0);
++    closeSymbol.moveTo(startPointx);
++    closeSymbol.lineTo(startPointx + QPointF(x_margin, x_margin));
++    closeSymbol.moveTo(startPointx + QPointF(0.0, x_margin));
++    closeSymbol.lineTo(startPointx + QPointF(x_margin, 0.0));
++    new NsCloseSymbol(closeSymbol, false, this);
+ 
+-   
+     update();
+ }
+ 
+@@ -1302,7 +1292,7 @@ QGraphicsItem* NsRouterDiagram::getArrowItem(std::string arrowName)
+ 
+ void NsRouterDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+-    NsRouterDiagramManager::manager(scene())->updateZValue(this);
++    mw->updateZValueOfListDiagrams(this);
+     if (wScene) {
+         for (auto item : wScene->selectedItems()) {
+             item->setSelected(false);
+@@ -1314,7 +1304,7 @@ void NsRouterDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ 
+ QVariant NsRouterDiagram::itemChange(GraphicsItemChange change, const QVariant& value)
+ {
+-    if (change == QGraphicsItem::ItemPositionChange && diagramLine) {
++    if ((change == QGraphicsItem::ItemPositionChange || change == QGraphicsItem::ItemPositionHasChanged) && diagramLine) {
+         diagramLine->moveLineToPosition(scenePos() + arrowPos);
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
+         diagramLine->setLineVisible(value.toBool());
+@@ -1637,6 +1627,7 @@ NsRegbusRing::NsRegbusRing(NetSpeed::Bridge * b, NetSpeed::Node_id regbus_ring_p
+     : QGraphicsPathItem(parent), bridge(b), regbus_ring_postion(regbus_ring_postion), guiBridge(parent)
+ {
+     setFlags(GraphicsItemFlag::ItemIsMovable | GraphicsItemFlag::ItemSendsScenePositionChanges | GraphicsItemFlag::ItemSendsGeometryChanges);
++    parentBridge = parent;
+     auto pItem = guiBridge->parentItem();
+     mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+     if (mesh) mesh->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+@@ -1645,6 +1636,7 @@ NsRegbusRing::NsRegbusRing(NetSpeed::Bridge * b, NetSpeed::Node_id regbus_ring_p
+     parent->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+     wScene = dynamic_cast<NsMeshViewScene*>(parent->scene());
+     if (wScene) wView = dynamic_cast<NsView*>(wScene->views().first());
++    if (wView) mw = wView->getMainWindow();
+     setAcceptHoverEvents(true);
+     setBrush(Qt::white);
+     initData();
+@@ -1654,7 +1646,7 @@ NsRegbusRing::NsRegbusRing(NetSpeed::Bridge * b, NetSpeed::Node_id regbus_ring_p
+             bool ok;
+             auto mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+             setParentItem(nullptr);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER + 4);
++            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             auto transform = mesh->itemTransform(this, &ok);
+             if (ok) setTransform(transform);
+             diagramLine = new NsBridgeDiagramLine(scenePos().toPoint() + arrowPos, this);
+@@ -1662,6 +1654,9 @@ NsRegbusRing::NsRegbusRing(NetSpeed::Bridge * b, NetSpeed::Node_id regbus_ring_p
+             pItem->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             diagramLine = new NsBridgeDiagramLine(arrowPos, this);
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            }
+         }
+     }
+ }
+@@ -1825,6 +1820,18 @@ void NsRegbusRing::initData() {
+ 
+ void NsRegbusRing::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
++    if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
++            mw->updateZValueOfListDiagrams(diagram->getMulBris());
++        }
++    } else {
++        mw->updateZValueOfListDiagrams(this);
++    }
++    if (wScene) {
++        for (auto& item : wScene->selectedItems()) {
++            item->setSelected(false);
++        }
++    }
+     event->accept();
+ }
+ 
+@@ -1849,6 +1856,9 @@ QVariant NsRegbusRing::itemChange(GraphicsItemChange change, const QVariant& val
+         }
+         diagramLine->moveLineToPosition(topLeft);
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
++        if (!value.toBool() && guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++            mw->removeDiagramItem(this);
++        }
+         diagramLine->setLineVisible(value.toBool());
+     }
+ 
+@@ -2544,6 +2554,7 @@ void NsLinkDiagramRectangle::mousePressEvent(QGraphicsSceneMouseEvent *event)
+ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):  QGraphicsPathItem(parent), bridge(bridge),guiBridge(parent)
+ {
+     setFlags(GraphicsItemFlag::ItemIsMovable | GraphicsItemFlag::ItemSendsScenePositionChanges | GraphicsItemFlag::ItemSendsGeometryChanges);
++    parentBridge = parent;
+     int layerID = static_cast<NsNormalBridge*>(parent)->getLayerID().as_int();
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+     for (QGraphicsItem* layer : meshScene->getLayers()) {
+@@ -2557,6 +2568,7 @@ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):
+     parent->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+     wScene = dynamic_cast<NsMeshViewScene*>(guiBridge->scene());
+     if (wScene) wView = dynamic_cast<NsView*>(wScene->views().first());
++    if (wView) mw = wView->getMainWindow();
+     setAcceptHoverEvents(true);
+     m_name = bridge->name();
+     m_layerId = layerID;
+@@ -2568,7 +2580,7 @@ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):
+             bool ok;
+             auto mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+             setParentItem(nullptr);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER + 4);
++            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             auto transform = mesh->itemTransform(this, &ok);
+             if (ok) setTransform(transform);
+             diagramLine = new NsBridgeDiagramLine(scenePos().toPoint() + arrowPos, this);
+@@ -2576,6 +2588,9 @@ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):
+             pItem->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             diagramLine = new NsBridgeDiagramLine(arrowPos, this);
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            }
+         }
+     }
+     
+@@ -2762,6 +2777,9 @@ QVariant NsRSSBDiagram::itemChange(GraphicsItemChange change, const QVariant& va
+         }
+         diagramLine->moveLineToPosition(topLeft);
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
++        if (!value.toBool() && guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++            mw->removeDiagramItem(this);
++        }
+         diagramLine->setLineVisible(value.toBool());
+     }
+ 
+@@ -3357,12 +3375,16 @@ NsRouterDiagramLine::NsRouterDiagramLine(QPoint startPoint_, QGraphicsItem* pare
+     pen.setWidth(1);
+     pen.setBrush(Qt::gray);
+     setPen(pen);
++    setFlags(QGraphicsItem::ItemStacksBehindParent);
+ }
+ 
+ void NsRouterDiagramLine::moveLineToPosition(QPointF newPos)
+ {
+-    QPointF newEndPos = QPointF(newPos.x(), newPos.y());
+-    setLine(startPoint.x(), startPoint.y(), newEndPos.x(), newEndPos.y());
++    auto diagram = dynamic_cast<QGraphicsPathItem*>(parentItem());
++    if (!diagram && !diagram->parentItem()) return;
++    QPointF mappedStartPoint = diagram->mapFromItem(diagram->parentItem(), startPoint);
++    QPointF newEndPos = diagram->mapFromItem(diagram->parentItem(), QPointF(newPos.x(), newPos.y()));
++    setLine(mappedStartPoint.x(), mappedStartPoint.y(), newEndPos.x(), newEndPos.y());
+ }
+ 
+ void NsRouterDiagramLine::setLineVisible(bool visible)
+@@ -3372,6 +3394,13 @@ void NsRouterDiagramLine::setLineVisible(bool visible)
+ 
+ void NsRSSBDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+ {
++    if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
++            mw->updateZValueOfListDiagrams(diagram->getMulBris());
++        }
++    } else {
++        mw->updateZValueOfListDiagrams(this);
++    }
+     if (wScene) {
+         for (auto item : wScene->selectedItems()) {
+             item->setSelected(false);
+@@ -3401,6 +3430,9 @@ void NsRSSBDiagram::advance(int phase)
+ NsDiagramCloseItem::NsDiagramCloseItem(const QRectF& bridgeRecBox, QGraphicsItem* parent)
+ : QGraphicsPathItem(parent)
+ {
++    wScene = dynamic_cast<NsMeshViewScene*>(parent->scene());
++    if (wScene) wView = dynamic_cast<NsView*>(wScene->views().first());
++    if (wView) mw = wView->getMainWindow();
+     m_brush = Qt::white;
+     setAcceptHoverEvents(true);
+     // create backgroundX path
+@@ -3457,9 +3489,9 @@ void NsDiagramCloseItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+     if (event->button() == Qt::LeftButton) {
+         QGraphicsItem* parent = this->parentItem();
+         if (parent) {
+-            vector<QGraphicsItem*> to_be_deleted;
+-            to_be_deleted.push_back(parent);
+-            qDeleteAll(to_be_deleted);
++            mw->removeDiagramItem(parent);
++            delete parent;
++            parent = nullptr;
+         }
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index 6872aa48424..3637ae61466 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -63,7 +63,7 @@ public:
+     void initData();
+     MainWindow* getMainWindow() { return mw; }
+     void clearMesh() { mesh = nullptr; }
+-
++    QGraphicsItem* parentBridge = nullptr;
+     std::string m_name;
+     int m_layerId;
+ 
+@@ -166,9 +166,8 @@ public:
+     QGraphicsItem* getGuiRouter() { return guiRouter; }
+     int getNodeId() const { return node_id; }
+     int getLayerId() const { return layer_id; }
+-    void createLine(int value);
++    void createLine();
+     void updateLineStartPoint();
+-    void updateLineZValue(int value);
+     void showFlowData(const NetSpeed::VC * vc, bool hasAnimation = true, bool hover = false);
+     void showFlowData(std::string arrowName, bool hasAnimation = true);
+     void hideFlowData(bool hover = false);
+@@ -279,32 +278,14 @@ protected:
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+ };
+ 
+-class NsRouterDiagramX : public QGraphicsPathItem
++class NsCloseSymbol : public QGraphicsPathItem
+ {
+ public:
+-    NsRouterDiagramX(NetSpeed::Router* router, const QPainterPath&, QGraphicsItem* parent = nullptr);
+-    int getNodeId() const { return node_id; }
+-    int getLayerId() const { return layer_id; }
++    NsCloseSymbol(const QPainterPath&, bool enableHover = true, QGraphicsItem* parent = nullptr);
+ 
+ private:
+-    int node_id = -1;
+-    int layer_id = -1;
+-
+-protected:
+-    friend class Test_NsBridgeDiagram;
+-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+-};
+-
+-class NsRouterDiagramXbg : public QGraphicsPathItem {
+-public:
+-    NsRouterDiagramXbg(NetSpeed::Router*, const QPainterPath&, QGraphicsItem* parent = nullptr);
+-    int getNodeId() const { return node_id; }
+-    int getLayerId() const { return layer_id; }
+-
+-private:
+-    int node_id = -1;
+-    int layer_id = -1;
+     QColor m_brush;
++    bool m_enableHover = true;
+ 
+ protected:
+     friend class Test_NsBridgeDiagram;
+@@ -332,6 +313,7 @@ public:
+     NsRegbusRing(NetSpeed::Bridge*,NetSpeed::Node_id regbus_ring_postion, QGraphicsItem* = nullptr);
+     ~NsRegbusRing();
+     void clearMesh() { mesh = nullptr; }
++    QGraphicsItem* parentBridge = nullptr;
+ 
+ private:
+     NsMesh* mesh = nullptr;
+@@ -449,6 +431,7 @@ public:
+     void clearMesh() { mesh = nullptr; }
+     std::string m_name;
+     int m_layerId;
++    QGraphicsItem* parentBridge = nullptr;
+     void showTooltip(std::string arrowName);
+ private:
+     /*Rssb Bridge*/
+@@ -464,6 +447,7 @@ private:
+     NetSpeed::Bridge *bridge = nullptr;
+     NsView* wView = nullptr;
+     NsMeshViewScene* wScene = nullptr;
++    MainWindow* mw = nullptr;
+     QGraphicsItem* guiBridge = nullptr;
+ 
+     NsMesh* mesh = nullptr;
+@@ -481,7 +465,7 @@ private:
+ 
+ protected:
+     friend class Test_NsBridgeDiagram;
+-    int type() const override { return ROUTER_DIAGRAM; }
++    int type() const override { return BRIDGE_DIAGRAM; }
+     void advance(int phase) override;
+     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
+@@ -496,16 +480,16 @@ public:
+     bool contains(QGraphicsItem* diagram) const { return m_diagrams.contains(static_cast<NsRouterDiagram*>(diagram)); }
+     NsRouterDiagram* createDiagramFromRouter(NsRouter *guiRouter);
+     QList<NsRouterDiagram*> diagrams() const { return m_diagrams; }
+-    void handleMouseEvent(QGraphicsSceneMouseEvent* event);
++    bool handleMouseEvent(QGraphicsSceneMouseEvent* event);
+     ~NsRouterDiagramManager();
+-    
+-public slots:
+-    void updateZValue(NsRouterDiagram* diagram);
+ 
+ private:
+     NsRouterDiagramManager(QObject* parent) : QObject(parent) {}
+     QList<NsRouterDiagram*> m_diagrams;
+     static NsRouterDiagramManager *m_manager;
++    NsView* wView = nullptr;
++    MainWindow* mw = nullptr;
++    NsMeshViewScene* wScene = nullptr;
+ };
+ 
+ class NsDiagramCloseItem : public QGraphicsPathItem
+@@ -517,6 +501,9 @@ public:
+ private:
+     QPainterPath m_xPath;
+     QColor m_brush;
++    MainWindow* mw = nullptr;
++    NsView* wView = nullptr;
++    NsMeshViewScene* wScene = nullptr;
+ 
+ protected:
+     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index c686e52d2b5..d82705b244f 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -2,6 +2,7 @@
+ #include "NsSocViewBridge.h"
+ #include "Gui/View/NsSocView.h"
+ #include "Gui/Item/NsPlusItem.h"
++#include "Gui/Item/NsBridgeDiagram.h"
+ #include "NsScene.h"
+ #include "NsChopview.h"
+ #include <QObject>
+@@ -22,7 +23,6 @@
+ #define NUM_BRIDGE_VISIBLE 12
+ #define SCROLLBAR_WIDTH 20
+ const auto marginPos = QPoint(BRIDGE_SIZE / 4, BRIDGE_SIZE / 4);
+-NsMultipleBridges* mulBrisLastFocus = nullptr;
+ 
+ NsMultipleBridges::NsMultipleBridges()
+ {
+@@ -127,6 +127,13 @@ void NsMultipleBridges::updatePosition(QPointF pos)
+ void NsMultipleBridges::visibleChanged(bool b)
+ {
+     setVisible(b);
++    if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
++        if (this->isVisible()) {
++            mw->appendListDiagrams(this);
++        } else {
++            mw->removeDiagramItem(this);
++        }
++    }
+ }
+ 
+ NsMultipleBridgesDiagram::NsMultipleBridgesDiagram(QString name, int width, int height, QGraphicsItem* mesh, NsMultipleBridges* _mulBris)
+@@ -141,48 +148,17 @@ NsMultipleBridgesDiagram::NsMultipleBridgesDiagram(QString name, int width, int
+ NsMultipleBridgesDiagram::~NsMultipleBridgesDiagram()
+ {
+     if (scrollBar) delete scrollBar;
+-    mulBrisLastFocus = nullptr;
+-}
+-
+-void NsMultipleBridgesDiagram::updateLineZValue(int value)
+-{
+-    diagramLine.get()->setZValue(value);
+-}
+-
+-void NsMultipleBridgesDiagram::focusInEvent(QFocusEvent* event)
+-{
+-    if (mulBris) {
+-        mulBris->setZValue(NsMeshViewScene::HIGHEST_ORDER + 4);
+-        auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(mulBris->childItems().first());
+-        if (diagram) {
+-            diagram->updateLineZValue(NsMeshViewScene::HIGHEST_ORDER + 3);
+-        }
+-        if (mulBrisLastFocus && mulBrisLastFocus != mulBris) {
+-            mulBrisLastFocus->setZValue(NsMeshViewScene::HIGHEST_ORDER + 2);
+-            auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(mulBrisLastFocus->childItems().first());
+-            if (diagram) {
+-                diagram->updateLineZValue(NsMeshViewScene::HIGHEST_ORDER + 1);
+-            }
+-            mulBrisLastFocus = mulBris;
+-        } else {
+-            mulBrisLastFocus = mulBris;
+-        }
+-    } else {
+-        mulBrisLastFocus = nullptr;
+-    }
+-    QGraphicsItem::focusInEvent(event);
+-}
+-
+-void NsMultipleBridgesDiagram::focusOutEvent(QFocusEvent* event)
+-{
+-    QGraphicsItem::focusOutEvent(event);
+ }
+ 
+ void NsMultipleBridgesDiagramScrollBar::mousePressEvent(QMouseEvent* event)
+ {
+     auto scrollBarWidget = graphicsProxyWidget();
+     if (scrollBarWidget && (scrollBarWidget->parentItem())) {
+-        scrollBarWidget->parentItem()->setFocus();
++        if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(scrollBarWidget->parentItem())) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            }
++        }
+     }
+     QScrollBar::mousePressEvent(event);
+ }
+@@ -191,7 +167,11 @@ void NsMultipleBridgesDiagramScrollBar::wheelEvent(QWheelEvent* event)
+ {
+     auto scrollBarWidget = graphicsProxyWidget();
+     if (scrollBarWidget && (scrollBarWidget->parentItem())) {
+-        scrollBarWidget->parentItem()->setFocus();
++        if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(scrollBarWidget->parentItem())) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            }
++        }
+     }
+     QScrollBar::wheelEvent(event);
+ }
+@@ -213,9 +193,7 @@ void NsMultipleBridgesDiagram::createScrollBar()
+ void NsMultipleBridgesDiagram::createLine()
+ {
+     auto startPos = scenePos() - marginPos;
+-    diagramLine = std::unique_ptr<NsMultiBridgeDiagramLine>{new NsMultiBridgeDiagramLine(startPos.toPoint())};
+-    if (scene()) scene()->addItem(diagramLine.get());
+-    diagramLine->setZValue(NsMeshViewScene::HIGHEST_ORDER);
++    diagramLine = new NsMultiBridgeDiagramLine(startPos.toPoint(), mulBris);
+ }
+ 
+ void NsMultipleBridgesDiagram::updateLineStartPoint()
+@@ -264,9 +242,18 @@ void NsMultipleBridgesDiagram::ensureBrVisible(QString brName)
+ 
+ QVariant NsMultipleBridgesDiagram::itemChange(GraphicsItemChange change, const QVariant& value)
+ {
+-    if (change == QGraphicsItem::ItemPositionChange && diagramLine) {
+-        auto topLeft = scenePos();
+-        diagramLine->moveLineToPosition(topLeft);
++    if ((change == QGraphicsItem::ItemPositionChange) && diagramLine) {
++        auto offset  = value.toPointF() - pos();
++        if (!childItems().isEmpty()) {
++            for (auto& item : childItems()) {
++                for (auto& it : item->childItems()) {
++                    if (NetSpeed::is_member(it->type(), {BRIDGE_DIAGRAM, RING_VISUALIZATION})) {
++                        it->setPos(it->pos() - offset);
++                    }
++                }
++            }
++        }
++        diagramLine->moveLineToPosition(scenePos());
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
+         diagramLine->setLineVisible(value.toBool());
+     }
+@@ -299,11 +286,15 @@ void NsMultipleBridgesDiagram::paint(QPainter * painter, const QStyleOptionGraph
+ 
+ void NsMultipleBridgesDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+ {
+-    auto meshScene = static_cast<NsMeshViewScene*>(scene());
+-    if (meshScene) {
+-        for (auto item : meshScene->selectedItems()) {
++    if (auto meshScene = dynamic_cast<NsMeshViewScene*>(scene())) {
++        for (auto& item : meshScene->selectedItems()) {
+             item->setSelected(false);
+         }
++        if (auto view = dynamic_cast<NsView*>(meshScene->views().first())) {
++            if (auto mw = view->getMainWindow()) {
++                mw->updateZValueOfListDiagrams(mulBris);
++            }
++        }
+     }
+     event->accept();
+ }
+@@ -311,18 +302,22 @@ void NsMultipleBridgesDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+ NsMultiBridgeDiagramLine::NsMultiBridgeDiagramLine(QPoint startPoint_, QGraphicsItem* parent)
+ : QGraphicsLineItem(parent)
+ {
+-    startPoint = startPoint_;
+     QPen pen;
+     pen.setStyle(Qt::DashLine);
+     pen.setWidth(1);
+     pen.setBrush(Qt::gray);
+     setPen(pen);
++    setFlags(QGraphicsItem::ItemStacksBehindParent);
++    startPoint = startPoint_;
+ }
+ 
+ void NsMultiBridgeDiagramLine::moveLineToPosition(QPointF newPos)
+ {
+-    QPointF newEndPos = QPointF(newPos.x(), newPos.y());
+-    setLine(startPoint.x(), startPoint.y(), newEndPos.x(), newEndPos.y());
++    auto diagram = dynamic_cast<QGraphicsItemGroup*>(parentItem());
++    if ((!diagram) && (!diagram->parentItem())) return;
++    QPointF mappedStartPoint = diagram->mapFromItem(diagram->parentItem(), startPoint);
++    QPointF newEndPos = diagram->mapFromItem(diagram->parentItem(), QPointF(newPos.x(), newPos.y()));
++    setLine(mappedStartPoint.x(), mappedStartPoint.y(), newEndPos.x(), newEndPos.y());
+ }
+ 
+ void NsMultiBridgeDiagramLine::setLineVisible(bool visible)
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+index 71252e10324..5982592606a 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+@@ -84,11 +84,11 @@ public:
+     }
+     void createLine();
+     void updateLineStartPoint();
+-    void updateLineZValue(int value);
+     void createScrollBar();
+     void showBridges(int startIndex = 0);
+     void ensureBrVisible(QString brName);
+     QGraphicsItem* getMesh() { return mesh; };
++    NsMultipleBridges* getMulBris() { return mulBris; }
+     QList<QGraphicsRectItem*> bridgeList;
+     QList<NsBridgeLabel*> bridgeNameList;
+ 
+@@ -108,14 +108,12 @@ protected:
+ 
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+-    void focusInEvent(QFocusEvent* event) override;
+-    void focusOutEvent(QFocusEvent* event) override;
+ 
+ private:
+     friend class Test_NsMultipleBridges;
+     QString name;
+     QGraphicsItem *mesh = nullptr;
+-    std::unique_ptr<NsMultiBridgeDiagramLine> diagramLine = nullptr;
++    NsMultiBridgeDiagramLine* diagramLine = nullptr;
+     NsMultipleBridgesDiagramScrollBar* scrollBar = nullptr;
+     QGraphicsProxyWidget* scrollBarWidget = nullptr;
+     NsMultipleBridges* mulBris = nullptr;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+index 3c8de8edc12..4e5e89fa14d 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+@@ -130,9 +130,15 @@ void NsPlusItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         && !isAddBridgeNoc(meshScene->getInsType()))
+     {
+         /* Only create multibridges when click on plus item */
+-        if (mulBris) {
++        if (isChecked() && mulBris) {
++            toggleChecked();
++            update();
++            emit triggered(isChecked());
++            disconnect(this, SIGNAL(triggered(bool)), mulBris, SLOT(visibleChanged(bool)));
++            disconnect(this, SIGNAL(plusPositionChange(QPointF)), mulBris, SLOT(updatePosition(QPointF)));
+             mulBris->deleteLater();
+             mulBris = nullptr;
++            return;
+         }
+ 
+         /* Create Multiple Bridges Diagram */
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+index 948a880896d..a5db955005d 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+@@ -120,34 +120,42 @@ void NsRegbusBridge::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
+ */
+ void NsRegbusBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ {
+-    auto meshScene = static_cast<NsMeshViewScene*>(scene());
++    auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
++    if (!meshScene) return;
+     meshScene->clearSelection();
+-    if (event->button() == Qt::LeftButton && !isAddBridgeNoc(meshScene->getInsType()) &&
+-        !isAddAgentMeshView(meshScene->getInsType())) {
++    auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
++    if (!mw) return;
++    if ((event->button() == Qt::LeftButton) && (!isAddBridgeNoc(meshScene->getInsType())) &&
++        (!isAddAgentMeshView(meshScene->getInsType()))) {
+         // show property, tooltip panel
+-        auto mw = static_cast<MainWindow*>(QApplication::activeWindow());
+         auto proPanel = mw->getPropertyPanel();
+         proPanel->updateBridgeProperties(bridge, true);
+         proPanel->raiseSelectionTab();
+         mw->raiseTooltipTab();
+         clearExpanded();
+         setAnchorPoint(this->pos());
+-    }
+-    else if (event->button() == Qt::RightButton) {
++    } else if (event->button() == Qt::RightButton) {
+         auto g = bridge->get_grid();
+         auto& rbRings = g->get_regbus_rings();
+         NetSpeed::Node_id regbus_ring_position;
+         regbus_ring_position = bridge->get_pos_router();
+         auto it = rbRings[regbus_ring_position];
++        for (const auto& diagram : mw->getListDiagrams()) {
++            if (diagram->type() == RING_VISUALIZATION) {
++                auto regbusDiagram = dynamic_cast<NsRegbusRing*>(diagram);
++                if (regbusDiagram->parentBridge == this) {
++                    return;
++                }
++            }
++        }
+ 
+-        std::vector<QGraphicsItem*> to_be_deleted;
+-        for (auto const& item : childItems())
+-            if (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, RING_VISUALIZATION, ROUTER_DIAGRAM}))
+-                to_be_deleted.push_back(item);
+-        qDeleteAll(to_be_deleted);
+-
+-        if (!it.empty())  new NsRegbusRing(bridge, regbus_ring_position, this);
+-        else if(bridge->has_external_switch()) new NsRSSBDiagram(bridge, this);
++        QGraphicsItem* diagram = nullptr;
++        if (!it.empty()) {
++            diagram = new NsRegbusRing(bridge, regbus_ring_position, this);
++        } else if (bridge->has_external_switch()) {
++            diagram = new NsRSSBDiagram(bridge, this);
++        }
++        mw->appendListDiagrams(diagram);
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 69572616500..6068d429b14 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -295,8 +295,9 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+     else {
+         auto wA = meshScene->getNsWorkArea();
+         if (!wA) return;
++        auto mw = wA->getMainWindow();
++        if (!mw) return;
+         if (!isAddBridgeNoc(meshScene->getInsType()) && !isAddAgentMeshView(meshScene->getInsType())) {
+-            auto mw = wA->getMainWindow();
+             auto proPanel = mw->getPropertyPanel();
+             proPanel->updateRouterProperties(router, true);
+             proPanel->raiseSelectionTab();
+@@ -308,7 +309,10 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             if (!grid->is_active_router(router->get_layer(),
+                 router->get_id())) return;
+             //bool hasMeshSplit = false;
+-            NsRouterDiagramManager::manager(scene())->createDiagramFromRouter(this);
++            auto diagram = NsRouterDiagramManager::manager(scene())->createDiagramFromRouter(this);
++            if (diagram) {
++                mw->appendListDiagrams(diagram);
++            }
+         }
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 844ab457189..e256d01fa8a 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -850,22 +850,35 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+     emit sigFocusChanged();
+ 
+     // Clear multiple router diagrams
+-    NsRouterDiagramManager::manager(this)->handleMouseEvent(event);
++    auto closeItemClicked = NsRouterDiagramManager::manager(this)->handleMouseEvent(event);
+ 
+     /* Clear Router/Bridge diagram */
+     QList<QGraphicsItem*> itemList = items(event->scenePos());
+-    auto is_diagram = [](auto i) { return i->type() == BRIDGE_DIAGRAM
+-        || i->type() == ROUTER_DIAGRAM
+-        || i->type() == RING_VISUALIZATION
+-        || i->type() == LINK_DIAGRAM
+-        || i->type() == STORAGE_DIAGRAM;};
+-    vector<QGraphicsItem*>to_be_deleted;
+-    for (auto& item : items()) {
+-        if (is_diagram(item) && !NetSpeed::is_member(itemList.toStdList(), item) &&
+-            !NsRouterDiagramManager::manager(this)->contains(item))
+-            to_be_deleted.push_back(item);
++
++    auto is_diagram = [](QGraphicsItem* item) -> bool {
++        return (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION,
++                                                   LINK_DIAGRAM, STORAGE_DIAGRAM}));
++    };
++
++    auto is_component = [&]() -> bool {
++        for (const auto& it : itemList) {
++            if (is_diagram(it) || (NetSpeed::is_member(it->type(), {HOST, BRIDGE, ROUTER, MULTIPLE_BRIDGE, REGBUS_BRIDGE}))) {
++                return true;
++            }
++        }
++        return false;
++    };
++
++    if ((!is_component()) && (!closeItemClicked)) {
++        vector<QGraphicsItem*> to_be_deleted;
++        for (auto& item : items()) {
++            if (is_diagram(item)) {
++                to_be_deleted.push_back(item);
++                mw->removeDiagramItem(item);
++            }
++        }
++        qDeleteAll(to_be_deleted);
+     }
+-    qDeleteAll(to_be_deleted);
+ 
+     // storage layer id
+     auto mesh = getFirst<NsMesh>(items(event->scenePos()), MESH);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index 1c7af877a3e..7632143045b 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -761,6 +761,9 @@ void NsMeshViewScene::load() {
+     if (nsWorkArea) {
+         nsWorkArea->clearMovedItems();
+     }
++    if (!mw->getListDiagrams().isEmpty()) {
++        mw->clearListDiagrams();
++    }
+     NetSpeed::Grid* grid = console->get_container().get_grid();
+     if (!grid) return;
+     unordered_map<bpos, std::vector<Bridge*>, bpos_hash> brs_by_pos;
+@@ -852,9 +855,11 @@ void NsMeshViewScene::load() {
+                     if ((nsNormalBridge->getBridge()->name() == nameDiagram) &&
+                         (nsNormalBridge->getLayerID().as_int() == layerIdDiagram)) {
+                         if (nsRSSBDiagram) {
+-                            new NsRSSBDiagram(nsNormalBridge->getBridge(), nsNormalBridge);
++                            auto diagram = new NsRSSBDiagram(nsNormalBridge->getBridge(), nsNormalBridge);
++                            mw->appendListDiagrams(diagram);
+                         } else if (nsBridgeDiagram) {
+-                            new NsBridgeDiagram(nsNormalBridge->getBridge(), nsNormalBridge);
++                            auto diagram = new NsBridgeDiagram(nsNormalBridge->getBridge(), nsNormalBridge);
++                            mw->appendListDiagrams(diagram);
+                         }
+                     }
+                 }
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 535c7497d5c..a60c54fe31d 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -9217,6 +9217,38 @@ void MainWindow::updateRTLDialog()
+     }
+ }
+ 
++void MainWindow::clearListDiagrams()
++{
++    if (listDiagrams.isEmpty()) return;
++    listDiagrams.clear();
++}
++
++void MainWindow::updateZValueOfListDiagrams(QGraphicsItem* diagram)
++{
++    if (listDiagrams.isEmpty()) return;
++    int itemIndex  = listDiagrams.indexOf(diagram);
++    if (itemIndex == -1) return;
++    // Move diagram to end of list
++    listDiagrams.move(itemIndex, listDiagrams.count() - 1);
++    int z_priority = NsMeshViewScene::HIGHEST_ORDER;
++    for (auto& diagram : listDiagrams) {
++        diagram->setZValue(++z_priority);
++    }
++}
++
++void MainWindow::appendListDiagrams(QGraphicsItem* item)
++{
++    listDiagrams.append(item);
++    updateZValueOfListDiagrams(item);
++}
++
++void MainWindow::removeDiagramItem(QGraphicsItem* item)
++{
++    int index = listDiagrams.indexOf(item);
++    if (index < 0) return;
++    listDiagrams.removeAt(index);
++}
++
+ void MainWindow::createUserNoteDock()
+ {
+     sttNote = new QPlainTextEdit;
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index f9224dc7922..c650b95ac21 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -276,6 +276,12 @@ public:
+     QTabWidget* getDisplayPanel() { return displayPanel; }
+     InstrumentsEnum getInstrumentsEnum(QAction* currentAction) { return instrumentsActMap.key(currentAction); }
+ 
++    QList<QGraphicsItem*> getListDiagrams() { return listDiagrams; }
++    void appendListDiagrams(QGraphicsItem* item);
++    void removeDiagramItem(QGraphicsItem* item);
++    void clearListDiagrams();
++    void updateZValueOfListDiagrams(QGraphicsItem* diagram);
++
+     QStatusBar* getStatusBar() { return sttBar; }
+     void setResizeTimer(int val) { resizeTimer.start(val); }
+     bool setCentralPanelSize();
+@@ -684,6 +690,7 @@ private:
+     NsMenuBar* menuBar;
+     QLabel* ECOIndicator, * currentPowerProfile, * currentView;
+     QList<QDialog*> tooltipDialogs;
++    QList<QGraphicsItem*> listDiagrams;
+     int tooltipListCosts, tooltipListHosts, tooltipListTraffic, tooltipShowPerformance, tooltipDynamic, tooltipType;
+     int tabListHosts, tabListTraffic, tabShowPerformance, tabListCosts, tabListRoute,
+         tabListRTLGroup, tabShowDensity, tabReport, tabType;

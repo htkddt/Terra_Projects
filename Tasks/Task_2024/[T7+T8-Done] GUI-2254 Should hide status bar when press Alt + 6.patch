@@ -1,0 +1,17 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 79beed4afb8..bf43576c2ba 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -997,7 +997,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
+     if (!propPanel) return;
+     if (state && !mw->isViewValidForAddAction(dynamic_cast<QAction*>(action))) return;
+     deleteAllCustomizeItems(); //Reset instrument
+-    clearPortDrawingItems();   
++    clearPortDrawingItems();
++    mw->clearSttBar();
+     auto type = InstrumentsEnum(action->property(TITLE_TYPE).toInt());
+     if ((!state) && (type != ADD_ROUTER_CONN)) return;
+     setInstrumentType(type);

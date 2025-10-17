@@ -1,0 +1,334 @@
+ src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h     |   3 +
+ src/sw/noc_dev/GUICore_qt6/dockresource.qrc        |   1 +
+ src/sw/noc_dev/GUICore_qt6/global.h                |   1 +
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 140 +++++++++++++++++++--
+ 4 files changed, 136 insertions(+), 9 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h b/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h
+index 08a931cf25b..1985f692928 100644
+--- a/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h
++++ b/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h
+@@ -29,6 +29,7 @@
+ #include <QObject>
+ #include <QPointer>
+ #include <QWidget>
++#include <QLabel>
+ #include <QPainter>
+ #include <QPaintEvent>
+ #include <QMouseEvent>
+@@ -1881,6 +1882,7 @@ public:
+     QCPItemText* labelTime;
+     QCPItemText* labelLatency;
+     QCPItemText* labelThroughput;
++    QLabel* magnifyingFrame;
+ 
+ signals:
+     void mouseDoubleClick(QMouseEvent* event);
+@@ -1910,6 +1912,7 @@ public slots:
+     void zoomIn();
+     void zoomOut();
+     void zoomFull();
++    void magnifyingMode(bool toggle) { magnifyingFrame->setVisible(toggle); }
+ 
+ protected:
+     // property members:
+diff --git a/src/sw/noc_dev/GUICore_qt6/dockresource.qrc b/src/sw/noc_dev/GUICore_qt6/dockresource.qrc
+index c476b925409..f95c8a49ebf 100644
+--- a/src/sw/noc_dev/GUICore_qt6/dockresource.qrc
++++ b/src/sw/noc_dev/GUICore_qt6/dockresource.qrc
+@@ -258,6 +258,7 @@
+         <file>images/icons/float_all.png</file>
+         <file>images/icons/rename.png</file>
+ 		<file>images/icons/clear.png</file>
++		<file>images/icons/magnifying.png</file>
+ 		<file>../noc_help_images/color_help.png</file>
+ 		<file>../noc_help_images/set_pmf.png</file>
+ 		<file>../noc_help_images/mod3_hash.png</file>
+diff --git a/src/sw/noc_dev/GUICore_qt6/global.h b/src/sw/noc_dev/GUICore_qt6/global.h
+index 7afff996372..8ac73742b17 100644
+--- a/src/sw/noc_dev/GUICore_qt6/global.h
++++ b/src/sw/noc_dev/GUICore_qt6/global.h
+@@ -926,6 +926,7 @@ const QString ICON_ZOOM_100                           = ":/images/icons/zoom_100
+ const QString ICON_ZOOM_SELECT                        = ":/images/icons/zoom_select.png";
+ const QString ICON_ZOOM_IN                            = ":/images/icons/zoom_in.png";
+ const QString ICON_ZOOM_OUT                           = ":/images/icons/zoom_out.png";
++const QString ICON_MAGNIFYING                         = ":/images/icons/magnifying.png";
+ const QString ICON_LINKS_BLOCKED                      = "://images/icons/links_blocked.png";
+ const QString ICON_LINKS_UNBLOCKED                    = "://images/icons/links_unblocked.png";
+ const QString ICON_SHORTCUT                           = "://images/icons/shortcut.png";
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index f7668464928..e2250a5b61f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -37,6 +37,7 @@
+ #include "Switch.h"
+ #include "Property.h"
+ #include "Grid.h"
++#include "global.h"
+ 
+ #include "myconsole.h"
+ #include <QTableWidget>
+@@ -3042,6 +3043,13 @@ QWidget* PropertyPanel::createStatTabLayout(QSharedPointer<StatTab> statTab, QMa
+         customPlot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
+             g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
+             g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
++
++        customPlot->magnifyingFrame = new QLabel(customPlot);
++        customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
++        customPlot->magnifyingFrame->setStyleSheet("QLabel {"
++                                                   "border: 1px solid gray;"
++                                                   "}");
++        customPlot->magnifyingFrame->setVisible(false);
+         // Add to main layout
+         graphsSplitter->addWidget(plotSplitter);
+         updateNormalPlot(statTab, g, customPlot, reopenLiveTab);
+@@ -3061,12 +3069,21 @@ QWidget* PropertyPanel::createStatTabLayout(QSharedPointer<StatTab> statTab, QMa
+         connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showComparePointToolTip(QMouseEvent*)));
+         connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(handleMousePress(QMouseEvent*)));
+         connect(customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(handleMouseRelease(QMouseEvent*)));
++        connect(customPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
++                this, SLOT(handleLegendClicked(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+         customPlot->setToolTip(wrapTextForTooltip(name, plotTooltipWrap));
+         namePlotMap->insert(name, customPlot);
+         initComparisonPlot(name, customPlot, it.second);
+         // Create widget which include buttons and plot
+         auto plotSplitter = createComparisonPlotWidget(customPlot, cl);
+         customPlot->initVerticalLine();
++
++        customPlot->magnifyingFrame = new QLabel(customPlot);
++        customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
++        customPlot->magnifyingFrame->setStyleSheet("QLabel {"
++                                                   "border: 1px solid gray;"
++                                                   "}");
++        customPlot->magnifyingFrame->setVisible(false);
+         // Add to main layout
+         graphsSplitter->addWidget(plotSplitter);
+         updateComparisonPlot(statTab, p, name, customPlot);
+@@ -3263,10 +3280,35 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                 customPlot->setToolTip(msg);
+             }
+             updateVerticalLine(customPlot, time, value, maxValueAxis);
+-            customPlot->replot();
+         } else {
+             customPlot->setToolTip("Click or 'Ctrl + Click' to highlight charts.");
+         }
++
++        if (customPlot->magnifyingFrame->isVisible()) {
++            /* Get points inside the zoom area */
++            double xMousePos = customPlot->graph(0)->keyAxis()->pixelToCoord(event->localPos().x());
++            double yMousePos = customPlot->graph(0)->valueAxis()->pixelToCoord(event->localPos().y());
++            double offsetX   = customPlot->graph(0)->keyAxis()->tickStep() / 2;     // customPlot->graph(0)->keyAxis()->tickStep() = 1500
++            double offsetY   = customPlot->graph(0)->valueAxis()->tickStep() * 2;   // customPlot->graph(0)->valueAxis()->tickStep() = 80
++            QPoint topLeft(customPlot->graph(0)->keyAxis()->coordToPixel(xMousePos - offsetX),
++                           customPlot->graph(0)->valueAxis()->coordToPixel(yMousePos + offsetY));
++            QPoint bottomRight(customPlot->graph(0)->keyAxis()->coordToPixel(xMousePos + offsetX),
++                               customPlot->graph(0)->valueAxis()->coordToPixel(yMousePos - offsetY));
++            QRect pixelRect(topLeft, bottomRight);
++
++            /* Magnification processing */
++            float scaleFactor = 3.0;
++            QPixmap pixelScreen = customPlot->toPixmap();
++            QPixmap pixelZoom = pixelScreen.copy(pixelRect.normalized());
++            QPixmap pixelScaled = pixelZoom.scaled(pixelRect.width() * (scaleFactor / 2), pixelRect.height() * scaleFactor,
++                                                   Qt::KeepAspectRatio, Qt::SmoothTransformation);
++            customPlot->magnifyingFrame->setPixmap(pixelScaled);
++            if (customPlot->magnifyingFrame->size() != pixelScaled.size()) customPlot->magnifyingFrame->resize(pixelScaled.size());
++            QRect labelRect(QPoint(0, 0), pixelScaled.size());
++            labelRect.moveCenter(event->pos());
++            customPlot->magnifyingFrame->move(labelRect.topLeft());
++        }
++        customPlot->replot();
+     }
+ }
+ 
+@@ -3532,7 +3574,6 @@ void PropertyPanel::showPointToolTip(QMouseEvent * event)
+         if (hasMessage) //Display the exact value
+         {
+             customPlot->setToolTip(msg);
+-            updateVerticalLine(customPlot, time, value, maxValueAxis, latencyValue, throughputValue);
+         }
+         else if (outside && outsidecnt >= 3) //Display the graph title
+         {
+@@ -3540,13 +3581,38 @@ void PropertyPanel::showPointToolTip(QMouseEvent * event)
+         }
+         else //Display stat table (avg,max,min)
+         {
+-            updateVerticalLine(customPlot, time, value, maxValueAxis, latencyValue, throughputValue);
+             if (!eg.showLegend) {
+                 eg.get_graphs_points(statTab);
+                 QString html = createTableStat(eg);
+                 customPlot->setToolTip(html);
+             }
+         }
++        updateVerticalLine(customPlot, time, value, maxValueAxis, latencyValue, throughputValue);
++
++        if (customPlot->magnifyingFrame->isVisible()) {
++            /* Get points inside the zoom area */
++            double xMousePos = customPlot->graph(0)->keyAxis()->pixelToCoord(event->localPos().x());
++            double yMousePos = customPlot->graph(0)->valueAxis()->pixelToCoord(event->localPos().y());
++            double offsetX   = customPlot->graph(0)->keyAxis()->tickStep() / 2;     // customPlot->graph(0)->keyAxis()->tickStep() = 1500
++            double offsetY   = customPlot->graph(0)->valueAxis()->tickStep() * 2;   // customPlot->graph(0)->valueAxis()->tickStep() = 80
++            QPoint topLeft(customPlot->graph(0)->keyAxis()->coordToPixel(xMousePos - offsetX),
++                           customPlot->graph(0)->valueAxis()->coordToPixel(yMousePos + offsetY));
++            QPoint bottomRight(customPlot->graph(0)->keyAxis()->coordToPixel(xMousePos + offsetX),
++                               customPlot->graph(0)->valueAxis()->coordToPixel(yMousePos - offsetY));
++            QRect pixelRect(topLeft, bottomRight);
++
++            /* Magnification processing */
++            float scaleFactor = 3.0;
++            QPixmap pixelScreen = customPlot->toPixmap();
++            QPixmap pixelZoom = pixelScreen.copy(pixelRect.normalized());
++            QPixmap pixelScaled = pixelZoom.scaled(pixelRect.width() * (scaleFactor / 2), pixelRect.height() * scaleFactor,
++                                                   Qt::KeepAspectRatio, Qt::SmoothTransformation);
++            customPlot->magnifyingFrame->setPixmap(pixelScaled);
++            if (customPlot->magnifyingFrame->size() != pixelScaled.size()) customPlot->magnifyingFrame->resize(pixelScaled.size());
++            QRect labelRect(QPoint(0, 0), pixelScaled.size());
++            labelRect.moveCenter(event->pos());
++            customPlot->magnifyingFrame->move(labelRect.topLeft());
++        }
+         customPlot->replot();
+     }
+ }
+@@ -3596,6 +3662,13 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+ 
+             // Create widget which include buttons and plot
+             auto* plotSplitter = createButtonPlotWidget(customPlot, gl, name, statTab);
++
++            customPlot->magnifyingFrame = new QLabel(customPlot);
++            customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
++            customPlot->magnifyingFrame->setStyleSheet("QLabel {"
++                                                       "border: 1px solid gray;"
++                                                       "}");
++            customPlot->magnifyingFrame->setVisible(false);
+             splitter->layout()->addWidget(plotSplitter);
+ 
+             init = true;
+@@ -3658,6 +3731,13 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+                     this, SLOT(handleLegendClicked(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+             // Create widget which include buttons and plot
+             auto plotSplitter = createComparisonPlotWidget(customPlot, cl, "", statTab);
++
++            customPlot->magnifyingFrame = new QLabel(customPlot);
++            customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
++            customPlot->magnifyingFrame->setStyleSheet("QLabel {"
++                                                       "border: 1px solid gray;"
++                                                       "}");
++            customPlot->magnifyingFrame->setVisible(false);
+             // Add to bottom of main layout
+             splitter->layout()->addWidget(plotSplitter);
+             customPlot->setToolTip(wrapTextForTooltip(QString::fromStdString(p.name), plotTooltipWrap));
+@@ -3824,15 +3904,29 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     // zoom buttons
+     QWidget* zoomButtonWidget = new QWidget;
+     QHBoxLayout* zoomButtonlayout = new QHBoxLayout;
+-    QPushButton* zoomInGraph = new QPushButton("+");
+-    QPushButton* zoomOutGraph = new QPushButton("-");
+-    QPushButton* zoomFullGraph = new QPushButton("F");
++    QPushButton* zoomInGraph = new QPushButton;
++    zoomInGraph->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    zoomInGraph->setIcon(QIcon(ICON_ZOOM_IN));
++    QPushButton* zoomOutGraph = new QPushButton;
++    zoomOutGraph->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    zoomOutGraph->setIcon(QIcon(ICON_ZOOM_OUT));
++    QPushButton* zoomFullGraph = new QPushButton;
++    zoomFullGraph->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    zoomFullGraph->setIcon(QIcon(ICON_ZOOM_100));
++    QPushButton* magnifyingButton = new QPushButton;
++    magnifyingButton->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    magnifyingButton->setIcon(QIcon(ICON_MAGNIFYING));
++
+     zoomInGraph->setMaximumSize(maxBttSize);
+     zoomInGraph->setToolTip("Zoom in");
+     zoomOutGraph->setMaximumSize(maxBttSize);
+     zoomOutGraph->setToolTip("Zoom out");
+     zoomFullGraph->setMaximumSize(maxBttSize);
+     zoomFullGraph->setToolTip("Zoom full");
++    magnifyingButton->setMaximumSize(maxBttSize);
++    magnifyingButton->setToolTip("Magnifying mode");
++    magnifyingButton->setCheckable(true);
++    magnifyingButton->setChecked(false);
+ 
+     INICheckBox* applyToAll = new INICheckBox("Apply To All", QString::fromStdString(gl), fullName);
+     if (eg.applyToAll) applyToAll->setCheckState(Qt::Checked);
+@@ -3870,6 +3964,8 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     zoomOutGraph->setDefault(false);
+     zoomFullGraph->setAutoDefault(false);
+     zoomFullGraph->setDefault(false);
++    magnifyingButton->setAutoDefault(false);
++    magnifyingButton->setDefault(false);
+     ShowLatBtn->setAutoDefault(false);
+     ShowLatBtn->setDefault(false);
+     ShowAllLatBtn->setAutoDefault(false);
+@@ -3913,6 +4009,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     zoomButtonlayout->addWidget(zoomInGraph);
+     zoomButtonlayout->addWidget(zoomOutGraph);
+     zoomButtonlayout->addWidget(zoomFullGraph);
++    zoomButtonlayout->addWidget(magnifyingButton);
+     zoomButtonlayout->addWidget(applyToAll);
+     zoomButtonlayout->setSizeConstraint(QLayout::SetMaximumSize);
+ 
+@@ -3931,6 +4028,11 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     connect(zoomInGraph, SIGNAL(clicked()), customPlot, SLOT(zoomIn()));
+     connect(zoomOutGraph, SIGNAL(clicked()), customPlot, SLOT(zoomOut()));
+     connect(zoomFullGraph, SIGNAL(clicked()), customPlot, SLOT(zoomFull()));
++    connect(magnifyingButton, SIGNAL(clicked(bool)), customPlot, SLOT(magnifyingMode(bool)));
++    connect(magnifyingButton, &QPushButton::toggled, [=](bool check) {
++        if (check) magnifyingButton->setStyleSheet("QPushButton {background: lightblue;border: 0px;}");
++        else magnifyingButton->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    });
+     connect(UpBtn, SIGNAL(clicked()), this, SLOT(movePlotUp()));
+     connect(DwBtn, SIGNAL(clicked()), this, SLOT(movePlotDown()));
+     connect(ShowLatBtn, SIGNAL(clicked()), this, SLOT(showLatencyButtonSlot()));
+@@ -3957,15 +4059,29 @@ GraphSplitter* PropertyPanel::createComparisonPlotWidget(QCustomPlot * customPlo
+     // zoom buttons
+     QWidget* zoomButtonWidget = new QWidget;
+     QHBoxLayout* zoomButtonlayout = new QHBoxLayout;
+-    QPushButton* zoomInGraph = new QPushButton("+");
+-    QPushButton* zoomOutGraph = new QPushButton("-");
+-    QPushButton* zoomFullGraph = new QPushButton("F");
++    QPushButton* zoomInGraph = new QPushButton;
++    zoomInGraph->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    zoomInGraph->setIcon(QIcon(ICON_ZOOM_IN));
++    QPushButton* zoomOutGraph = new QPushButton;
++    zoomOutGraph->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    zoomOutGraph->setIcon(QIcon(ICON_ZOOM_OUT));
++    QPushButton* zoomFullGraph = new QPushButton;
++    zoomFullGraph->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    zoomFullGraph->setIcon(QIcon(ICON_ZOOM_100));
++    QPushButton* magnifyingButton = new QPushButton;
++    magnifyingButton->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    magnifyingButton->setIcon(QIcon(ICON_MAGNIFYING));
++
+     zoomInGraph->setMaximumSize(maxBttSize);
+     zoomInGraph->setToolTip("Zoom in");
+     zoomOutGraph->setMaximumSize(maxBttSize);
+     zoomOutGraph->setToolTip("Zoom out");
+     zoomFullGraph->setMaximumSize(maxBttSize);
+     zoomFullGraph->setToolTip("Zoom full");
++    magnifyingButton->setMaximumSize(maxBttSize);
++    magnifyingButton->setToolTip("Magnifying mode");
++    magnifyingButton->setCheckable(true);
++    magnifyingButton->setChecked(false);
+ 
+     INICheckBox* applyToAll = new INICheckBox("Apply To All", QString::fromStdString(gl), fullName);
+     if (plot->applyToAll) applyToAll->setCheckState(Qt::Checked);
+@@ -4022,6 +4138,7 @@ GraphSplitter* PropertyPanel::createComparisonPlotWidget(QCustomPlot * customPlo
+     zoomButtonlayout->addWidget(zoomInGraph);
+     zoomButtonlayout->addWidget(zoomOutGraph);
+     zoomButtonlayout->addWidget(zoomFullGraph);
++    zoomButtonlayout->addWidget(magnifyingButton);
+     zoomButtonlayout->addWidget(applyToAll);
+     zoomButtonlayout->setSizeConstraint(QLayout::SetMaximumSize);
+ 
+@@ -4037,6 +4154,11 @@ GraphSplitter* PropertyPanel::createComparisonPlotWidget(QCustomPlot * customPlo
+     connect(zoomInGraph, SIGNAL(clicked()), customPlot, SLOT(zoomIn()));
+     connect(zoomOutGraph, SIGNAL(clicked()), customPlot, SLOT(zoomOut()));
+     connect(zoomFullGraph, SIGNAL(clicked()), customPlot, SLOT(zoomFull()));
++    connect(magnifyingButton, SIGNAL(clicked(bool)), customPlot, SLOT(magnifyingMode(bool)));
++    connect(magnifyingButton, &QPushButton::toggled, [=](bool check) {
++        if (check) magnifyingButton->setStyleSheet("QPushButton {background: lightblue;border: 0px;}");
++        else magnifyingButton->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    });
+     connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(wheelOnCustomPlot(QWheelEvent*)));
+ 
+     GraphSplitter* splitter = new GraphSplitter(mw->displayPanel, customPlot, zoomButtonWidget);

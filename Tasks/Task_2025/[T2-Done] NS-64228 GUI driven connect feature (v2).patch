@@ -1,0 +1,26 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 81f1150962b..56d217ef5cf 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -2020,8 +2020,7 @@ void NsRouterSetConnection::mousePressEvent(QGraphicsSceneMouseEvent * event)
+                     /* Create 4 ports of this router */
+                     QString router_name = "R" + QString::number(mesh->getLayerID()) + QString(".") +
+                                           QString::number(nodeId.as_int());
+-                    auto vBRect =
+-                        QRectF(scenePos + nsPortIDToPoint(&portId), QSizeF(BRIDGE_SIZE, BRIDGE_SIZE));
++                    auto vBRect = QRectF(scenePos + nsPortIDToPoint(&portId), QSizeF(BRIDGE_SIZE, BRIDGE_SIZE));
+                     auto portDrawing = new NsPortDrawingSetConnection(vBRect, portName, NULL, router_name);
+                     portDrawing->setParentItem(mesh);
+                     nocScene->storePortDrawingItems(portDrawing);
+@@ -2029,7 +2028,7 @@ void NsRouterSetConnection::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             }
+ 
+             /* A bridge cannot connect to a router, it just connects to router ports */
+-            if (!NetSpeed::is_member(type_item, {TYPE_ITEM::BRIDGE})) {
++            if (!NetSpeed::is_member(type_item, {TYPE_ITEM::BRIDGE, TYPE_ITEM::ROUTER_CONNECTION, TYPE_ITEM::OTHER})) {
+                 /* Create a center point to user can select this Router */
+                 QString router_name = "R" + QString::number(mesh->getLayerID()) + QString(".") +
+                                       QString::number(nodeId.as_int());

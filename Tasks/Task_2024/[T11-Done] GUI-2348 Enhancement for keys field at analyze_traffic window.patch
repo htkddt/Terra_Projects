@@ -1,0 +1,77 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp | 45 +++++++++++++++++++++++++++-----
+ 1 file changed, 39 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 18cb9e3a541..79b794e9825 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -2550,23 +2550,55 @@ AnalyzeTrafficDialog::AnalyzeTrafficDialog(QWidget * parent, const NetSpeed::Gri
+     keysMenu = new LayerMenu(this);
+     keysMenu->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+     QToolButton* popupViewButtons = new QToolButton(this);
+-    auto update = [=](QAction* action) {
++    auto update = [this, popupViewButtons](QAction* action) {
+         _unused(action);
+-	QString keys = "";
+-        for (auto i : keysMenu->actions())
+-            if (i->isChecked()) keys.append(i->text() + " ");
++        QString keys = "";
++        QString tooltip = "";
++        QFont font = keysMenu->font();
++        QFontMetrics metrics(font);
++        int cntItem = 0;
++        bool br = false;
++        for (auto i : keysMenu->actions()) {
++            if (i->isChecked()) {
++                if (!br) {
++                    if ((metrics.horizontalAdvance(keys) < (this->maximumWidth() - 200))) {
++                        keys.append(i->text() + " ");
++                    } else {
++                        keys.append(i->text() + " ... ");
++                        br = true;
++                    }
++                }
++                if (tooltip.isEmpty()) {
++                    tooltip.append(i->text());
++                    cntItem += 1;
++                } else {
++                    if (cntItem < 10) {
++                        tooltip.append(", " + i->text());
++                        cntItem += 1;
++                    } else {
++                        tooltip.append(",\n" + i->text());
++                        cntItem = 1;
++                    }
++                }
++            }
++        }
++        popupViewButtons->setToolTip(tooltip);
+         if (keys.isEmpty()) {
+             popupViewButtons->setProperty("text", "");
+             return;
+         }
+         popupViewButtons->setProperty("text", keys);
+     };
+-    connect(popupViewButtons, &QToolButton::triggered, this, update);
+-    popupViewButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
++    QFont textFont;
++    textFont.setPointSize(12);
++    popupViewButtons->setFont(textFont);
++    popupViewButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+     popupViewButtons->setMenu(keysMenu);
+     popupViewButtons->setPopupMode(QToolButton::InstantPopup);
+     layout->addWidget(popupViewButtons, 5, 1);
+ 
++    connect(popupViewButtons, &QToolButton::triggered, this, update);
++
+     for (int i = 0; i < keys; ++i)
+     {
+         QAction* action = new QAction(QString::number(i), this);
+@@ -2590,6 +2622,7 @@ AnalyzeTrafficDialog::AnalyzeTrafficDialog(QWidget * parent, const NetSpeed::Gri
+     setWindowFlags(getFlagsDialog());
+     setWindowTitle(CMD_ANALYZE_TRAFFIC);
+     setWindowIcon(QIcon(ICON_ANALYZE_TRAFFIC));
++    setMaximumWidth(700);
+ }
+ 
+ QString AnalyzeTrafficDialog::getValues()

@@ -1,0 +1,332 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 233 ++++++++++++++++-----
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h   |   2 +
+ 2 files changed, 187 insertions(+), 48 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index aaee667717d..3644fcc093a 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -2940,6 +2940,8 @@ QCustomPlot* PropertyPanel::generateNormalPlot(QString name)
+     connect(customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(handleMouseRelease(QMouseEvent*)));
+     connect(customPlot, SIGNAL(rangeChanged(QCPRange, QString)), this, SLOT(normalGraphRangeChanged(QCPRange, QString)));
+     connect(customPlot, SIGNAL(rangeChangedMouseMove(QCPRange, QString)), this, SLOT(graphRangeChangedMouseMove(QCPRange, QString)));
++    connect(customPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)), this,
++            SLOT(handleLegendClicked(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+     initNormalPlot(name, customPlot);
+     customPlot->setToolTip(wrapTextForTooltip(name, plotTooltipWrap));
+     return customPlot;
+@@ -3125,8 +3127,7 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+         return;
+     }
+     // Show statistic
+-    if (QObject::sender())
+-    {
++    if (QObject::sender()) {
+         QCustomPlot* customPlot = dynamic_cast<QCustomPlot*>(QObject::sender());
+         if (!customPlot) return;
+ 
+@@ -3137,60 +3138,154 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+         if (iter == statTab->plots.end()) return;
+         const Plot & eg = iter->second;
+ 
+-        bool hasMessage = false, outside = false;
+-        QString msg = "";
+-        int graphix = -1, outsidecnt = 0;
+-        if (!customPlot->axisRect(0) || !customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)) return;
+-        auto coord = customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)->pixelToCoord(event->position().x());
+-        for (auto i = 0; i < customPlot->axisRect(0)->axes().size(); i++)
+-        {
+-            QString lbl = customPlot->axisRect(0)->axes()[i]->label();
+-            if (lbl.contains("Time") || lbl.contains("Idle Latency"))
+-                continue;
+-            double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->position().y());
+-            for (graphix = 0; graphix < customPlot->graphCount(); graphix++)
+-            {
+-                if (!customPlot->graph(graphix)->data()) continue;
+-                QCPData dat = customPlot->graph(graphix)->data()->lowerBound(coord).value();
+-                float cc = dat.value - coordy;
+-                if (cc >= 0 && cc <= dat.value / 10) //Inside the graph
+-                {
+-                    if (lbl.length() == 0)
+-                        continue;
+-                    if (lbl.contains("Latency") && !eg.latency) continue;
+-                    if (lbl.contains("Data") && !eg.pkt_size) continue;
+-                    if (lbl.contains("Throughput") && !eg.throughput) continue;
+-                    hasMessage = true;
+-                    msg = msg + lbl + ":";
+-                    msg = msg + QString::number(dat.value) + "\n";
+-                }
+-                else if (cc < 0)
+-                {
+-                    outside = true;
+-                    outsidecnt++;
++        if (customPlot->legend->selectTest(event->pos(), false) < 0) {
++            bool hasMessage = false, outside = false;
++            QString msg = "";
++            int graphix = -1, outsidecnt = 0;
++            if (!customPlot->axisRect(0) || !customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)) return;
++            auto coord = customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)->pixelToCoord(event->localPos().x());
++            for (auto i = 0; i < customPlot->axisRect(0)->axes().size(); i++) {
++                QString lbl = customPlot->axisRect(0)->axes()[i]->label();
++                if (lbl.contains("Time") || lbl.contains("Idle Latency")) continue;
++                double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->localPos().y());
++                for (graphix = 0; graphix < customPlot->graphCount(); graphix++) {
++                    if (!customPlot->graph(graphix)->visible()) continue;
++                    if (!customPlot->graph(graphix)->data()) continue;
++                    QCPData dat = customPlot->graph(graphix)->data()->lowerBound(coord).value();
++                    float cc    = dat.value - coordy;
++                    if (cc >= 0 && cc <= dat.value / 10)  // Inside the graph
++                    {
++                        if (lbl.length() == 0) continue;
++                        if (lbl.contains("Latency") && !eg.latency) continue;
++                        if (lbl.contains("Data") && !eg.pkt_size) continue;
++                        if (lbl.contains("Throughput") && !eg.throughput) continue;
++                        hasMessage = true;
++                        msg        = msg + lbl + ":";
++                        msg        = msg + QString::number(dat.value) + "\n";
++                    } else if (cc < 0) {
++                        outside = true;
++                        outsidecnt++;
++                    }
+                 }
+             }
++            if (outside && outsidecnt >= customPlot->graphCount() && !hasMessage)  // Display the graph title
++            {
++                customPlot->setToolTip(wrapTextForTooltip(customPlot->getEventGroupName(), 400));
++            } else if (hasMessage) {
++                customPlot->setToolTip(msg);
++            }
++        } else {
++            customPlot->setToolTip("Click or 'Ctrl + Click' to highlight charts.");
+         }
+-        if (outside && outsidecnt >= customPlot->graphCount() && !hasMessage) //Display the graph title
+-        {
+-            customPlot->setToolTip(wrapTextForTooltip(customPlot->getEventGroupName(), 400));
++    }
++}
++
++void PropertyPanel::handleLegendClicked(QCPLegend* legend, QCPAbstractLegendItem* item, QMouseEvent* event)
++{
++    Q_UNUSED(event);
++    Q_UNUSED(legend);
++    if (!item) return;
++    QObject* sender = QObject::sender();
++    if (sender == nullptr) return;
++    QCustomPlot* customPlot = dynamic_cast<QCustomPlot*>(QObject::sender());
++    if (!customPlot) return;
++
++    // Find related evengroup
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
++    if (!statTab) return;
++    auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
++    if (iter == statTab->plots.end()) return;
++    const Plot& eg = iter->second;
++
++    QString nameLegendItemClicked = QString();
++    if (auto nameItem = dynamic_cast<QCPPlottableLegendItem*>(item)) nameLegendItemClicked = nameItem->plottable()->name();
++    if (nameLegendItemClicked.isEmpty()) return;
++
++    bool ctrlButtonClicked = false;
++    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
++        auto index = listItemLegendClicked.indexOf(nameLegendItemClicked);
++        if (index < 0) {
++            listItemLegendClicked.append(nameLegendItemClicked);
++        } else {
++            listItemLegendClicked.removeAt(index);
+         }
+-        else if (hasMessage)
+-        {
+-            customPlot->setToolTip(msg);
++        ctrlButtonClicked = true;
++    } else {
++        listItemLegendClicked.clear();
++        listItemLegendClicked.append(nameLegendItemClicked);
++    }
++
++    QString nameLegendItem = QString();
++    int indexGraphix       = 0;
++    for (auto graphix = 0; graphix < customPlot->graphCount(); graphix++) {
++        auto nameItem = customPlot->legend->itemWithPlottable(customPlot->plottable(graphix));
++        if (nameItem) nameLegendItem = nameItem->plottable()->name();
++        auto index = listItemLegendClicked.indexOf(nameLegendItem);
++        if ((ctrlButtonClicked && (index > -1)) ||
++            (!ctrlButtonClicked && (nameLegendItem == nameLegendItemClicked))) {
++            if (auto itemLegend = dynamic_cast<QCPAbstractLegendItem*>(nameItem)) {
++                itemLegend->setTextColor(QColor(0, 0, 0, 255));
++            }
++            if (indexGraphix == 0) {
++                customPlot->graph(graphix)->setVisible(eg.pkt_size);
++            } else if (indexGraphix == 1) {
++                customPlot->graph(graphix)->setVisible(eg.latency);
++            } else if (indexGraphix == 2) {
++                customPlot->graph(graphix)->setVisible(eg.throughput);
++                indexGraphix = 0;
++                continue;
++            }
++            ++indexGraphix;
++        } else {
++            customPlot->graph(graphix)->setVisible(false);
++            if (auto itemLegend = dynamic_cast<QCPAbstractLegendItem*>(nameItem)) {
++                itemLegend->setTextColor(QColor(0, 0, 0, 125));
++            }
+         }
+     }
+ }
++
+ void PropertyPanel::handleMousePress(QMouseEvent * event)
+ {
+-    if (event->button() == Qt::RightButton)
+-    {
+-        QCustomPlot* customPlot = (QCustomPlot*)QObject::sender();
++    if (!QObject::sender()) return;
++    QCustomPlot* customPlot = (QCustomPlot*)QObject::sender();
++    if (!customPlot) return;
++
++    // Find related evengroup
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
++    if (!statTab) return;
++    auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
++    if (iter == statTab->plots.end()) return;
++    const Plot& eg = iter->second;
++
++    if (event->button() == Qt::RightButton) {
+         if (!rubberBand)
+             rubberBand = new QRubberBand(QRubberBand::Rectangle, customPlot);
+         origin = event->pos();
+         rubberBand->setGeometry(QRect(origin, QSize()));
+         rubberBand->show();
++    } else if (event->button() == Qt::LeftButton) {
++        if ((customPlot->legend->selectTest(event->pos(), false) > 0)) return;
++        int indexGraphix = 0;
++        for (auto graphix = 0; graphix < customPlot->graphCount(); graphix++) {
++            auto nameItem = customPlot->legend->itemWithPlottable(customPlot->plottable(graphix));
++            if (nameItem) {
++                if (auto itemLegend = dynamic_cast<QCPAbstractLegendItem*>(nameItem)) {
++                    itemLegend->setTextColor(QColor(0, 0, 0, 255));
++                }
++            }
++            if (indexGraphix == 0) {
++                customPlot->graph(graphix)->setVisible(eg.pkt_size);
++            } else if (indexGraphix == 1) {
++                customPlot->graph(graphix)->setVisible(eg.latency);
++            } else if (indexGraphix == 2) {
++                customPlot->graph(graphix)->setVisible(eg.throughput);
++                indexGraphix = 0;
++                continue;
++            }
++            ++indexGraphix;
++        }
++        if (!listItemLegendClicked.isEmpty()) listItemLegendClicked.clear();
+     }
+ }
+ 
+@@ -3421,6 +3516,8 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+             connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showComparePointToolTip(QMouseEvent*)));
+             connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(handleMousePress(QMouseEvent*)));
+             connect(customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(handleMouseRelease(QMouseEvent*)));
++            connect(customPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
++                    this, SLOT(handleLegendClicked(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+             // Create widget which include buttons and plot
+             auto plotSplitter = createComparisonPlotWidget(customPlot, cl, "", statTab);
+             // Add to bottom of main layout
+@@ -5185,6 +5282,9 @@ void PropertyPanel::updateComparisonPlot(QSharedPointer<StatTab> st, Plot & p, Q
+     float maxPkt = 0;
+ 
+     int graphCount = 0;
++    int index;
++    QString nameLegendItem = QString();
++    QCPPlottableLegendItem* nameItem = nullptr;
+     if (!st || name.isEmpty() || !customPlot || !p.enabled) return;
+     for (auto it = p.event_groups.begin(); it != p.event_groups.end(); it++) {
+         EventGroup& eg = it->second;
+@@ -5200,20 +5300,56 @@ void PropertyPanel::updateComparisonPlot(QSharedPointer<StatTab> st, Plot & p, Q
+         // PKT Size
+         if (graphCount >= customPlot->graphCount()) return;
+         customPlot->graph(graphCount)->setData(&eg.pkt_size_points, true);
+-        customPlot->graph(graphCount)->setVisible(eg.enabled);
+-        customPlot->graph(graphCount++)->setVisible(p.pkt_size);
++        nameItem = customPlot->legend->itemWithPlottable(customPlot->plottable(graphCount));
++        if (nameItem) nameLegendItem = nameItem->plottable()->name();
++        if (!listItemLegendClicked.isEmpty()) {
++            index = listItemLegendClicked.indexOf(nameLegendItem);
++            if (index < 0) {
++                graphCount++;
++            } else {
++                customPlot->graph(graphCount)->setVisible(eg.enabled);
++                customPlot->graph(graphCount++)->setVisible(p.pkt_size);
++            }
++        } else {
++            customPlot->graph(graphCount)->setVisible(eg.enabled);
++            customPlot->graph(graphCount++)->setVisible(p.pkt_size);
++        }
+ 
+         // Latency
+         if (graphCount >= customPlot->graphCount()) return;
+         customPlot->graph(graphCount)->setData(&eg.latency_points, true);
+-        customPlot->graph(graphCount)->setVisible(eg.enabled);
+-        customPlot->graph(graphCount++)->setVisible(p.latency);
++        nameItem = customPlot->legend->itemWithPlottable(customPlot->plottable(graphCount));
++        if (nameItem) nameLegendItem = nameItem->plottable()->name();
++        if (!listItemLegendClicked.isEmpty()) {
++            index = listItemLegendClicked.indexOf(nameLegendItem);
++            if (index < 0) {
++                graphCount++;
++            } else {
++                customPlot->graph(graphCount)->setVisible(eg.enabled);
++                customPlot->graph(graphCount++)->setVisible(p.latency);
++            }
++        } else {
++            customPlot->graph(graphCount)->setVisible(eg.enabled);
++            customPlot->graph(graphCount++)->setVisible(p.latency);
++        }
+ 
+         // throughputTime
+         if (graphCount >= customPlot->graphCount()) return;
+         customPlot->graph(graphCount)->setData(&eg.throughput_points, true);
+-        customPlot->graph(graphCount)->setVisible(eg.enabled);
+-        customPlot->graph(graphCount++)->setVisible(p.throughput);
++        nameItem = customPlot->legend->itemWithPlottable(customPlot->plottable(graphCount));
++        if (nameItem) nameLegendItem = nameItem->plottable()->name();
++        if (!listItemLegendClicked.isEmpty()) {
++            index = listItemLegendClicked.indexOf(nameLegendItem);
++            if (index < 0) {
++                graphCount++;
++            } else {
++                customPlot->graph(graphCount)->setVisible(eg.enabled);
++                customPlot->graph(graphCount++)->setVisible(p.throughput);
++            }
++        } else {
++            customPlot->graph(graphCount)->setVisible(eg.enabled);
++            customPlot->graph(graphCount++)->setVisible(p.throughput);
++        }
+     }
+ 
+     // set range of axes
+@@ -5236,6 +5372,7 @@ void PropertyPanel::updateComparisonPlot(QSharedPointer<StatTab> st, Plot & p, Q
+         if (customPlot->axisRect(0)->axes()[i]->label().contains("Data Size"))
+             customPlot->axisRect(0)->axes()[i]->setRange(0, maxPkt * 8);
+     }
++
+     customPlot->rescaleAxes();
+     customPlot->replot();
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+index 57c9dfb2e55..e38d8df9e46 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+@@ -794,6 +794,7 @@ private:
+     NsSimProxyModel * proxyModel = nullptr;
+     QStandardItem * selectAllCheckbox = nullptr;
+     QCheckBox * simTabCkBox = nullptr;
++    QList<QString> listItemLegendClicked;
+ 
+     std::vector<std::shared_ptr<NetSpeed::profile_t>> sim_profilesList;
+     std::vector<NetSpeed::transaction_t> filteredTransactionList;
+@@ -1179,6 +1180,7 @@ private slots:
+     void graphRangeChange();
+     void handleMousePress(QMouseEvent * event);
+     void handleMouseRelease(QMouseEvent * event);
++    void handleLegendClicked(QCPLegend* legend, QCPAbstractLegendItem* item, QMouseEvent* event);
+     /**
+      * @brief showHideLatencyHistogram
+      */

@@ -1,0 +1,19 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index 1681fcda3e4..fb7b84824da 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -399,7 +399,10 @@ void NsNormalHost::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+         bool revert = true;
+         auto meshView = static_cast<NsWorkArea*>(scene()->views().first());
+         if (!isDragged()) {
+-            meshView->refresh();
++            auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
++            if (mw && !mw->isSetRouterConnection()) {
++                meshView->refresh();
++            }
+             return;
+         }
+ 

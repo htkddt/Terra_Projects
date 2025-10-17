@@ -1,0 +1,28 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 1 -
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 1b23f12ed85..ff4bdb9732d 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5522,7 +5522,6 @@ void chooseArgumentDialog::itemComboBoxChanged()
+                         if (auto comboBox = dynamic_cast<QComboBox*>(widget)) {
+                             comboBox->setStyleSheet("QComboBox {"
+                                                     "border: 1px solid red;"
+-                                                    "background-color: #f0f0f0;"
+                                                     "}");
+                         }
+                     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index f6e2adea4c1..7084c795f17 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5541,7 +5541,6 @@ void chooseArgumentDialog::itemComboBoxChanged()
+                         if (auto comboBox = dynamic_cast<QComboBox*>(widget)) {
+                             comboBox->setStyleSheet("QComboBox {"
+                                                     "border: 1px solid red;"
+-                                                    "background-color: #f0f0f0;"
+                                                     "}");
+                         }
+                     }

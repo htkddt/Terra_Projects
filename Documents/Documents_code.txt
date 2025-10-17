@@ -1,0 +1,865 @@
+#####################################################################################################################################################################################################################################
+Repositories:
+	- intel-netspeed: git clone https://github.com/intel-sandbox/intel-netspeed.git
+	- cfg-netspeed: ION
+Qt account:
+	- Email: kiet.huynh@terralogic.com
+	- Pass: HuynhKiet123@!#
+Qt setup:
+	- Start qt-online-installer-windows-x64-4.10.0.exe
+	- At Qt version step, click 'Customize' checkbox --> Next
+	- Customize: --> If Qt 6.9.2 is checked, click on it to uncheck and check on Qt 6.7.3
+		+ WebAssembly (multi-threaded)
+		+ WebAssembly (single-threaded)
+		+ MSVC 2019 ARM64 (TP)
+		+ LLVM-MinGW 17.0.6 64-bit
+		+ MSVC 2019 64-bit
+		+ MSVC 2022 64-bit
+		+ MinGW 11.2.0 64-bit
+		+ Source
+		+ Qt 5 Compatibility Module
+		+ Qt Shader Tools
+		+ Additional Libraries:
+			* Active Qt
+			* Qt Graphs (TP)
+			* Qt Image Formats
+			* Qt Insight Tracker (TP)
+			* Qt Quick Effect Maker
+			* Qt State Machines
+		+ Qt Debug Information Files
+		+ Qt Quick Timeline
+	- To add or remove libraries: Qt setting folder path --> Run MaintenaceTool --> Choose Add or Remove components --> Open follow Qt versions --> Check libraries you need --> Next --> Install
+Combine Qt to Visual Studio: https://wiki.ith.intel.com/pages/viewpage.action?pageId=4358741304&spaceKey=EN&title=Visual%2BStudio%2B2022%2BQt%2B6%2BSetup
+#####################################################################################################################################################################################################################################
+Visual Studio:
+	- Installing:
+	- Qt extensions:
+	- Add git bash into Terminal:
+		+ Tools --> Option
+		+ Press "Add" button --> [Name: Git bash, Path: ~/bash.exe] <---------- NOTE: bash.exe difference git-bash.exe
+		+ Press "Apply"
+		+ Press "Set as default"
+		+ Press "Ok"
+		+ View --> Terminal
+#####################################################################################################################################################################################################################################
+Pull source code by access VPN:
+	- Use TortoiseGit: tuanng4x
+	- Use Git bash:
+		+ Cmd: git pull --tags origin master
+		+ Pass: Login password
+#####################################################################################################################################################################################################################################
+Add new icon:
+	- Copy file.png to icons folder: /GUICore/images/icons/
+	- global.h: GUICore folder
+	- dockresources.qrc: GUICore folder
+#####################################################################################################################################################################################################################################
+Schedule task 
+	- Windows:
+		+ Basic: 
+			* Create: schtasks /create /tn "{task_name}" /tr "{script|file}" /sc once /st <time> /sd <date>
+			* Delete: schtasks /delete /tn "{task_name}" /f
+			* Status: 
+				Get-ScheduledTask -TaskName "{task_name}" | Get-ScheduledTaskInfo
+				Get-ScheduledTask -TaskName "{task_name}" -ErrorAction SilentlyContinue <=> schtasks /query /tn "{task_name}" >nul 2>&1
+			* Bonus: 
+				if (Get-ScheduledTask -TaskName "task_name" -ErrorAction SilentlyContinue) {
+					Write-Output "Task existing."
+				} else {
+					Write-Output "Task not existing."
+				}
+			* Example:
+				schtasks /create /tn "Test" /tr "C:\Users\tuanng4x\Workspace\Tickets\TCP_AutomationTool\Network\run.bat" /sc once /st 14:27:15
+				schtasks /create /tn "Test" /tr "D:\A_TerraLogic\TerraTool\TCPTool\Network\run.bat" /sc once /st 14:27:15 /sd 30/11/2025
+		+ Check error: Get-ScheduledTask -TaskName "task_name" | Get-ScheduledTaskInfo
+			* LastRunTime: 7/7/2025 1:14:14 PM
+			* LastTaskResult:
+				{
+					0: Successful
+					1 | 0x1: Script error
+					2: Script is not found
+				}
+	- Linux:
+		+ Run cmd: crontab
+		+ Option:
+			* -e: Edit (vi/nano)
+			* -l: List cron job
+			* -r: Remove all job of current user
+			* -u <user> -e: (Only root has permission to run) Edit cron job of other user
+		+ Cron job format: minute	|	hour	|	day of the month	|	month	|	day of the week		|	absolute path of the script
+		+ Example: 0 2 * * 1 /nfs/site/proj/CFG/scratch2/nguyentuanx/autoScript/commitAutomationTest.sh > /nfs/site/disks/home_user/tuanng4x/commitAutomationTest.log
+		+ Explain: Run script commitAutomationTest.sh, save results into commitAutomationTest.log at 0 minute, 2 hour, every day of the month, every month, every monday of the week.
+#####################################################################################################################################################################################################################################
+Socket/PowerShell:
+	- Run file.ps1: powershell -ExecutionPolicy Bypass -File "file_path"
+	- Check connection of port:
+		+ Run Window PowerShell
+		+ Check IP: ipconfig
+		+ Ping IP need to connect: ping <ip_server>
+		+ Check port openning: Test-NetConnection -ComputerName <ip_server> -Port <port_name>
+		+ Open temporary socket:
+			* $listener = [System.Net.Sockets.TcpListener]9999
+			* $listener.Start()
+			* ...
+			* $listener.Stop()		
+	- Get all ip in local: 
+		+ Cmd: Get-NetIPAddress
+		+ Output:
+			* VPN diconnected:
+				IPAddress         : fe80::c422:316e:99e4:f181%14
+				InterfaceIndex    : 14
+				InterfaceAlias    : Local Area Connection* 2
+				AddressFamily     : IPv6
+				Type              : Unicast
+				PrefixLength      : 64
+				PrefixOrigin      : WellKnown
+				SuffixOrigin      : Link
+				AddressState      : Deprecated
+				ValidLifetime     : Infinite ([TimeSpan]::MaxValue)
+				PreferredLifetime : Infinite ([TimeSpan]::MaxValue)
+				SkipAsSource      : False
+				PolicyStore       : ActiveStore
+
+				...
+
+				IPAddress         : 10.21.0.136
+				InterfaceIndex    : 20
+				InterfaceAlias    : Wi-Fi
+				AddressFamily     : IPv4
+				Type              : Unicast
+				PrefixLength      : 23
+				PrefixOrigin      : Dhcp
+				SuffixOrigin      : Dhcp
+				AddressState      : Preferred
+				ValidLifetime     : 00:47:08
+				PreferredLifetime : 00:47:08
+				SkipAsSource      : False
+				PolicyStore       : ActiveStore
+			-----------------------------------------------------------------
+			* VPN connected:
+				IPAddress         : fe80::c422:316e:99e4:f181%14
+				InterfaceIndex    : 14
+				InterfaceAlias    : Local Area Connection* 2
+				AddressFamily     : IPv6
+				Type              : Unicast
+				PrefixLength      : 64
+				PrefixOrigin      : WellKnown
+				SuffixOrigin      : Link
+				AddressState      : Deprecated
+				ValidLifetime     : Infinite ([TimeSpan]::MaxValue)
+				PreferredLifetime : Infinite ([TimeSpan]::MaxValue)
+				SkipAsSource      : False
+				PolicyStore       : ActiveStore
+
+				...
+
+				IPAddress         : 10.95.0.115
+				InterfaceIndex    : 5
+				InterfaceAlias    : Ethernet 5
+				AddressFamily     : IPv4
+				Type              : Unicast
+				PrefixLength      : 32
+				PrefixOrigin      : Manual
+				SuffixOrigin      : Manual
+				AddressState      : Preferred
+				ValidLifetime     : Infinite ([TimeSpan]::MaxValue)
+				PreferredLifetime : Infinite ([TimeSpan]::MaxValue)
+				SkipAsSource      : False
+				PolicyStore       : ActiveStore
+
+				...
+
+				IPAddress         : 10.21.0.136
+				InterfaceIndex    : 20
+				InterfaceAlias    : Wi-Fi
+				AddressFamily     : IPv4
+				Type              : Unicast
+				PrefixLength      : 23
+				PrefixOrigin      : Dhcp
+				SuffixOrigin      : Dhcp
+				AddressState      : Preferred
+				ValidLifetime     : 00:43:48
+				PreferredLifetime : 00:43:48
+				SkipAsSource      : False
+				PolicyStore       : ActiveStore
+	- Check InterfaceDescription property of all ip address:
+		+ Cmd: Get-NetAdapter | Select-Object Name, InterfaceDescription
+		+ Output:
+			Name       		InterfaceDescription
+			----       		--------------------
+			Wi-Fi      		Intel(R) Wireless-AC 9560 160MHz
+			Ethernet 3 		Cisco AnyConnect Virtual Miniport Adapter for Windows x64
+			Ethernet   		Intel(R) Ethernet Connection (6) I219-LM
+			Ethernet 5 		PANGP Virtual Ethernet Adapter Secure
+#####################################################################################################################################################################################################################################
+Unix/Linux/Shell script:
+	- Steps build a automation script:
+		+ Create script: gitFlow.sh
+		+ Allow access path:
+			-- path: /cfg-netspeed/src/sw/noc_dev
+			-- cmd: chmod +x {path}/file_name.sh
+		+ Run: bash gitFlow.sh [OPTION] <value>
+	- Create system command: Create a command with name is 'gitFlow' instead of run 'bash gitFlow.sh'
+		+ Create file '.bashrc' if not existing
+		+ Add line "alias gitFlow='C:/Users/tuanng4x/Workspace/Sources/cfg-netspeed/src/sw/noc_dev/gitFlow.sh'"
+		+ Open Git Bash everywhere, source config again 'source ~/.bashrc'
+#####################################################################################################################################################################################################################################
+Git/GitHub:
+	- The difference between "A..B" and "A...B" with A and B being tag or commit:
+		+ "A..B": A has but B doesn't
+		+ "A...B": A has but B doesn't and B has but A doesn't
+		+ Example:
+			* Tree:
+				Branch A:	C --- D --- E --- F
+								   \
+				Branch B:			G --- H --- I
+			* Result:
+				** git log A..B		-->		{G,H,I}
+				** git log A...B 	--> 	{D,E,F,G,H,I}
+	- Git show: git show --name-status <tag|commit_id>
+	- Git history:
+		+ Apply:
+			** git apply <file_patch>
+			** git apply --check <file_patch>
+			** git apply --stat <file_patch>
+			** git apply --numstat <file_patch>
+			** git apply --stat --summary <file_patch>
+			** git apply --stat --summary --verbose <file_patch>
+			** git apply --include={~/file.cpp} --include={~/file.h} <file_patch>
+		+ Branch:
+			** git diff <=> git diff HEAD <=> Save unified diff in TortoiseGit
+			** git diff master..HEAD
+			** git diff master...HEAD
+			** git diff --ignore-cr-at-eol
+			** git diff --stat --patch <file_path> | git diff -p --stat <file_patch>
+			** git diff --stat <file_patch>
+		+ Commit: The same as the Branch
+		+ Log:
+			** git log origin/master..master 		--> Check commit internal between local master branch and remote master branch
+			** git log origin/master..branch_name 	--> Check commit internal between local branch and local master branch
+		+ Reset:
+			** git reset --soft origin/master		--> Remove commit internal but keep code
+			** git reset --hard origin/master		--> Remove commit internal and remove code
+		+ Clean:
+			** git clean -fdn						--> Preview untracked files that will be deleted
+			** git clean -fd						--> Delete untracked files (Excepted: .gitignore)
+			** git clean -fdx						--> Delete untracked files, include in .gitignore
+	- Git add:
+		+ The list of files modified: git ls-files -m
+		+ The list of files deleted: git ls-files -d
+		+ Add files are modified and tracked by Git (Ignore untracked): git add -u
+		+ For script: git ls-files -m -d | xargs git add
+		+ WorkFlow:
+			** Run cmd with $2 = HEAD ($1 = -c and $2 = Empty --> Clean	 |  $1 = --commit and $2 = Empty --> Commit HEAD)
+				-- git status -uno
+				-- git ls-files -m -d | xargs git add
+				-- git status -uno
+			** Confirm commit:
+				-- Do you want commit? (y/n)
+				-- If confirm = n|N, git restore --staged .
+				-- If confirm = y|Y, <message>?
+				-- git commit -m "message"
+			** Confirm create tag:
+				-- Do you create a lightweight tag for this commit? (y/n)
+				-- If confirm = n|N, break
+				-- If confirm = y|Y, <tag_name>?
+				-- git tag tag_name HEAD
+		+ Commit:
+			** git restore --staged [<file_name.extensions> / .]: Remove a file or all files is staged by mistake from the staging area. Only effect after git add, no action after git commit
+	- Git push:
+		+ Include commits and tags: git push origin <branch_name> --tags
+		+ Specific commit: git push origin <branh_name>
+		+ Specific tag: git push origin <tag_name>
+		+ All tags: git push --tags
+	- Git pull:
+		+ Include commits and tags on pull branch: git pull --tags origin <branch>
+		+ All tags on all branchs: git fetch --tags
+		+ Specific tag: git fetch origin tag <tag_name>
+	- Run app by script (Not use on remote desktop):
+		+ Run: ./app.exe or ./app
+		+ Run with config: ./app.exe {path_config.txt} or ./app.exe {path_config.ncf}
+		+ Run asynchronous: ./app.exe &		<-------	After run this command, script will run the next command
+	- The issue related to detection dubious ownership in repository:
+		+ Log error:
+			fatal: detected dubious ownership in repository at 'D:/C_Project_HTDK_Nhung' 'D:/C_Project_HTDK_Nhung' is owned by: 
+				'S-1-5-21-3216347473-1549538816-1934822293-1001' 
+			but the current user is: 
+				'S-1-5-21-3252348974-3061259417-1858492118-1001' 
+			To add an exception for this directory, call: 
+				git config --global --add safe.directory D:/C_Project_HTDK_Nhung
+		+ Solution:
+			1. Right click on folder repo D:/C_Project_HTDK_Nhung → Properties.
+			2. Click on tab Security → Choose Advanced.
+			3. Owner line, press Change.
+			4. Typing your current user (Run cmd: 'whoami' in Git Bash or CMD --> Example output: 'DESKTOP-123ABC\TuanKiet').
+			5. Tick Replace owner on subcontainers and objects to apply for all subfiles.
+			6. Press OK → Apply.
+#####################################################################################################################################################################################################################################
+Check for existence of a object whose parent is MainWindow [Dialog of router diagram]:
+	- GUI will check opennedHugeDialog variable when user right click router components
+		if (opennedHugeDialog) {
+			for (auto& hugeDialog : mw->findChildren<customDialog*>()) {
+				if (hugeDialog->getRouterBonding() == this) {
+					hugeDialog->raise();   // Bring to top of stacking order
+					hugeDialog->setFocus();
+					break;
+				}
+			}
+			return;
+		}
+	- Updated state of opennedHugeDialog variable:
+		+ When dialog of router diagram have been created
+			auto hugeDiagram = new NsRouterDiagram(this->getRouter(), this, false);
+			hugeDiagram->setParentItem(nullptr);
+			QString routerName = QString::fromStdString(hugeDiagram->getName());
+			moveRouterDiagramToDialog(hugeDiagram, routerName, mw);
+			changeStateHugeDialog(true); /* Marking a huge router diagram was openned */
+		+ When dialog of router diagram have been closed
+			void closeEvent(QCloseEvent* event) override {
+				event->accept();
+				auto NsRouterItem = dynamic_cast<NsRouter*>(nsRouterItem);
+				if (NsRouterItem) NsRouterItem->changeStateHugeDialog(false); /* Ready for openning the huge router diagram next time */
+			}
+#####################################################################################################################################################################################################################################
+Build client application:
+* VSCode: Convert to match python versions --> Ctrl + Shift + P
+* NOTE:
+	- Server run with python2.
+	- NocStudio.exe manually copy from local to server.
+	- Field <build-version> is only used for creating report.
+	- At the same time, there are 2 run automation requests.
+	- Default: 
+		+ CMD: python2 <script.py> <build-version> <suite-filter>
+		+ Example: python2 run_tst_updated.py cfg_turnin1234 bdd_test
+* DEV:
+	- Modified:
+		+ python2 <script.py> <ticket-id> <suite-filter>
+		+ python2 <build> <script> <ticket-id> <suite-filter>
+		+ python2 <build> <script> <test-suites> <time> <report> <ticket-id> <suite-filter>
+	- Example:
+		+ python2 in-run_tst.py GUI-1234 bdd_test
+		+ python2 NocStudio.exe in-run_tst.py GUI-1234 bdd_test
+#####################################################################################################################################################################################################################################
+Draw circle check:
+	- QPainter
+		Object::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) 
+		{
+			painter->setRenderHint(QPainter::Antialiasing);
+			painter->drawEllipse(QPoint(), 5, 5);
+		}
+	- QPainterPath: path.addEllipse(QPoint(), 5, 5)
+
+Draw line by QPainterPath:
+	- path.moveTo(startLine)
+	- path.lineTo(endLine)
+#####################################################################################################################################################################################################################################
+Font families for QTextBrowser:
+	- Arial
+	- Helvetica
+	- Verdana
+	- Tahoma
+	- Trebuchet MS
+------------------------------------------------------------------------------------------
+	- Times New Roman
+	- Georgia
+	- Palatino Linotype
+	- Book Antiqua
+------------------------------------------------------------------------------------------
+	- Courier New
+	- Consolas
+	- Lucida Console
+	- Monaco (macOS)
+	- DejaVu Sans Mono (Linux)
+------------------------------------------------------------------------------------------
+/nfs/site/proj/CFG/scratch0/tuanng4x/shared/Arial/NocStudio-GUI
+/nfs/site/proj/CFG/scratch0/tuanng4x/shared/Helvetica/NocStudio-GUI
+/nfs/site/proj/CFG/scratch0/tuanng4x/shared/Consolas/NocStudio-GUI
+/nfs/site/proj/CFG/scratch0/tuanng4x/shared/Lucida_Console/NocStudio-GUI
+/nfs/site/proj/CFG/scratch0/tuanng4x/shared/Times/NocStudio-GUI
+#####################################################################################################################################################################################################################################
+Runs asynchronously by QFuture:
+	- For functions:
+		QFuture<QColor> future = QtConcurrent::run([this]() { return getBridgeColor(); });
+	- For lambda:
+		Vec1p<NetSpeed::Layer_id, QFuture<NsMesh*>> futures(*grid);
+		for (const auto& l : grid->get_layers()) {
+			futures[l] = QtConcurrent::run(gen_lay, l);
+		}
+	- QFutureWatcher:
+		QFutureWatcher<QColor>* watcher = new QFutureWatcher<QColor>();
+		QObject::connect(watcher, &QFutureWatcher<QColor>::finished, [&, future]() {
+			setBrush(future.result());
+		});
+		watcher->setFuture(future);
+#####################################################################################################################################################################################################################################
+Keep dialogs on top with parent of dialogs are different from nullptr: GUI-2473
+	- Solution: setWindowFlags(getFlagsDialog() | Qt::Tool);
+	- Problems in Windows:
+		+ No focus
+		+ No icon
+	- Discuss: If GUI uses Qt::Tool flag to keep dialog always on top in Linux with Qt5, dialog will lose icon and focus in Window when created.
+	- Result:
+		+ Qt5: The issue still exists in Linux
+		+ Qt6: The issue have been resolved both in Windows and Linux
+#####################################################################################################################################################################################################################################
+Function timing: #include "stop_clock.hpp"
+	- Start: intel::ns::stop_clock_t clock("NsMeshViewScene::load()");
+	- End: qDebug() << QString::fromStdString(clock.get_label()) << QString::number(clock.get_elapsed_time_in_sec());
+#####################################################################################################################################################################################################################################
+Tool automation in ION:
+	- Build project in noc_dev with source version latest
+	- cd ../../hw/
+	- Run cmd: ccc_runRegress_all -gui 1 -gui_disp "scce06392513.zsc11.intel.com:7" --ns_only 1 --debug
+#####################################################################################################################################################################################################################################
+Documents about property pannel:
+- GUI-2534:
+	+ Ticket realted: GUI-1994, NS-57084
+	+ Functions related:
+		- PropertyPanel::onSelectionPropertyEdited(QtProperty * property, bool onPropertyCanceledFlag)
+		- setBridgeProperty(currentBridge, property, onPropertyCanceledFlag)
+		- setInterfaceProperty(ifce, property)
+		- updateOrResetProp(this, property, ifce->get_props(), onPropertyCanceledFlag)
+		- if (*oldValue == newValue) return;
+	+ Class related: MultiSelectComboBox::MultiSelectComboBox(QWidget* aParent) at GUICore/Qtproperty/qteditorfactory.cpp
+	+ Problems and solution:
+		- The difference between oldValue and newValue:
+			+ oldValue = {pay0 pay2}
+			+ newValue = pay0 pay2
+		- When user clicked ok button, signal selectionChanged(QStringList) is emitted without checking for data changes:
+			+ QString currentSelectedItems = QString()
+			+ if (m_selectedItems != currentSelectedItems) emit selectionChanged(getSelectedItems().split(" "))
+---------------------------------------------------------------------------------------------------------------------------------------------------
+- GUI-2563:
+	+ Components: RouteTbl, IfceProperty, LinkProperty, VCProperty, BridgeProperty, HostProperty, RouterProperty
+	+ Create property table:
+		std::vector<NetSpeed::{Components}Property*> ps;
+		FOR(it, NetSpeed::Property::{components}_props) {
+			string category = it->second->category;
+			if (cate != ALL_PROP && cate != category) continue;
+			ps.push_back(it->second.get());
+		}
+		ns_propTbl = new NetSpeed::{Components}PropTbl(shared_grid, ps);
+	+ Get property name (Colunms): QString::fromStdString(it->first)
+	+ Get property value (Rows): QString::fromStdString(it->second)
+#####################################################################################################################################################################################################################################
+The issue related to position of bridge on host
+	- Related ticket: NS-40653
+	- File path: NocCore/src/Commands.host.cpp
+	- Config: plus_outside_mesh.txt
+	- Behavior: 
+		+ Run command add_sib or click Add SIB on specify menu, bridges are created inside the host
+		+ When user move the host, bridges are created inside the host will move outside the mesh
+	- Root cause:
+		+ CHECKING POSITION FUNCTION:
+			bool modify_and_check_bridge_position(...) {
+				...
+				Port_id port_used = (bc.router_conn->second.is_null()) ? bc.router_pos.second : bc.router_conn->second;
+				if (avconn_ext.find(make_pair(bc.router_pos.first, port_used)) == avconn_ext.end()) {
+					LOG_ERROR("1588") << "Position " << bc.router_pos.first << to_char(port_used) << " of bridge " << bc.name << " is not among the available positions." << endl;
+					return false;
+				}
+				...
+			}
+		+ FUNC_add_bridge:
+			COMMAND(add_bridge, eco_t::ECO_DISABLED,
+				...
+			) {
+				...
+				if (use_mesh_pos) {
+					// get bridge position
+					map<Rport_id, Vec1c<Layer_id, bool> > avconn, avconn_ext;  //available bridge connection points
+					avconn = grid->get_valid_bridgepos(host->get_mesh_pos()); //all valid bridge positions
+					avconn_ext = grid->get_valid_bridgepos(host->get_mesh_pos(), true); //all valid bridge positions
+
+					bool dummy = false;
+					if (!get_bridge_position(use_rel_pos ? rel_pos : pos, grid, bc, host->get_pos(), host->get_size_x(), host->get_size_y(), dummy, use_rel_pos))
+						return false;
+
+					if (!modify_and_check_bridge_position(grid, bc, host->name(), host->get_mesh_pos(), avconn, avconn_ext))	<-----------
+						return false;
+				}
+				...
+			}
+	- Solution:
+		COMMAND(add_sib, eco_t::ECO_DISABLED, AddHost,
+			...
+		) {
+			...
+			map<Rport_id, Vec1c<Layer_id, bool> > avconn, avconn_ext;  //available bridge connection points
+			avconn = grid->get_valid_bridgepos(h->get_mesh_pos()); //all valid bridge positions
+			avconn_ext = grid->get_valid_bridgepos(h->get_mesh_pos(), true); //all valid bridge positions
+
+			if (!modify_and_check_bridge_position(grid, bc, h->name(), h->get_mesh_pos(), avconn, avconn_ext))
+				return false;
+			...
+		}
+#####################################################################################################################################################################################################################################
+The issue related to tooltip:
+	- ROUTER COMPONENTS:
+		+ alist.at(0):
+			* row.at(0):
+				"<b>Router name: R0.14</b><br>Logical coordinate: X=2 Y=1<br>Links in: R0.14S.in (R0.24N.out) R0.14W.in (R0.12E.out) <br>Links out: R0.14J.out (h2/p1.rx0.in) R0.14S.out (R0.24N.in) <br>Link cost: 340, flop cost: 764<br>Voltage domain: system, Power domain: system, Clock domain: noc<br>RTL Group: grp1<br><br><b>VCs:</b>
+					<table border=1 cellspacing=1>
+						<tr>
+			* row.at(1):
+							<th> R0.14J.0.out </th>
+							<th> R0.14S.0.in </th>
+							<th> R0.24N.0.in </th>
+							<th> R0.14W.0.in </th>
+						</tr>
+						<tr>
+			* row.at(2):
+							<td> <b>VC name: R0.14J.0.out of link: h2/p1.rx0.in (R0.14J.out)</b>"
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(1):
+								"VC qos: 0, width: 64, depth: 3 MaxPktSize: 256"
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(2):
+								"Payloads(size): {MultiPayload(64)}"
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(3):
+								"Payloads enabled: {1}, Total Payload width: 64"
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(...):
+								"Lanes width: {64}, Multiplier: 1"
+								"Routes to: h2/p1.a.nsip0.in(64 equal) "
+								"Routes from: R0.14S.0.in(64) R0.14W.0.in(64) "
+								"Associated Interface: a"
+								"Data (forward) path: R0.14 -> h2/p1 (0)"
+								"Credit return path: h2/p1 -> R0.14 (0)"
+								"Dest credit loop: 2 cycles, fifo depth: 3"
+								"<br><b>Transmitters over this link: </b>h1/p1.a.out h4/p1.a.out<br><b>Receivers over this link: </b>h2/p1.a.in<br> 
+							</td>
+							<td> <b>VC name: R0.14S.0.in of link: R0.14S.in (R0.24N.out)</b>"
+								"VC qos: 0, width: 64, depth: 4 MaxPktSize: 256"
+								"Payloads(size): {MultiPayload(64)}"
+								"Payloads enabled: {1}, Total Payload width: 64"
+								"Lanes width: {64}, Multiplier: 1"
+								"Routes to: R0.14J.0.out(64 equal) "
+								"Routes from: R0.24J.0.in(64) "
+								"Data (forward) path: R0.24 -> R0.24N.out.D1 -> R0.14 (1)"
+								"Credit return path: R0.14 -> R0.14S.in.C1 -> R0.24 (1)"
+								"Dest credit loop: 4 cycles, fifo depth: 4"
+								"Voltage domain: system, Power domain: system, Clock domain: noc"
+								"<br><b>Transmitters over this link: </b>h4/p1.a.out<br><b>Receivers over this link: </b>h2/p1.a.in<br> 
+							</td>
+							<td> <b>VC name: R0.24N.0.in of link: R0.24N.in (R0.14S.out)</b>"
+								"VC qos: 0, width: 64, depth: 4 MaxPktSize: 256"
+								"Payloads(size): {MultiPayload(64)}"
+								"Payloads enabled: {1}, Total Payload width: 64"
+								"Lanes width: {64}, Multiplier: 1"
+								"Routes to: R0.24J.0.out(64 equal) "
+								"Routes from: R0.14W.0.in(64) "
+								"Data (forward) path: R0.14 -> R0.14S.out.D1 -> R0.24 (1)"
+								"Credit return path: R0.24 -> R0.24N.in.C1 -> R0.14 (1)"
+								"Dest credit loop: 4 cycles, fifo depth: 4"
+								"Voltage domain: system, Power domain: system, Clock domain: noc"
+								"<br><b>Transmitters over this link: </b>h1/p1.a.out<br><b>Receivers over this link: </b>h4/p1.a.in<br> 
+							</td>
+							<td> <b>VC name: R0.14W.0.in of link: R0.14W.in (R0.12E.out)</b>"
+								"VC qos: 0, width: 64, depth: 4 MaxPktSize: 256"
+								"Payloads(size): {MultiPayload(64)}"
+								"Payloads enabled: {1}, Total Payload width: 64"
+								"Lanes width: {64}, Multiplier: 1"
+								"Routes to: R0.14J.0.out(64 equal) R0.24N.0.in(64 equal) "
+								"Routes from: R0.12J.0.in(64) "
+								"Data (forward) path: R0.12 -> R0.12E.out.D1 -> R0.14 (1)"
+								"Credit return path: R0.14 -> R0.14W.in.C1 -> R0.12 (1)"
+								"Dest credit loop: 4 cycles, fifo depth: 4"
+								"Voltage domain: system, Power domain: system, Clock domain: noc"
+								"<br><b>Transmitters over this link: </b>h1/p1.a.out<br><b>Receivers over this link: </b>h2/p1.a.in h4/p1.a.in<br> 
+							</td>
+						</tr>
+					</table>"
+
+	*******************************************************************************************************************************************************************************
+	- BRIDGE COMPONENTS:
+		+ alist.at(0):
+				"<b>Bridge name: h1/p1</b>
+	1	<br>---------------------------------------------------------------------------------------
+				Protocol type: nsip
+	2	<br>---------------------------------------------------------------------------------------
+				Router connection: 2,2J
+	3	<br>---------------------------------------------------------------------------------------
+				Position: 2,2J
+	4	<br>---------------------------------------------------------------------------------------
+				Regbus Position: 2,2(12)
+	5	<br>---------------------------------------------------------------------------------------
+				Regbus Ring Position: 2,2(12)
+	6	<br>---------------------------------------------------------------------------------------
+				Tx Interface list and widths: a(width: 64; vc_enable: 0x01; is_singlebeat: 0)
+	7	<br>---------------------------------------------------------------------------------------
+				Rx Interface list and widths: a(width: 64; vc_enable: 0x01; is_singlebeat: 0)
+	8	<br>---------------------------------------------------------------------------------------
+				NoC Layer connection: 
+	9	<br>---------------------------------------------------------------------------------------
+				NoC layer used for communication: 
+	10	<br>---------------------------------------------------------------------------------------
+				Voltage domain: system, Power domain: system
+	11	<br>---------------------------------------------------------------------------------------
+				Clock domain: noc, Host clock domain: noc
+	12	<br>---------------------------------------------------------------------------------------
+				Bridge id: 0
+	13	<br>---------------------------------------------------------------------------------------
+				RTL Group: grp1
+	14	<br>---------------------------------------------------------------------------------------
+	15	<br>---------------------------------------------------------------------------------------
+				<b>Switch Port Connections:</b>
+				<table border=1 cellspacing=1>
+					<tr> 
+						<th> Port </th>
+						<th> Connection </th>
+					</tr>
+					<tr>
+						<td> 0 </td>
+						<td> R0.2,2J </td>
+					</tr>
+					<tr>
+						<td> 1 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 2 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 3 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 4 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 5 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 6 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 7 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 8 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 9 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 10 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						<td> 11 </td>
+						<td> none </td>
+					</tr>
+					<tr>
+						...
+					</tr>
+				</table>
+	16	<br>---------------------------------------------------------------------------------------
+	17	<br>---------------------------------------------------------------------------------------
+				<b>Bandwidths (GB/s) for profile 'system':</b>
+	18	<br>---------------------------------------------------------------------------------------
+				<table border=1 cellspacing=1>
+					<tr> 
+						<th> Interface </th>
+						<th> Raw capacity </th>
+						<th> Specified Avg </th>
+					</tr>
+					<tr>
+						<td> h1/p1.a.out </td>
+						<td> 8 </td>
+						<td> 9.6 </td>
+					</tr>
+					<tr>
+						...
+					</tr>
+				</table>
+	19	<br>---------------------------------------------------------------------------------------
+				<b>Tx Interfaces:</b>
+				<table border=1 cellspacing=1>
+					<tr> 
+						<th> h1/p1.a.out </th>
+					</tr>
+					<tr>
+						<td> 
+							<b>Interface name: h1/p1.a.out of bridge: h1/p1</b>
+							<br>
+							Interface width: 64, data width: 64, depth: 2
+							<br>
+							Payloads(size): {MultiPayload(64)}
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(1):
+							<br />
+							Payloads enabled: {1}, Total Payload width: 64, Multiplier: 1
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(2):						
+							<br />
+							Lanes width (Payload * Multiplier): {64} 
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(3):
+							<br />
+							Routes to: R0.12J.0.in(64 equal) 
+		----------------------------------------------------------------------------------------------------------------
+		+ alist.at(4):
+							<br />
+							..."
+#####################################################################################################################################################################################################################################
+NocStudio-HelpText application: (NocStudio-HelpText.exe)
+------------------------------------------------------------------------------------------
+main.cpp
+------------------------------------------------------------------------------------------
+//  Copyright (c) 2012-2016 NetSpeed Systems. All rights reserved.
+//
+
+#include <cstdlib>
+#include <atomic>
+#include <iostream>
+#include <string>
+
+#include <QApplication>
+#include <QtWidgets>
+
+#include "Gui/mainwindow.h"
+
+#include "NocContainer.h"
+#include "Config.h"
+#include "Console.h"
+#include "Property.h"
+#include "NsTypes.h"
+#include "global.h"
+
+using namespace std;
+
+bool cmd_base_func(NetSpeed::NocConsole*, const NetSpeed::NocConsoleCommand&, const vector<string>&) { return true; };
+
+void register_gui_commands() {
+    NetSpeed::NocConsole::add_command(NetSpeed::Command_idx(CMD_CLOSE_STATTAB), NetSpeed::state_t::Mapped,
+                                      NetSpeed::eco_t::ECO_ALLOWED, cmd_base_func, CMD_CLOSE_STATTAB_ARGS,
+                                      CMD_CLOSE_STATTAB_SHORT_HELP, CMD_CLOSE_STATTAB_LONG_HELP);
+	...
+	NetSpeed::NocConsole::add_command(NetSpeed::Command_idx(CMD_ZOOM_ON), NetSpeed::state_t::AddHost,
+                                      NetSpeed::eco_t::ECO_ALLOWED, cmd_base_func, CMD_ZOOM_ON_ARGS,
+                                      CMD_ZOOM_ON_SHORT_HELP, CMD_ZOOM_ON_LONG_HELP);
+}
+
+int main(int argc, char* argv[]) {
+	NetSpeed::Config::init();
+
+    /* Check license */
+    NetSpeed::NocContainer::update_lic_info(true);
+
+    /* Defined propertys in NocProperty.cpp (Line:998) --> void init<NocContainer>() */
+    NetSpeed::Property::init<NetSpeed::NocContainer>();
+
+    /* Add & Replace gui commands */
+    NetSpeed::NocConsole::init();
+
+    /* Add gui commands */
+    register_gui_commands();
+	
+	try {
+        QApplication app(argc, argv);
+#if defined(Q_OS_LINUX)
+        // Uncomment below lines for custom font directory
+        // QString fontPath = "font_path_with_name";
+        // QFontDatabase::addApplicationFont(fontPath);
+        // app.setFont(QFont("font_name")
+        app.setFont(QFont("Sans Serif"));
+#endif
+        static const char DEVICE_PIXEL_RATIO[] = "QT_DEVICE_PIXEL_RATIO";
+        if (!qEnvironmentVariableIsSet(DEVICE_PIXEL_RATIO) &&
+            !qEnvironmentVariableIsSet("QT_AUTO_SCREEN_SCALE_FACTOR") &&
+            !qEnvironmentVariableIsSet("QT_SCALE_FACTOR") &&
+            !qEnvironmentVariableIsSet("QT_SCREEN_SCALE_FACTORS")) {
+            QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+        }
+        auto splash = createSpashScreen();
+        MainWindow w(nullptr);
+        splash->finish(&w);
+        splash->deleteLater();
+        w.showMaximized();
+        app.exec();
+    } catch (std::bad_alloc) {
+        std::cerr << "Out of memory exception raised; please provide more memory to "
+                  << PRODUCT_NAME << " for this config or try running it without GUI." << endl;
+        return -1;
+    }
+
+    return 0;
+}
+------------------------------------------------------------------------------------------
+mainwindow.cpp:
+------------------------------------------------------------------------------------------
+	MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
+	{
+		auto helpAppDialog = new HelpAppDialog(&NetSpeed::GUIHelp::gui_help, &NetSpeed::Property::addl_html_prop_help, this);
+		helpAppDialog->itemFinderButtonSlot(&NetSpeed::GUIHelp::gui_help);
+		
+		/* Get the components inside the dialog and display them on new widget */
+		auto helpLayout = helpAppDialog->layout();
+		QWidget* helpWidget = new QWidget(this);
+		QHBoxLayout* mainLayout = new QHBoxLayout(helpWidget);
+		while (auto item = helpLayout->takeAt(0)) {
+			auto w = item->widget();
+			if (w) {
+				w->setParent(helpWidget);
+				mainLayout->addWidget(w);
+			}
+			delete item;
+		}
+		helpWidget->setLayout(mainLayout);
+		setCentralWidget(helpWidget);
+	}
+
+	MainWindow::~MainWindow() {}
+
+	void MainWindow::closeEvent(QCloseEvent* event)
+	{
+		auto dialog = new CloseAppDialog(this);
+		if (dialog->exec() == QDialog::Accepted) {
+			QMainWindow::closeEvent(event);
+		} else {
+			event->ignore();
+			return;
+		}
+		QMainWindow::closeEvent(event);
+	}
+------------------------------------------------------------------------------------------
+mainwindow.h
+------------------------------------------------------------------------------------------
+/*
+ *  mainwindow.h
+ *  Noc GUI HelpText
+ *
+ *  Created by Tuan Nguyen 06/11/2025
+ *  Copyright (c) 2013 NetSpeed Systems. All rights reserved.
+ *
+ *  Main GUI
+ *
+ */
+
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QtCore/QMap>
+#include <QWidget>
+
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+public:
+    MainWindow(QWidget* parent = 0);
+    ~MainWindow();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
+};
+
+#endif  // MAINWINDOW_H
+#####################################################################################################################################################################################################################################

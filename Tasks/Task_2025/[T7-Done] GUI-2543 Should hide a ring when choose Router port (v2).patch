@@ -1,0 +1,152 @@
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 13 ++++++++++++-
+ .../prototype_qt6/Gui/View/NsNocViewScene.cpp      | 22 +++++++++++++++++-----
+ 2 files changed, 29 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 2409c478d37..4fd4dd85115 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -2589,8 +2589,8 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+         }
+         emit console->processCommandSlot(command);
+     } else if (nocScene->getInsType() == ADD_CONNECT) {
+-        selected_port = true;
+         if (nocScene->instrumentMediator) {
++            selected_port = true;
+             nocScene->instrumentMediator->setData(USER_DATA, true);  // Detect update arrow path
+             int type_item = nocScene->instrumentMediator->data(ITEM_TYPE).toInt();
+             switch (type_item) {
+@@ -2613,6 +2613,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                     auto listLayer = checkRegbusLayers(nocScene->getLayers().keys());
+                     chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port);
+                     if (msgBox->exec() == QDialog::Accepted) {
++                        selected_port = false;
+                         QString destRouter = m_router + m_port;
+                         auto textOption = msgBox->getTextRouterDest();
+                         if (!textOption.isEmpty()) {
+@@ -2628,6 +2629,8 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                         emit console->processCommandSlot(cmd);
+                         nocScene->instrumentMediator = nullptr;
+                     } else {
++                        selected_port = false;
++                        setBrush(Qt::transparent);
+                         mw->getPropertyPanel()->addConnectProperties();
+                     }
+                 }
+@@ -2638,6 +2641,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                 QString destRouter = m_router + m_port;
+                 mw->getPropertyPanel()->addConnectProperties("Router|" + destRouter);
+                 if (msgBox->exec() == QDialog::Accepted) {
++                    selected_port = false;
+                     QString extra_arg  = msgBox->getArgument();
+                     QString srcRouter  = nocScene->instrumentMediator->data(ITEM_NAME).toString();
+                     
+@@ -2652,6 +2656,8 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                     emit console->processCommandSlot(cmd);
+                     nocScene->instrumentMediator = nullptr;
+                 } else {
++                    selected_port = false;
++                    setBrush(Qt::transparent);
+                     mw->getPropertyPanel()->addConnectProperties();
+                 }
+                 break;
+@@ -2659,11 +2665,16 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+             case TYPE_ITEM::ROUTER: {
+                 chooseArgumentDialog* msgBox = new chooseArgumentDialog(g);
+                 if (msgBox->exec() == QDialog::Accepted) {
++                    selected_port = false;
+                     QString extra_arg = msgBox->getArgument();
+                     QString router    = nocScene->instrumentMediator->data(ITEM_NAME).toString();
+                     QString cmd = QString("connect -src ") + router + QString(" -dest ") + m_router + extra_arg;
+                     emit console->processCommandSlot(cmd);
+                     nocScene->instrumentMediator = nullptr;
++                } else {
++                    selected_port = false;
++                    setBrush(Qt::transparent);
++                    update();
+                 }
+                 break;
+             }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index a9b51e7d24f..b78aaaa2bdb 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -2549,8 +2549,8 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+         }
+         emit console->processCommandSlot(command);
+     } else if (nocScene->getInsType() == ADD_CONNECT) {
+-        selected_port = true;
+         if (nocScene->instrumentMediator) {
++            selected_port = true;
+             nocScene->instrumentMediator->setData(USER_DATA, true);  // Detect update arrow path
+             int type_item = nocScene->instrumentMediator->data(ITEM_TYPE).toInt();
+             switch (type_item) {
+@@ -2573,6 +2573,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                     auto listLayer = checkRegbusLayers(nocScene->getLayers().keys());
+                     chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port);
+                     if (msgBox->exec() == QDialog::Accepted) {
++                        selected_port = false;
+                         QString destRouter = m_router + m_port;
+                         auto textOption = msgBox->getTextRouterDest();
+                         if (!textOption.isEmpty()) {
+@@ -2582,11 +2583,15 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                             } else {
+                                 destRouter = QString("{") + textOption + QString("}");
+                             }
+-                        } 
++                        }
+                         QString cmd = QString("connect -src ") + QString::fromStdString(bridge_src->name()) +
+                                       QString(" -dest ") + destRouter;
+                         emit console->processCommandSlot(cmd);
+                         nocScene->instrumentMediator = nullptr;
++                    } else {
++                        selected_port = false;
++                        setBrush(Qt::transparent);
++                        update();
+                     }
+                 }
+                 break;
+@@ -2594,6 +2599,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+             case TYPE_ITEM::ROUTER_CONNECTION: {
+                 chooseArgumentDialog* msgBox = new chooseArgumentDialog(g);
+                 if (msgBox->exec() == QDialog::Accepted) {
++                    selected_port = false;
+                     QString extra_arg  = msgBox->getArgument();
+                     QString srcRouter  = nocScene->instrumentMediator->data(ITEM_NAME).toString();
+                     QString destRouter = m_router + m_port;
+@@ -2607,26 +2613,32 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                                   QString(" -dest ") + destRouter + extra_arg;
+                     emit console->processCommandSlot(cmd);
+                     nocScene->instrumentMediator = nullptr;
++                } else {
++                    selected_port = false;
++                    setBrush(Qt::transparent);
++                    update();
+                 }
+                 break;
+             }
+             case TYPE_ITEM::ROUTER: {
+                 chooseArgumentDialog* msgBox = new chooseArgumentDialog(g);
+                 if (msgBox->exec() == QDialog::Accepted) {
++                    selected_port = false;
+                     QString extra_arg = msgBox->getArgument();
+                     QString router    = nocScene->instrumentMediator->data(ITEM_NAME).toString();
+                     QString cmd = QString("connect -src ") + router + QString(" -dest ") + m_router + extra_arg;
+                     emit console->processCommandSlot(cmd);
+                     nocScene->instrumentMediator = nullptr;
++                } else {
++                    selected_port = false;
++                    setBrush(Qt::transparent);
++                    update();
+                 }
+                 break;
+             }
+             default:
+                 break;
+             }
+-            selected_port = false;
+-            setBrush(Qt::transparent);
+-            update();
+         } else {
+             auto propPanel = mw->getPropertyPanel();
+             nocScene->instrumentMediator = new NsInstrumentMediator();

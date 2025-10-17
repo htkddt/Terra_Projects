@@ -1,0 +1,685 @@
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 178 +++++++++++++++------
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.h   |  33 ++--
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     |  67 +++++++-
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.h       |  74 ++++++++-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        |   2 +-
+ src/sw/noc_dev/prototype/Gui/mainwindow.h          |   6 +-
+ 6 files changed, 289 insertions(+), 71 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 54471db9692..4dd8b0e01f3 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -13,9 +13,9 @@ using namespace std;
+ 
+ NsRouterDiagramManager* NsRouterDiagramManager::m_manager = nullptr;
+ 
+-int getRouterPolygonSize(NetSpeed::Router* router){
+-    const int mininum_size = 230;
+-    const int offset = 60;
++int getRouterPolygonSize(NetSpeed::Router* router, int mininum_size=250)
++{
++    int offset = 89;
+     int count = 0, maxVcOnPort = 0;
+     vector<NetSpeed::Rx_Port*> rx_ports = router->get_rx_noc_ports(true);
+     vector<NetSpeed::Tx_Port*> tx_ports = router->get_tx_noc_ports(true);
+@@ -29,7 +29,16 @@ int getRouterPolygonSize(NetSpeed::Router* router){
+         maxVcOnPort = std::max(++count, maxVcOnPort);
+         count = 0;
+     }
+-    return std::max(maxVcOnPort * offset, mininum_size);
++
++    int max_size = std::max(maxVcOnPort * offset, mininum_size);
++    if (maxVcOnPort < NetSpeed::VC_id::max) {
++        max_size += 2 * offset;
++        if (maxVcOnPort == (NetSpeed::VC_id::max - 1)) {
++            max_size -= offset;
++        }
++    }
++
++    return (max_size);
+ }
+ 
+ QPainterPath getBridgeRouterWindowPath(QRect rect, const int maxWidth, const int maxHeight, const int verticalSliderPos,
+@@ -65,7 +74,7 @@ QPainterPath getBridgeRouterWindowPath(QRect rect, const int maxWidth, const int
+         toPoint += QPoint(maxWidth, 0); path.lineTo(toPoint);
+         toPoint = startPoint + QPoint(-margin, margin); path.lineTo(toPoint);
+         path.lineTo(startPoint);
+-        //Set pop up menu selection direction to avoid overlap with bridg diagram
++        //Set pop up menu selection direction to avoid overlap with bridge diagram
+         if (wScene) wScene->setMenuDirection(Qt::LeftToRight);
+     }
+     else { // show window on the right of bridge
+@@ -515,6 +524,7 @@ void NsRouterDiagramVC::paint(QPainter * painter, const QStyleOptionGraphicsItem
+     Q_UNUSED(widget);
+ 
+     // To fix problem which makes QPainter does not draw arrow tail
++    painter->setRenderHint(QPainter::Antialiasing);
+     painter->setRenderHint(QPainter::Qt4CompatiblePainting);
+ 
+     auto arrowPath = path();
+@@ -635,7 +645,10 @@ void NsCloseSymbol::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
+ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath & path)
+ {
+     QFont font;
+-    const int fontSize = 10;
++    int fontSize = 12;
++    if (router_polygon_size > (2*polygon_mininum_size)) {
++        fontSize = 20;
++    }
+     font.setPixelSize(fontSize);
+     font.setWeight(QFont::Thin);
+     auto fontMetric = QFontMetrics(font).boundingRect(vcName);
+@@ -645,28 +658,43 @@ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath &
+     bool reverse = false;
+     int xMargin = 0;
+     int yMargin = 0;
+-    const int adjustFactor = fontMetric.height() / 3;
++    const int adjustFactor = static_cast<int>(fontMetric.height() / 3);
+     QPoint adjustPoint = QPoint(0, adjustFactor);
+     if (end.x() > start.x()) {
+-        if (end.y() > start.y()) rotationAngle = 45;
+-        else if (end.y() < start.y()) rotationAngle = -45;
+-        else rotationAngle = 0;
+         xMargin = 6;
++        if (end.y() > start.y()) {
++            rotationAngle = 45;
++            xMargin = 0;
++        } else if (end.y() < start.y()) {
++            rotationAngle = -45;
++            xMargin += xMargin;
++        } else {
++            rotationAngle = 0;
++        }
+     }
+     else if (end.x() < start.x()) {
+-        if (end.y() > start.y()) rotationAngle = 135;
+-        else if (end.y() < start.y()) rotationAngle = -135;
+-        else rotationAngle = 180;
+-        reverse = true;
+         xMargin = -6;
++        if (end.y() > start.y()) {
++            rotationAngle = 135;
++            xMargin = 0;
++        } else if (end.y() < start.y()) {
++            rotationAngle = -135;
++            xMargin += xMargin;
++        } else {
++            rotationAngle = 180;
++        }
++        reverse = true;
+     }
+     else {   //end.x() = start.x()
++        xMargin = 6;
+         if (end.y() > start.y()) {
+             rotationAngle = 90;
+             adjustPoint = QPoint(-adjustFactor, 0);
+         }
+-        else { rotationAngle = -90; yMargin = adjustFactor; }
+-        xMargin = 6;
++        else {
++            rotationAngle = -90; yMargin = adjustFactor;
++            xMargin += xMargin;
++        }
+     }
+ 
+     QPainterPath p;
+@@ -1063,7 +1091,7 @@ void NsBridgeDiagram::initData()
+     }
+ }
+ 
+-NsRouterDiagram::NsRouterDiagram(NetSpeed::Router * nsRouter, QGraphicsItem * nsGuiRouter) : QGraphicsPathItem(nsGuiRouter), router(nsRouter), guiRouter(nsGuiRouter)
++NsRouterDiagram::NsRouterDiagram(NetSpeed::Router * nsRouter, QGraphicsItem * nsGuiRouter, bool hasOutLine) : QGraphicsPathItem(nsGuiRouter), router(nsRouter), guiRouter(nsGuiRouter)
+ {
+     mesh = getFirst<NsMesh>(nsGuiRouter->collidingItems(), MESH);
+     setAcceptHoverEvents(true);
+@@ -1072,7 +1100,7 @@ NsRouterDiagram::NsRouterDiagram(NetSpeed::Router * nsRouter, QGraphicsItem * ns
+     if (wView) mw = wView->getMainWindow();
+     m_name = router->name();
+     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemSendsScenePositionChanges);
+-    initData();
++    initData(hasOutLine);
+     m_eff = new QGraphicsOpacityEffect(this);
+     m_routerPolyGon->setGraphicsEffect(m_eff);
+     m_eff->setOpacity(1);
+@@ -1084,7 +1112,7 @@ NsRouterDiagram::~NsRouterDiagram()
+     if (mw) mw->removeDiagramItem(this);
+ }
+ 
+-void NsRouterDiagram::initData()
++void NsRouterDiagram::initData(bool hasOutLine)
+ {
+     if (!router || !guiRouter || !wView) return;
+     qDeleteAll(childItems());
+@@ -1094,6 +1122,11 @@ void NsRouterDiagram::initData()
+     layer_id = router->get_layer();
+     router_polygon rp = {getRouterPolygonSize(router)};
+     const int newSchematicVCPosition = startMargin + rp.north_port_length / 4;
++    router_polygon_size = rp.size;
++    if (router_polygon_size > (2*polygon_mininum_size)) {
++        nameSize   += 8;
++        vcBodyLine += 12;
++    }
+     //Calculate router diagram boundary path
+     vector<NetSpeed::Rx_Port*> rx_ports = router->get_rx_noc_ports(true);
+     vector<NetSpeed::Tx_Port*> tx_ports = router->get_tx_noc_ports(true);
+@@ -1174,7 +1207,6 @@ void NsRouterDiagram::initData()
+                 width /= sqrt(2);
+                 northLen = std::max(northLen, width);
+                 westLen = std::max(westLen, width);
+-                westLen = westLen > width ? westLen : width;
+                 endL = startL = rp.NWStart + QPoint(transition / sqrt(2),
+                     -transition / sqrt(2));
+                 if (router->use_new_schematic())
+@@ -1220,13 +1252,14 @@ void NsRouterDiagram::initData()
+         }
+     }
+ 
+-    const int margin = 12;
++    const int margin = 25;
+     int maxWidth = rp.size + westLen + eastLen + 2 * margin;
+     int maxHeight = rp.size + southLen + northLen + 2 * margin;
+     auto guiRouterSceneRect = guiRouter->boundingRect().toRect();
+     auto verticalScrollBarValue = wView->verticalScrollBar()->value();
+     auto viewPortSize = wView->viewport()->rect().size();
+-    QRectF routerRecBox;
++    QRectF routerRecBox = QRectF();
++
+     bool isDiagramDisplayLeft = false;
+     auto diagramPath = getBridgeRouterWindowPath(guiRouterSceneRect, maxWidth, maxHeight, verticalScrollBarValue,
+                                                  viewPortSize, nullptr, routerRecBox, &isDiagramDisplayLeft);
+@@ -1259,24 +1292,28 @@ void NsRouterDiagram::initData()
+     for (auto& it : in_vcs) addVCtoDiagram(it.first, it.second, false, polyGonStartPoint);
+     for (auto& it : out_vcs) addVCtoDiagram(it.first, it.second, true, polyGonStartPoint);
+ 
+-    /* Adding a backgound for 'X' symbol */
+-    QPainterPath background;
+-    const float bg_margin = 33.0;
+-    QPointF startPointbg = routerRecBox.topRight() + QPointF(-34.0, 1.0);
+-    QSizeF recSize(bg_margin, bg_margin);
+-    QRectF recBounding(startPointbg, recSize);
+-    background.addRect(recBounding);
+-    new NsCloseSymbol(background, true, this);
+-
+-    /* Adding a 'X' symbol */
+-    QPainterPath closeSymbol;
+-    const float x_margin = 15.0;
+-    QPointF startPointx  = routerRecBox.topRight() + QPointF(-25.0, 10.0);
+-    closeSymbol.moveTo(startPointx);
+-    closeSymbol.lineTo(startPointx + QPointF(x_margin, x_margin));
+-    closeSymbol.moveTo(startPointx + QPointF(0.0, x_margin));
+-    closeSymbol.lineTo(startPointx + QPointF(x_margin, 0.0));
+-    new NsCloseSymbol(closeSymbol, false, this);
++    if (hasOutLine) {
++        /* Adding a backgound for 'X' symbol */
++        QPainterPath background;
++        const float bg_margin = 33.0;
++        QPointF startPointbg  = routerRecBox.topRight() + QPointF(-34.0, 1.0);
++        QSizeF recSize(bg_margin, bg_margin);
++        QRectF recBounding(startPointbg, recSize);
++        background.addRect(recBounding);
++        new NsCloseSymbol(background, true, this);
++
++        /* Adding a 'X' symbol */
++        QPainterPath closeSymbol;
++        const float x_margin = 15.0;
++        QPointF startPointx  = routerRecBox.topRight() + QPointF(-25.0, 10.0);
++        closeSymbol.moveTo(startPointx);
++        closeSymbol.lineTo(startPointx + QPointF(x_margin, x_margin));
++        closeSymbol.moveTo(startPointx + QPointF(0.0, x_margin));
++        closeSymbol.lineTo(startPointx + QPointF(x_margin, 0.0));
++        new NsCloseSymbol(closeSymbol, false, this);
++    } else {
++        setPen(Qt::NoPen);  // to hide routerRecBox
++    }
+ 
+     update();
+ }
+@@ -1358,19 +1395,36 @@ QGraphicsItem* NsRouterDiagram::getArrowItem(std::string arrowName)
+ 
+ void NsRouterDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
++    event->accept();
++    isDragging = false;
++    startPos = pos();
+     mw->updateZValueOfListDiagrams(this);
+-    if (wScene) {
+-        for (auto item : wScene->selectedItems()) {
++    if (wScene && !wScene->selectedItems().isEmpty()) {
++        for (auto& item : wScene->selectedItems()) {
+             item->setSelected(false);
++            item->update();
++        }
++    } else {
++        for (auto& item : this->scene()->selectedItems()) {
++            item->setSelected(false);
++            item->update();
+         }
+     }
+-    hideFlowData();
+-    event->accept();
++}
++
++void NsRouterDiagram::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
++{
++    if (!(isDragging && (pos() != startPos))) {
++        hideFlowData();
++    }
++    isDragging = false;
++    QGraphicsPathItem::mouseReleaseEvent(event);
+ }
+ 
+ QVariant NsRouterDiagram::itemChange(GraphicsItemChange change, const QVariant& value)
+ {
+     if ((change == QGraphicsItem::ItemPositionChange || change == QGraphicsItem::ItemPositionHasChanged) && diagramLine) {
++        if (!isDragging) isDragging = true;
+         diagramLine->moveLineToPosition(scenePos() + arrowPos);
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
+         diagramLine->setLineVisible(value.toBool());
+@@ -1381,8 +1435,9 @@ QVariant NsRouterDiagram::itemChange(GraphicsItemChange change, const QVariant&
+ 
+ void NsRouterDiagram::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty())
++    if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty()) {
+         setToolTip(toolTip2Html(router->get_tooltip()));
++    }
+     QGraphicsPathItem::hoverEnterEvent(event);
+ }
+ 
+@@ -1414,6 +1469,17 @@ NsRouterPolyGon::NsRouterPolyGon(NetSpeed::Router * r, QPointF & start, const QP
+     }
+     routerName =  QString::fromStdString(router->name());
+     boundingRec = path.boundingRect();
++
++    int polygon_mininum_size = 250;
++    auto routerDiagram  = dynamic_cast<NsRouterDiagram*>(parent);
++    if (routerDiagram) polygon_mininum_size = routerDiagram->get_polygon_minimum_size();
++    if (rp.size >= (2*polygon_mininum_size)) {
++        xOffsetMargin   += 30;
++        yOffsetMargin   += 30;
++        diagramTextSize += 30;
++        diagramNameSize += 30;
++        tolerance += 10;
++    }
+ }
+ 
+ void NsRouterPolyGon::hoverEnterEvent(QGraphicsSceneHoverEvent * event) {
+@@ -1422,19 +1488,25 @@ void NsRouterPolyGon::hoverEnterEvent(QGraphicsSceneHoverEvent * event) {
+     QGraphicsPathItem::hoverEnterEvent(event);
+ }
+ 
+-void NsRouterPolyGon::mousePressEvent(QGraphicsSceneMouseEvent * event) {
++void NsRouterPolyGon::mousePressEvent(QGraphicsSceneMouseEvent * event)
++{
+     event->ignore();
+-    auto meshScene = static_cast<NsMeshViewScene*>(scene());
+-    if (event->button() != Qt::MidButton && !isAddBridgeNoc(meshScene->getInsType()) &&
++    auto router_diagram = dynamic_cast<NsRouterDiagram*>(this->parentItem());
++    if (!router_diagram) return;
++    if (router_diagram->getFlowData()) return;
++    auto meshScene = router_diagram->getMeshViewScene();
++    if ((event->button() != Qt::MidButton) && meshScene && (!isAddBridgeNoc(meshScene->getInsType())) &&
+         !isAddAgentMeshView(meshScene->getInsType())) {
+-        auto mw = qobject_cast<MainWindow*>(QApplication::activeWindow());
+-        if (!mw)  return;
++        auto mw = router_diagram->getMainWindow();
++        if (!mw) return;
+         if (auto propPanel = mw->getPropertyPanel()) {
+             propPanel->updateRouterProperties(router, true);
+             propPanel->raiseSelectionTab();
+             mw->raiseTooltipTab();
+         }
+     }
++
++    QGraphicsPathItem::mousePressEvent(event);
+ }
+ 
+ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_id it)
+@@ -1642,7 +1714,11 @@ void NsRouterPolyGon::drawAddDrop(QPainter & painter, NetSpeed::Port_id p, bool
+     painter.restore();
+ }
+ 
+-void NsRouterPolyGon::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) {
++void NsRouterPolyGon::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
++{
++    qreal levelOfDetail = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
++    if (levelOfDetail > 5.0) return;
++
+     painter->setRenderHint(QPainter::Antialiasing);
+     painter->save();
+     const int polygonPen = 2;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index 60f1f2f61b3..bcfff10eefa 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -162,9 +162,9 @@ class NsRouterDiagram : public QObject, public QGraphicsPathItem
+ {
+     Q_OBJECT
+ public:
+-    NsRouterDiagram(NetSpeed::Router*, QGraphicsItem*);
++    NsRouterDiagram(NetSpeed::Router*, QGraphicsItem*, bool hasOutLine = true);
+     ~NsRouterDiagram();
+-    void initData();
++    void initData(bool);
+     void drawVcLabel(QLineF&, QString, QPainterPath&);
+     void drawFeedBackArrow(int dir, QLineF & line, const NetSpeed::VC * vc, QGraphicsItem * parent);
+     QGraphicsItem* getGuiRouter() { return guiRouter; }
+@@ -176,14 +176,19 @@ public:
+     void showFlowData(const NetSpeed::VC * vc, bool hasAnimation = true, bool hover = false);
+     void showFlowData(std::string arrowName, bool hasAnimation = true);
+     void hideFlowData(bool hover = false);
++    QGraphicsPathItem* getFlowData() const { return flowData; }
+     void showTooltip(std::string arrowName);
++    int get_polygon_minimum_size() { return polygon_mininum_size; }
++    int get_polygon_size() { return router_polygon_size; }
++    MainWindow* getMainWindow() const { return mw; }
++    NsMeshViewScene* getMeshViewScene() const { return wScene; }
+ 
+  private:
+     friend class Test_NsBridgeDiagram;
+     //Use in vc start point and end point calculation
+     const int vcLength = 30;
+-    const int nameSize = 10;
+-    const int vcBodyLine = 25;
++    int nameSize = 12;
++    int vcBodyLine = 25;
+     const int startMargin = 4;
+ 
+     int node_id = -1;
+@@ -195,6 +200,8 @@ public:
+     std::vector<QPair<QLineF, const NetSpeed::VC*>> out_vcs;
+     NetSpeed::Router* router = nullptr;
+ 
++    const int polygon_mininum_size = 400;
++    int router_polygon_size = 0;
+     QGraphicsItem* guiRouter = nullptr;
+     NsMeshViewScene* wScene = nullptr;
+     NsView* wView = nullptr;
+@@ -205,6 +212,8 @@ public:
+     QGraphicsItem* m_routerPolyGon = nullptr;
+     QGraphicsOpacityEffect* m_eff = nullptr;
+     bool m_blur = false;
++    bool isDragging = false;
++    QPointF startPos;
+ 
+ private:
+     QPainterPath genRouterPolygon(QPointF,router_polygon);
+@@ -216,6 +225,7 @@ private:
+ protected:
+     virtual int type() const override { return ROUTER_DIAGRAM; }
+     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
++    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+     void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+@@ -234,11 +244,11 @@ private:
+     QPointF startPoint;
+     NetSpeed::Router* router = nullptr;
+ 
+-    const int tolerance = 5;
+-    const int xOffsetMargin = 28;
+-    const int yOffsetMargin = 15;
+-    const int diagramTextSize = 13;
+-    const int diagramNameSize = 15;
++    int tolerance = 5;
++    int xOffsetMargin = 28;
++    int yOffsetMargin = 15;
++    int diagramTextSize = 13;
++    int diagramNameSize = 18;
+ 
+     const float sizeFactor = 0.6;
+     const float pointFactor = 0.2;
+@@ -252,8 +262,7 @@ private:
+ 
+ private:
+     void drawTextRouterDiagram(QPainter&, NetSpeed::Port_id);
+-    void drawAddDrop(QPainter&, NetSpeed::Port_id
+-        , bool);
++    void drawAddDrop(QPainter&, NetSpeed::Port_id, bool);
+ 
+ protected:
+     friend class Test_NsBridgeDiagram;
+@@ -448,12 +457,14 @@ public:
+     void showFlowData(NetSpeed::Rx_VChannel* chanel, bool hasAnimation = true);
+     void showFlowData(std::string arrowName, bool hasAnimation = true);
+     void hideFlowData(bool hover = false);
++    QGraphicsPathItem* getFlowData() const { return flowData; }
+     void clearMesh() { mesh = nullptr; }
+     std::string m_name;
+     int m_layerId;
+     QGraphicsItem* parentBridge = nullptr;
+     QGraphicsItem* getGuiBridge() { return guiBridge; }
+     void showTooltip(std::string arrowName);
++
+ private:
+     /*Rssb Bridge*/
+     void initRssbBridgeData();
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 7772594705e..6cc624efc62 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -287,6 +287,54 @@ QVariant NsRouter::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
+     return QGraphicsRectItem::itemChange(change, value);
+ }
+ 
++
++void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerName, QWidget* parent)
++{
++    // Get the bounding rect of the item
++    item->setFlag(QGraphicsItem::ItemIsMovable, false);
++    QRectF itemRect  = item->boundingRect();
++    QRectF sceneRect = itemRect.adjusted(-1, -1, 1, 1);
++    double aspectRatio = itemRect.width() / itemRect.height();
++    int w = static_cast<int>(itemRect.width() * 0.55);
++    int h = static_cast<int>(w/aspectRatio);
++
++    QGraphicsScene* scene = new QGraphicsScene();
++    scene->setSceneRect(sceneRect);
++    scene->addItem(item);
++    autoFitView* view = new autoFitView(scene, item);
++
++    // Wrap view in aspect-ratio-enforcing widget
++    QWidget* aspectWrapper = new aspectRatioWidget(view, aspectRatio);
++
++    // Layout
++    aspectRatioDialog* dialog = new aspectRatioDialog(item, parent);
++    if (auto mw = dynamic_cast<MainWindow*>(parent)) {
++        auto index = mw->getListDialogOfDiagrams().indexOf(item);
++        if (index < 0) mw->appendListDialogOfDiagrams(item);
++    }
++    QVBoxLayout* layout = new QVBoxLayout();
++    layout->setContentsMargins(0, 0, 0, 0);
++    layout->addWidget(aspectWrapper);
++    dialog->setLayout(layout);
++
++    // Create a dialog without borders
++    dialog->setWindowFlags(Qt::Dialog | Qt::Tool);
++    dialog->setAttribute(Qt::WA_DeleteOnClose);
++    dialog->setWindowTitle("Router Diagram " + routerName);
++    dialog->resize(w, h);
++    dialog->show();
++}
++
++void aspectRatioDialog::closeEvent(QCloseEvent* event)
++{
++    event->accept();
++    if (auto mw = dynamic_cast<MainWindow*>(parentWidget())) {
++        auto index = mw->getListDialogOfDiagrams().indexOf(routerDiagram);
++        if (index < 0) return;
++        mw->removeDialogOfDiagramItem(index);
++    }
++}
++
+ /**
+ * @brief to receive mouse press events for this item
+ * @param event of mouse
+@@ -294,7 +342,7 @@ QVariant NsRouter::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
+ */
+ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+-    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++    auto isOpenedItem = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
+         for (const auto& diagram : listDiagrams) {
+             if (diagram->type() == ROUTER_DIAGRAM) {
+                 if (auto nsRouterDiagram = dynamic_cast<NsRouterDiagram*>(diagram)) {
+@@ -327,13 +375,20 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             if (!router) return;
+             if (!grid->is_active_router(router->get_layer(),
+                 router->get_id())) return;
+-            //bool hasMeshSplit = false;
+-            auto diagram = NsRouterDiagramManager::manager(scene())->createDiagramFromRouter(this);
+-            if (diagram) {
+-                mw->appendListDiagrams(diagram);
++            auto dialogOpenning = isOpenedItem(mw->getListDialogOfDiagrams());
++            if (dialogOpenning) return;
++            auto hugeDiagram = new NsRouterDiagram(this->getRouter(), this, false);
++            if (hugeDiagram->get_polygon_size() <= (2 * hugeDiagram->get_polygon_minimum_size())) {
++                delete hugeDiagram;
++                auto normalDiagram = NsRouterDiagramManager::manager(scene())->createDiagramFromRouter(this);
++                mw->appendListDiagrams(normalDiagram);
++            } else {
++                hugeDiagram->setParentItem(nullptr);
++                QString routerName = QString::fromStdString(hugeDiagram->getName());
++                moveRouterDiagramToDialog(hugeDiagram, routerName, mw);
+             }
+         } else if (event->button() == Qt::LeftButton) {
+-            auto diagramOpenning = isOpenedDiagram(mw->getListDiagrams());
++            auto diagramOpenning = isOpenedItem(mw->getListDiagrams());
+             if (diagramOpenning) {
+                 mw->updateZValueOfListDiagrams(diagramOpenning);
+             }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+index fe45260a7db..8739ba6c1d7 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+@@ -67,6 +67,7 @@ public:
+     std::string getRTLGroup();
+     void setDefaultSize() { highlight = false; setRect(rec); }
+     void updateSize(QRectF r) { highlight = true; setRect(r); }
++    void moveRouterDiagramToDialog(QGraphicsItem*, QString&, QWidget*);
+ 
+     bool highlight = false;
+ 
+@@ -124,7 +125,7 @@ private:
+     const NetSpeed::Power_domain_props_t* powerDomainRouter = nullptr;
+     bool showLinkOnly = false;
+     bool isSCFMode = false;
+-    QRectF rec = QRectF();   
++    QRectF rec = QRectF();
+ };
+ 
+ class NsChopViewRouter : public QGraphicsRectItem
+@@ -223,4 +224,75 @@ protected:
+     QPainterPath shape() const override;
+ };
+ 
++class aspectRatioWidget : public QWidget
++{
++public:
++    aspectRatioWidget(QWidget* child, double aspectRatio, QWidget* parent = nullptr)
++    : QWidget(parent), m_child(child), m_aspectRatio(aspectRatio) {
++        auto layout = new QVBoxLayout(this);
++        layout->setContentsMargins(0, 0, 0, 0);
++        layout->addWidget(m_child);
++    }
++
++    QSize sizeHint() const override {
++        QSize s = m_child->sizeHint();
++        return QSize(s.width(), static_cast<int>(s.width() / m_aspectRatio));
++    }
++
++    bool hasHeightForWidth() const override { return true; }
++
++    int heightForWidth(int w) const override { return static_cast<int>(w / m_aspectRatio); }
++
++private:
++    QWidget* m_child;
++    double m_aspectRatio;
++};
++
++
++class aspectRatioDialog : public QDialog
++{
++public:
++    aspectRatioDialog(QGraphicsItem* diagram, QWidget* parent = nullptr) : QDialog(parent), routerDiagram(diagram) {
++        setMinimumSize(500, 500);
++    }
++
++protected:
++    void resizeEvent(QResizeEvent* event) override {
++        QSize newSize = event->size();
++        int size = qMin(newSize.width(), newSize.height());
++        resize(size, size);
++        QDialog::resizeEvent(event);
++    }
++    void closeEvent(QCloseEvent* event) override;
++
++private:
++    QGraphicsItem* routerDiagram = nullptr;
++};
++
++class autoFitView : public QGraphicsView
++{
++public:
++    autoFitView(QGraphicsScene* scene, QGraphicsItem* item, QWidget* parent = nullptr)
++    : QGraphicsView(scene, parent), m_item(item) {
++        setFrameShape(QFrame::NoFrame);
++        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
++        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
++        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
++    }
++
++protected:
++    void resizeEvent(QResizeEvent* event) override {
++        QGraphicsView::resizeEvent(event);
++        fitInView(m_item, Qt::KeepAspectRatio);
++    }
++
++    void showEvent(QShowEvent* event) override {
++        QGraphicsView::showEvent(event);
++        fitInView(m_item, Qt::KeepAspectRatio);
++        this->updateGeometry();
++    }
++
++private:
++    QGraphicsItem* m_item;
++};
+ #endif // NS_ROUTER_H
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index fc1435a1e53..c377d975d21 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -9400,7 +9400,7 @@ void MainWindow::clearListDiagrams()
+ 
+ void MainWindow::updateZValueOfListDiagrams(QGraphicsItem* diagram)
+ {
+-    if (listDiagrams.isEmpty()) return;
++    if (listDiagrams.size() < 2) return;
+     int itemIndex = listDiagrams.indexOf(diagram);
+     if (itemIndex == -1) return;
+     // Move diagram to end of list
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index 1026eee1281..78c5a9ababf 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -276,6 +276,10 @@ public:
+     QTabWidget* getDisplayPanel() { return displayPanel; }
+     InstrumentsEnum getInstrumentsEnum(QAction* currentAction) { return instrumentsActMap.key(currentAction); }
+ 
++    QList<QGraphicsItem*> getListDialogOfDiagrams() { return listDialogOfDiagrams; }
++    void appendListDialogOfDiagrams(QGraphicsItem* item) { listDialogOfDiagrams.append(item); }
++    void removeDialogOfDiagramItem(int index) { listDialogOfDiagrams.removeAt(index); }
++
+     QList<QGraphicsItem*> getListDiagrams() { return listDiagrams; }
+     void appendListDiagrams(QGraphicsItem* item);
+     void removeDiagramItem(QGraphicsItem* item);
+@@ -691,7 +695,7 @@ private:
+     NsMenuBar* menuBar;
+     QLabel* ECOIndicator, * currentPowerProfile, * currentView;
+     QList<QDialog*> tooltipDialogs;
+-    QList<QGraphicsItem*> listDiagrams;
++    QList<QGraphicsItem*> listDiagrams, listDialogOfDiagrams;
+     int tooltipListCosts, tooltipListHosts, tooltipListTraffic, tooltipShowPerformance, tooltipDynamic, tooltipType;
+     int tabListHosts, tabListTraffic, tabShowPerformance, tabListCosts, tabListRoute,
+         tabListRTLGroup, tabShowDensity, tabReport, tabType;

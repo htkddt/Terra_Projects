@@ -1,0 +1,100 @@
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 72 ++++++++++++----------
+ 1 file changed, 39 insertions(+), 33 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index ed79e4953c6..32f427992b4 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -777,19 +777,21 @@ NsBridgeDiagram::NsBridgeDiagram(NetSpeed::Bridge * b, QGraphicsItem * p) : QGra
+     }
+ }
+ 
+-NsBridgeDiagram::~NsBridgeDiagram() {
+-    if (mesh && dynamic_cast<NsMeshViewScene*>(scene()))
+-        mesh->setZValue(NsMeshViewScene::MESH_ORDER);
+-    if (auto parent = parentItem()) {
+-        if (auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+-            host->setZValue(NsMeshViewScene::HOST_ORDER);
+-        parent->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
+-            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                if (diagram->getMulBris()) {
+-                    diagram->getMulBris()->removeBridgeDiagram(this);
++NsBridgeDiagram::~NsBridgeDiagram()
++{
++    if (mesh && dynamic_cast<NsMeshViewScene*>(scene())) mesh->setZValue(NsMeshViewScene::MESH_ORDER);
++    if (auto parent = guiBridge->parentItem()) {
++        guiBridge->setZValue(NsMeshViewScene::BRIDGE_ORDER);
++        if (parent) {
++            if (parent->type() == HOST) {
++                if (auto host = dynamic_cast<NsNormalHost*>(parent)) host->setZValue(NsMeshViewScene::HOST_ORDER);
++            }
++            if (parent->type() == MULTIPLE_BRIDGE) {
++                parent->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++                if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(parent)) {
++                    if (diagram->getMulBris()) {
++                        diagram->getMulBris()->removeBridgeDiagram(this);
++                    }
+                 }
+             }
+         }
+@@ -1847,16 +1849,18 @@ NsRegbusRing::NsRegbusRing(NetSpeed::Bridge * b, NetSpeed::Node_id regbus_ring_p
+ NsRegbusRing::~NsRegbusRing()
+ {
+     if (mesh && dynamic_cast<NsMeshViewScene*>(scene())) mesh->setZValue(NsMeshViewScene::MESH_ORDER);
+-    if (auto p = parentItem()) {
+-        if(auto host = dynamic_cast<NsNormalHost*>(p->parentItem()))
+-            host->setZValue(NsMeshViewScene::HOST_ORDER);
+-        p->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
+-            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                if (diagram->getMulBris()) {
+-                    diagram->getMulBris()->removeBridgeDiagram(this);
++    if (auto parent = guiBridge->parentItem()) {
++        guiBridge->setZValue(NsMeshViewScene::BRIDGE_ORDER);
++        if (parent) {
++            if (parent->type() == HOST) {
++                if (auto host = dynamic_cast<NsNormalHost*>(parent)) host->setZValue(NsMeshViewScene::HOST_ORDER);
++            }
++            if (parent->type() == MULTIPLE_BRIDGE) {
++                parent->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++                if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(parent)) {
++                    if (diagram->getMulBris()) {
++                        diagram->getMulBris()->removeBridgeDiagram(this);
++                    }
+                 }
+             }
+         }
+@@ -2848,16 +2852,18 @@ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):
+ NsRSSBDiagram::~NsRSSBDiagram()
+ {   
+     if (mesh && dynamic_cast<NsMeshViewScene*>(scene())) mesh->setZValue(NsMeshViewScene::MESH_ORDER);
+-    if (auto parent = parentItem()){
+-        if (auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+-            host->setZValue(NsMeshViewScene::HOST_ORDER);
+-        parent->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
+-            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                if (diagram->getMulBris()) {
+-                    diagram->getMulBris()->removeBridgeDiagram(this);
++    if (auto parent = guiBridge->parentItem()) {
++        guiBridge->setZValue(NsMeshViewScene::BRIDGE_ORDER);
++        if (parent) {
++            if (parent->type() == HOST) {
++                if (auto host = dynamic_cast<NsNormalHost*>(parent)) host->setZValue(NsMeshViewScene::HOST_ORDER);
++            }
++            if (parent->type() == MULTIPLE_BRIDGE) {
++                parent->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++                if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(parent)) {
++                    if (diagram->getMulBris()) {
++                        diagram->getMulBris()->removeBridgeDiagram(this);
++                    }
+                 }
+             }
+         }

@@ -1,0 +1,583 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 124 ++++++++++++++++++++----
+ src/sw/noc_dev/prototype/Gui/mainwindow.h       |   8 +-
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp      |   5 +-
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 124 ++++++++++++++++++++----
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h   |   8 +-
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp  |   3 +
+ 6 files changed, 223 insertions(+), 49 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index e1eac34ebb4..d85b75497f0 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -1338,6 +1338,9 @@ void MainWindow::createFileMenu()
+     fileMenu->addAction(instrumentsActMap[OPEN_SOURCE_FILE]);
+     fileMenu->addAction(instrumentsActMap[LOAD_STAT]);
+     fileMenu->addAction(instrumentsActMap[EXIT_FULLSCREEN]);
++    recentlySourcedMenu = new QMenu("Recently Sourced", this);
++    recentlySourcedAction = fileMenu->addMenu(recentlySourcedMenu);
++    fileMenu->addAction(recentlySourcedAction);
+     fileMenu->addSeparator();
+     fileMenu->addAction(instrumentsActMap[EXIT]);
+ }
+@@ -4940,6 +4943,14 @@ void MainWindow::addTypeDomainAct()
+     }
+ }
+ 
++void MainWindow::clearRecentlySourced()
++{
++    lockRecentlySource = false;
++    recentlySourcedMenu->clear();
++    recentlySourcedAction->setEnabled(false);
++    saveRecentlySourcedHistory();
++}
++
+ void MainWindow::delTypeDomainAct()
+ {
+     if (!console) return;
+@@ -6535,18 +6546,23 @@ void MainWindow::blockageDialog(bool startDialog) {
+     instrumentsActMap[MAKE_ALL_LINKS_UNBLOCKED]->setVisible(true);
+ }
+ 
+-void MainWindow::saveRecentlySourcedHistory() {
++void MainWindow::saveRecentlySourcedHistory()
++{
+     if (!homeDirectoryCheck()) return;
++    if (lockRecentlySource) return;
+     QString settingFilePath = QDir::homePath().append(QDir::separator()).append(settingFolderName)
+                                               .append(QDir::separator()).append(settingName);
+     QSettings settings(settingFilePath, QSettings::IniFormat);
+ 
+-    QStringList sourceList;
+-    for (auto action : fileMenu->actions())
+-        if (auto sourced = dynamic_cast<RecentlySourced*>(action))
+-            sourceList << sourced->text();
+-    std::reverse(std::begin(sourceList), std::end(sourceList));
+-    settings.setValue("xGerneral/" + recentlySourced, QVariant(sourceList));
++    QStringList sourcedList;
++    for (auto action : recentlySourcedMenu->actions()) {
++        if (auto sourced = dynamic_cast<RecentlySourced*>(action)) {
++            if (!sourcedList.contains(sourced->text())) sourcedList << sourced->text();
++        }
++    }
++
++    std::reverse(std::begin(sourcedList), std::end(sourcedList));
++    settings.setValue("NotForUser/" + recentlySourced, QVariant(sourcedList));
+ }
+ 
+ void MainWindow::initHash()
+@@ -6619,7 +6635,8 @@ void MainWindow::saveSettings()
+         settings.setValue(geometryName + "/width", width());
+         settings.setValue(geometryName + "/height", height());
+     }
+-    
++
++    settings.setValue(recentlySourced + "/Locked", QVariant::fromValue(lockRecentlySource));
+ 
+     //Save font and icon size
+     if(auto dialog = ResizeDialog::getResizeDialog()) {
+@@ -6662,9 +6679,9 @@ void MainWindow::saveSettings()
+     QDate expireDate(NetSpeed::Config::expire_year(), NetSpeed::Config::expire_month(), NetSpeed::Config::expire_day());
+     settings.setValue(expireDateName, expireDate.toString("yyyy/MM/dd"));
+ 
+-    //Saving other widget state
+-    settings.setValue("xGerneral/" + stateName, saveState());
+-    settings.setValue("xGerneral/" + geometry, saveGeometry());
++    // Saving other widget state
++    settings.setValue("NotForUser/" + stateName, saveState());
++    settings.setValue("NotForUser/" + geometry, saveGeometry());
+ }
+ 
+ void MainWindow::readSettings()
+@@ -6678,6 +6695,22 @@ void MainWindow::readSettings()
+                                               .append(QDir::separator()).append(settingName);
+     QSettings settings(settingFilePath, QSettings::IniFormat);
+ 
++    /*----------------------------------------------------------------------------------------------
++        - Replace fields "xGerneral" with fields "NotForUser" without affecting user configuration
++        - This code will be removed in 25Q4
++    ------------------------------------------------------------------------------------------------*/
++    if (settings.childGroups().contains("xGerneral")) {
++        const QString source = "Source";
++        auto valueSource = settings.value("xGerneral/" + source).toStringList();
++        settings.setValue("NotForUser/" + recentlySourced, QVariant(valueSource));
++        auto valueSTM = settings.value("xGerneral/" + stateName).toByteArray();
++        settings.setValue("NotForUser/" + stateName, valueSTM);
++        auto valueGMT = settings.value("xGerneral/" + geometry).toByteArray();
++        settings.setValue("NotForUser/" + geometry, valueGMT);
++        settings.remove("xGerneral");
++    }
++    /*----------------------------------------------------------------------------------------------*/
++
+     if (!settings.childGroups().contains(viewOptionList)) {
+         QRect screenGeometry = QApplication::desktop()->screenGeometry();
+         int x = (screenGeometry.width() - width()) / 2;
+@@ -6687,13 +6720,13 @@ void MainWindow::readSettings()
+     }
+ 
+     //restore dock widget state
+-    auto byteArr = settings.value("xGerneral/" + stateName).toByteArray();
++    auto byteArr = settings.value("NotForUser/" + stateName).toByteArray();
+     dockEvents.insert(std::pair<int,QByteArray>(0,byteArr));
+     restoreState(byteArr);
+     //Work around for warning printing when reload settings
+     lowerRightDock->setFloating(false);
+     //restore window state
+-    restoreGeometry(settings.value("xGerneral/" + geometry).toByteArray());
++    restoreGeometry(settings.value("NotForUser/" + geometry).toByteArray());
+     if (!windowState().testFlag(Qt::WindowMaximized)) {
+         int x = settings.value(geometryName + "/x").toInt();
+         int y = settings.value(geometryName + "/y").toInt();
+@@ -6775,9 +6808,17 @@ void MainWindow::readSettings()
+     }
+ 
+     //Restore source history
+-    for (const auto& val : settings.value("xGerneral/" + recentlySourced).toStringList()) {
++    for (const auto& val : settings.value("NotForUser/" + recentlySourced).toStringList()) {
+         addRecentlySourcedAction(val);
+     }
++
++    //Restore Locked property of source history
++    lockRecentlySource = settings.value(recentlySourced + "/Locked").toBool();
++    for (auto action : recentlySourcedMenu->actions()) {
++        if (action->text() != QString("Lock")) continue;
++        action->setChecked(lockRecentlySource);
++        break;
++    }
+         
+     //hide dockwidgets
+     if (propPanel)
+@@ -8778,6 +8819,11 @@ void MainWindow::grayOutDomainViewAndAddList()
+         delActionsOnSpecifyMenu->setEnabled(false);
+         addActionsOnSpecifyMenu->setEnabled(false);
+     }
++    if (recentlySourcedMenu->actions().empty()) {
++        recentlySourcedAction->setEnabled(false);
++    } else {
++        recentlySourcedAction->setEnabled(true);
++    }
+ }
+ 
+ void MainWindow::limitNameSize(QString & name)
+@@ -9718,15 +9764,21 @@ void MainWindow::enableGlobalWebAct(bool state) {
+     console->applyCmd(CMD_PROP_DEFAULT_GLOBAL_WEB + ((state) ? " yes" : " no"));
+ }
+ 
+-bool MainWindow::addRecentlySourcedAction(const QString& cmd) {
+-    if (!fileMenu) return false;
++bool MainWindow::addRecentlySourcedAction(const QString& cmd)
++{
++    if (!recentlySourcedMenu) return false;
++    if (lockRecentlySource) return false;
+     auto strs = cmd.right(cmd.size() - QString("source").size()).trimmed();
+     if (strs.isEmpty()) return false;
+     auto fileInfo = QFileInfo(strs);
+     if (!fileInfo.isFile() || !fileInfo.exists()) return false;
+     QString command = "source " + fileInfo.absoluteFilePath();
+-    std::vector<RecentlySourced*> actions;
+-    for (auto action : fileMenu->actions()) {
++    QList<RecentlySourced*> actions;
++    QAction* lock = nullptr;
++    QAction* clear = nullptr;
++    for (auto action : recentlySourcedMenu->actions()) {
++        if (action->text() == QString("Lock")) lock = action;
++        if (action->text() == QString("Clear")) clear = action;
+         if (auto sourced = dynamic_cast<RecentlySourced*>(action)) {
+             if (sourced->text() == command) {
+                 action->deleteLater();
+@@ -9735,9 +9787,39 @@ bool MainWindow::addRecentlySourcedAction(const QString& cmd) {
+             actions.push_back(sourced);
+         }
+     }
+-    if (actions.size() >= 10) fileMenu->removeAction(actions.back());
+-    if (actions.empty()) fileMenu->insertAction(instrumentsActMap[EXIT], new RecentlySourced("source " + fileInfo.absoluteFilePath(), this));
+-    else fileMenu->insertAction(actions.front(), new RecentlySourced("source " + fileInfo.absoluteFilePath(), this));
++    if (actions.size() >= 10) recentlySourcedMenu->removeAction(actions.back());
++    if (actions.empty()) {
++        if (lock && clear) {
++            lock->deleteLater();
++            clear->deleteLater();
++            lock = nullptr;
++            clear = nullptr;
++        }
++        auto act = new RecentlySourced("source " + fileInfo.absoluteFilePath(), this);
++        recentlySourcedMenu->addAction(act);
++        actions.push_front(act);
++    } 
++    else {
++        auto act = new RecentlySourced("source " + fileInfo.absoluteFilePath(), this);
++        recentlySourcedMenu->insertAction(actions.first(), act);
++        actions.push_front(act);
++    }
++    recentlySourcedMenu->addSeparator();
++    if (!lock) {
++        lock = new QAction("Lock");
++        QAction* clear = new QAction("Clear");
++        connect(clear, SIGNAL(triggered()), this, SLOT(clearRecentlySourced()));
++        recentlySourcedMenu->addAction(lock);
++        connect(lock, &QAction::triggered, this, [&](bool check) {
++            if (check)
++                lockRecentlySource = true;
++            else
++                lockRecentlySource = false;
++            saveRecentlySourcedHistory();
++        });
++        recentlySourcedMenu->addAction(clear);
++        lock->setCheckable(true);
++    }
+     return true;
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index 3c60ee6fcd5..79aec62fd6c 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -343,6 +343,7 @@ public:
+     bool isSearching = false;
+     bool layerShowHideClicked = false;
+     int indexLayer;
++    bool lockRecentlySource = false;
+     QString getSearchText() { return nocFinder->text(); }
+ 
+     void refreshStatsView();
+@@ -525,7 +526,7 @@ public:
+     int startTimeSinceEpoch;
+     QAction* delActionsOnSpecifyMenu = nullptr;
+     QAction* addActionsOnSpecifyMenu = nullptr;
+-
++    QAction* recentlySourcedAction   = nullptr;
+ public slots:
+ 
+     void showSelectiveLayers();
+@@ -688,7 +689,7 @@ private:
+     /*
+      * Menu.
+      */
+-    QMenu* fileMenu, * addMenu, * designMenu, * simulateMenu, * generateMenu, * viewMenu, * helpMenu, * tutorialMenu, * exampleMenu, * designReviewMenu, * sessionMenu, * subMenu;
++    QMenu* fileMenu, * addMenu, * designMenu, * simulateMenu, * generateMenu, * viewMenu, * helpMenu, * tutorialMenu, * exampleMenu, * designReviewMenu, * sessionMenu, * subMenu, * recentlySourcedMenu;
+     QMenu* boxMenu, * highLightMenu, * windowsMenu = nullptr;
+     QComboBox* powerProfilesComboBox;
+     QToolButton* mapOptButton, * analyzeLinksButton, * runButton, * contButton, * createTraceFilesButton;
+@@ -813,7 +814,7 @@ private:
+     const QString stateName = "STA";
+     const QString iconSize = "iconSize";
+     const QString viewOptionList = "viewOptions";
+-    const QString recentlySourced = "Source";
++    const QString recentlySourced = "SourcedList";
+     const QString expireDateName = "ExpireDate";
+ 
+     QMap<NetSpeed::Layer_id, QAction*> layersActions;
+@@ -885,6 +886,7 @@ private slots:
+     void resetDependency();
+     void resetConnection();
+     void delTypeDomainAct();
++    void clearRecentlySourced();
+     void addSpineGatingRegionAct();
+     void delSpineGatingRegionAct();
+     void consoleFinderButtonSlot();
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index b00392b9aa8..d034b511a62 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -977,6 +977,9 @@ void INIConsole::complete(bool stop, QString cmd, bool res)
+     if (!pathSaveRecentlySource.isEmpty() && !isRunScriptByTerimal &&
+             mainWindow->addRecentlySourcedAction(pathSaveRecentlySource)){
+         mainWindow->saveRecentlySourcedHistory();
++        if (!mainWindow->recentlySourcedAction->isEnabled()) {
++            mainWindow->recentlySourcedAction->setEnabled(true);
++        }
+     }
+     if(isRunScriptByTerimal) isRunScriptByTerimal = false;
+ 
+@@ -3481,7 +3484,7 @@ void INIConsole::stateChangedLayerDisplay(bool mapped)
+     auto g = c->get_container().get_grid();
+     if (!g) return;
+ 
+-    if (g != m_grid) return;        /* if this was not the newest grid, NSGUI will ignore it. */
++ //   if (g != m_grid) return;        /* if this was not the newest grid, NSGUI will ignore it. */
+         
+     const auto currentState = c->get_container().get_state();
+     if (currentState <= NetSpeed::state_t::AddHost) return;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index d415acbc6ef..4d177270eec 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -1335,6 +1335,9 @@ void MainWindow::createFileMenu()
+     fileMenu->addAction(instrumentsActMap[OPEN_SOURCE_FILE]);
+     fileMenu->addAction(instrumentsActMap[LOAD_STAT]);
+     fileMenu->addAction(instrumentsActMap[EXIT_FULLSCREEN]);
++    recentlySourcedMenu = new QMenu("Recently Sourced", this);
++    recentlySourcedAction = fileMenu->addMenu(recentlySourcedMenu);
++    fileMenu->addAction(recentlySourcedAction);
+     fileMenu->addSeparator();
+     fileMenu->addAction(instrumentsActMap[EXIT]);
+ }
+@@ -4937,6 +4940,14 @@ void MainWindow::addTypeDomainAct()
+     }
+ }
+ 
++void MainWindow::clearRecentlySourced()
++{
++    lockRecentlySource = false;
++    recentlySourcedMenu->clear();
++    recentlySourcedAction->setEnabled(false);
++    saveRecentlySourcedHistory();
++}
++
+ void MainWindow::delTypeDomainAct()
+ {
+     if (!console) return;
+@@ -6527,18 +6538,23 @@ void MainWindow::blockageDialog(bool startDialog) {
+     instrumentsActMap[MAKE_ALL_LINKS_UNBLOCKED]->setVisible(true);
+ }
+ 
+-void MainWindow::saveRecentlySourcedHistory() {
++void MainWindow::saveRecentlySourcedHistory()
++{
+     if (!homeDirectoryCheck()) return;
++    if (lockRecentlySource) return;
+     QString settingFilePath = QDir::homePath().append(QDir::separator()).append(settingFolderName)
+                                               .append(QDir::separator()).append(settingName);
+     QSettings settings(settingFilePath, QSettings::IniFormat);
+ 
+-    QStringList sourceList;
+-    for (auto action : fileMenu->actions())
+-        if (auto sourced = dynamic_cast<RecentlySourced*>(action))
+-            sourceList << sourced->text();
+-    std::reverse(std::begin(sourceList), std::end(sourceList));
+-    settings.setValue("xGerneral/" + recentlySourced, QVariant(sourceList));
++    QStringList sourcedList;
++    for (auto action : recentlySourcedMenu->actions()) {
++        if (auto sourced = dynamic_cast<RecentlySourced*>(action)) {
++            if (!sourcedList.contains(sourced->text())) sourcedList << sourced->text();
++        }
++    }
++
++    std::reverse(std::begin(sourcedList), std::end(sourcedList));
++    settings.setValue("NotForUser/" + recentlySourced, QVariant(sourcedList));
+ }
+ 
+ void MainWindow::initHash()
+@@ -6610,7 +6626,8 @@ void MainWindow::saveSettings()
+         settings.setValue(geometryName + "/width", width());
+         settings.setValue(geometryName + "/height", height());
+     }
+-    
++
++    settings.setValue(recentlySourced + "/Locked", QVariant::fromValue(lockRecentlySource));
+ 
+     //Save font and icon size
+     if(auto dialog = ResizeDialog::getResizeDialog()) {
+@@ -6653,9 +6670,9 @@ void MainWindow::saveSettings()
+     QDate expireDate(NetSpeed::Config::expire_year(), NetSpeed::Config::expire_month(), NetSpeed::Config::expire_day());
+     settings.setValue(expireDateName, expireDate.toString("yyyy/MM/dd"));
+ 
+-    //Saving other widget state
+-    settings.setValue("xGerneral/" + stateName, saveState());
+-    settings.setValue("xGerneral/" + geometry, saveGeometry());
++    // Saving other widget state
++    settings.setValue("NotForUser/" + stateName, saveState());
++    settings.setValue("NotForUser/" + geometry, saveGeometry());
+ }
+ 
+ void MainWindow::readSettings()
+@@ -6669,6 +6686,22 @@ void MainWindow::readSettings()
+                                               .append(QDir::separator()).append(settingName);
+     QSettings settings(settingFilePath, QSettings::IniFormat);
+ 
++    /*----------------------------------------------------------------------------------------------
++        - Replace fields "xGerneral" with fields "NotForUser" without affecting user configuration
++        - This code will be removed in 25Q4
++    ------------------------------------------------------------------------------------------------*/
++    if (settings.childGroups().contains("xGerneral")) {
++        const QString source = "Source";
++        auto valueSource = settings.value("xGerneral/" + source).toStringList();
++        settings.setValue("NotForUser/" + recentlySourced, QVariant(valueSource));
++        auto valueSTM = settings.value("xGerneral/" + stateName).toByteArray();
++        settings.setValue("NotForUser/" + stateName, valueSTM);
++        auto valueGMT = settings.value("xGerneral/" + geometry).toByteArray();
++        settings.setValue("NotForUser/" + geometry, valueGMT);
++        settings.remove("xGerneral");
++    }
++    /*----------------------------------------------------------------------------------------------*/
++
+     if (!settings.childGroups().contains(viewOptionList)) {
+         //QRect screenGeometry = QApplication::desktop()->screenGeometry();
+         QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+@@ -6679,13 +6712,13 @@ void MainWindow::readSettings()
+     }
+ 
+     //restore dock widget state
+-    auto byteArr = settings.value("xGerneral/" + stateName).toByteArray();
++    auto byteArr = settings.value("NotForUser/" + stateName).toByteArray();
+     dockEvents.insert(std::pair<int,QByteArray>(0,byteArr));
+     restoreState(byteArr);
+     //Work around for warning printing when reload settings
+     lowerRightDock->setFloating(false);
+     //restore window state
+-    restoreGeometry(settings.value("xGerneral/" + geometry).toByteArray());
++    restoreGeometry(settings.value("NotForUser/" + geometry).toByteArray());
+     if (!windowState().testFlag(Qt::WindowMaximized)) {
+         int x = settings.value(geometryName + "/x").toInt();
+         int y = settings.value(geometryName + "/y").toInt();
+@@ -6767,9 +6800,17 @@ void MainWindow::readSettings()
+     }
+ 
+     //Restore source history
+-    for (const auto& val : settings.value("xGerneral/" + recentlySourced).toStringList()) {
++    for (const auto& val : settings.value("NotForUser/" + recentlySourced).toStringList()) {
+         addRecentlySourcedAction(val);
+     }
++
++    //Restore Locked property of source history
++    lockRecentlySource = settings.value(recentlySourced + "/Locked").toBool();
++    for (auto action : recentlySourcedMenu->actions()) {
++        if (action->text() != QString("Lock")) continue;
++        action->setChecked(lockRecentlySource);
++        break;
++    }
+         
+     //hide dockwidgets
+     if (propPanel)
+@@ -8752,6 +8793,11 @@ void MainWindow::grayOutDomainViewAndAddList()
+         delActionsOnSpecifyMenu->setEnabled(false);
+         addActionsOnSpecifyMenu->setEnabled(false);
+     }
++    if (recentlySourcedMenu->actions().empty()) {
++        recentlySourcedAction->setEnabled(false);
++    } else {
++        recentlySourcedAction->setEnabled(true);
++    }
+ }
+ 
+ void MainWindow::limitNameSize(QString & name)
+@@ -9691,15 +9737,21 @@ void MainWindow::enableGlobalWebAct(bool state) {
+     console->applyCmd(CMD_PROP_DEFAULT_GLOBAL_WEB + ((state) ? " yes" : " no"));
+ }
+ 
+-bool MainWindow::addRecentlySourcedAction(const QString& cmd) {
+-    if (!fileMenu) return false;
++bool MainWindow::addRecentlySourcedAction(const QString& cmd)
++{
++    if (!recentlySourcedMenu) return false;
++    if (lockRecentlySource) return false;
+     auto strs = cmd.right(cmd.size() - QString("source").size()).trimmed();
+     if (strs.isEmpty()) return false;
+     auto fileInfo = QFileInfo(strs);
+     if (!fileInfo.isFile() || !fileInfo.exists()) return false;
+     QString command = "source " + fileInfo.absoluteFilePath();
+-    std::vector<RecentlySourced*> actions;
+-    for (auto action : fileMenu->actions()) {
++    QList<RecentlySourced*> actions;
++    QAction* lock = nullptr;
++    QAction* clear = nullptr;
++    for (auto action : recentlySourcedMenu->actions()) {
++        if (action->text() == QString("Lock")) lock = action;
++        if (action->text() == QString("Clear")) clear = action;
+         if (auto sourced = dynamic_cast<RecentlySourced*>(action)) {
+             if (sourced->text() == command) {
+                 action->deleteLater();
+@@ -9708,9 +9760,39 @@ bool MainWindow::addRecentlySourcedAction(const QString& cmd) {
+             actions.push_back(sourced);
+         }
+     }
+-    if (actions.size() >= 10) fileMenu->removeAction(actions.back());
+-    if (actions.empty()) fileMenu->insertAction(instrumentsActMap[EXIT], new RecentlySourced("source " + fileInfo.absoluteFilePath(), this));
+-    else fileMenu->insertAction(actions.front(), new RecentlySourced("source " + fileInfo.absoluteFilePath(), this));
++    if (actions.size() >= 10) recentlySourcedMenu->removeAction(actions.back());
++    if (actions.empty()) {
++        if (lock && clear) {
++            lock->deleteLater();
++            clear->deleteLater();
++            lock = nullptr;
++            clear = nullptr;
++        }
++        auto act = new RecentlySourced("source " + fileInfo.absoluteFilePath(), this);
++        recentlySourcedMenu->addAction(act);
++        actions.push_front(act);
++    } 
++    else {
++        auto act = new RecentlySourced("source " + fileInfo.absoluteFilePath(), this);
++        recentlySourcedMenu->insertAction(actions.first(), act);
++        actions.push_front(act);
++    }
++    recentlySourcedMenu->addSeparator();
++    if (!lock) {
++        lock = new QAction("Lock");
++        QAction* clear = new QAction("Clear");
++        connect(clear, SIGNAL(triggered()), this, SLOT(clearRecentlySourced()));
++        recentlySourcedMenu->addAction(lock);
++        connect(lock, &QAction::triggered, this, [&](bool check) {
++            if (check)
++                lockRecentlySource = true;
++            else
++                lockRecentlySource = false;
++            saveRecentlySourcedHistory();
++        });
++        recentlySourcedMenu->addAction(clear);
++        lock->setCheckable(true);
++    }
+     return true;
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h
+index 21a4718a1eb..394c7e4dbb3 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h
+@@ -342,6 +342,7 @@ public:
+     bool isSearching = false;
+     bool layerShowHideClicked = false;
+     int indexLayer;
++    bool lockRecentlySource = false;
+     QString getSearchText() { return nocFinder->text(); }
+ 
+     void refreshStatsView();
+@@ -524,7 +525,7 @@ public:
+     int startTimeSinceEpoch;
+     QAction* delActionsOnSpecifyMenu = nullptr;
+     QAction* addActionsOnSpecifyMenu = nullptr;
+-
++    QAction* recentlySourcedAction   = nullptr;
+ public slots:
+ 
+     void showSelectiveLayers();
+@@ -687,7 +688,7 @@ private:
+     /*
+      * Menu.
+      */
+-    QMenu* fileMenu, * addMenu, * designMenu, * simulateMenu, * generateMenu, * viewMenu, * helpMenu, * tutorialMenu, * exampleMenu, * designReviewMenu, * sessionMenu, * subMenu;
++    QMenu* fileMenu, * addMenu, * designMenu, * simulateMenu, * generateMenu, * viewMenu, * helpMenu, * tutorialMenu, * exampleMenu, * designReviewMenu, * sessionMenu, * subMenu, * recentlySourcedMenu;
+     QMenu* boxMenu, * highLightMenu, * windowsMenu = nullptr;
+     QComboBox* powerProfilesComboBox;
+     QToolButton* mapOptButton, * analyzeLinksButton, * runButton, * contButton, * createTraceFilesButton;
+@@ -812,7 +813,7 @@ private:
+     const QString stateName = "STA";
+     const QString iconSize = "iconSize";
+     const QString viewOptionList = "viewOptions";
+-    const QString recentlySourced = "Source";
++    const QString recentlySourced = "SourcedList";
+     const QString expireDateName = "ExpireDate";
+ 
+     QMap<NetSpeed::Layer_id, QAction*> layersActions;
+@@ -884,6 +885,7 @@ private slots:
+     void resetDependency();
+     void resetConnection();
+     void delTypeDomainAct();
++    void clearRecentlySourced();
+     void addSpineGatingRegionAct();
+     void delSpineGatingRegionAct();
+     void consoleFinderButtonSlot();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 3dfd17fb792..bc821087bc7 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -976,6 +976,9 @@ void INIConsole::complete(bool stop, QString cmd, bool res)
+     if (!pathSaveRecentlySource.isEmpty() && !isRunScriptByTerimal &&
+             mainWindow->addRecentlySourcedAction(pathSaveRecentlySource)){
+         mainWindow->saveRecentlySourcedHistory();
++        if (!mainWindow->recentlySourcedAction->isEnabled()) {
++            mainWindow->recentlySourcedAction->setEnabled(true);
++        }
+     }
+     if(isRunScriptByTerimal) isRunScriptByTerimal = false;
+ 

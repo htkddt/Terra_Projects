@@ -1,0 +1,66 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 13 ++++++++++---
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 13 ++++++++++---
+ 2 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 2e539dc8f31..4f1e9d5dd4e 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3240,7 +3240,7 @@ void PropertyPanel::handleLegendClicked(QCPLegend* legend, QCPAbstractLegendItem
+ 
+     QString nameLegendItemClicked = QString();
+     if (auto nameItem = dynamic_cast<QCPPlottableLegendItem*>(item)) nameLegendItemClicked = nameItem->plottable()->name();
+-    if (nameLegendItemClicked.isEmpty()) return;
++    if (nameLegendItemClicked.isEmpty() || nameLegendItemClicked == "...") return;
+ 
+     bool ctrlButtonClicked = false;
+     if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+@@ -3663,8 +3663,15 @@ void PropertyPanel::initComparisonPlot(QString name, QCustomPlot * customPlot, P
+     wideAxisRect->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
+     legend->setLayer("legend");
+     for (int i = 0; i < customPlot->plottableCount(); i += 3) {
+-        if (customPlot->plottable(i))
+-            legend->addItem(new QCPPlottableLegendItem(legend, customPlot->plottable(i)));
++        if (i == 36) {
++            if (customPlot->plottable(i)) {
++                auto plot = customPlot->plottable(i);
++                plot->setName("...");
++                legend->addItem(new QCPPlottableLegendItem(legend, plot));
++            }
++            break;
++        }
++        if (customPlot->plottable(i)) legend->addItem(new QCPPlottableLegendItem(legend, customPlot->plottable(i)));
+     }
+ 
+     customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 03619a9b4dd..c304aafe42f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3218,7 +3218,7 @@ void PropertyPanel::handleLegendClicked(QCPLegend* legend, QCPAbstractLegendItem
+ 
+     QString nameLegendItemClicked = QString();
+     if (auto nameItem = dynamic_cast<QCPPlottableLegendItem*>(item)) nameLegendItemClicked = nameItem->plottable()->name();
+-    if (nameLegendItemClicked.isEmpty()) return;
++    if (nameLegendItemClicked.isEmpty() || nameLegendItemClicked == "...") return;
+ 
+     bool ctrlButtonClicked = false;
+     if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+@@ -3641,8 +3641,15 @@ void PropertyPanel::initComparisonPlot(QString name, QCustomPlot * customPlot, P
+     wideAxisRect->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
+     legend->setLayer("legend");
+     for (int i = 0; i < customPlot->plottableCount(); i += 3) {
+-        if (customPlot->plottable(i))
+-            legend->addItem(new QCPPlottableLegendItem(legend, customPlot->plottable(i)));
++        if (i == 36) {
++            if (customPlot->plottable(i)) {
++                auto plot = customPlot->plottable(i);
++                plot->setName("...");
++                legend->addItem(new QCPPlottableLegendItem(legend, plot));
++            }
++            break;
++        }
++        if (customPlot->plottable(i)) legend->addItem(new QCPPlottableLegendItem(legend, customPlot->plottable(i)));
+     }
+ 
+     customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);

@@ -1,0 +1,92 @@
+ src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp     | 4 ++++
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h                | 2 ++
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp                      | 3 ++-
+ src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp | 4 ++++
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h            | 2 ++
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp                  | 3 ++-
+ 6 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+index 3a1a28ef91c..d29239551dd 100644
+--- a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -851,6 +851,10 @@ void CustomHighLightDialog::prefill()
+         } else if (item->type() == ROUTER) {
+             auto nsRouter = dynamic_cast<NsRouter*>(item);
+             comboBoxRouter->setCurrentText(QString::fromStdString(nsRouter->getRouter()->name()));
++        } else if (auto linkDiagramRectangle = dynamic_cast<NsLinkDiagramRectangle*>(item)) {
++            QString name = QString::fromStdString(linkDiagramRectangle->getName());
++            if (name.isEmpty()) continue;
++            comboBoxRouter->setCurrentText(name);
+         } else if (item->type() == VC_ITEM) {
+             auto nsVC = dynamic_cast<NsVC*>(item);
+             comboBoxChannel->setCurrentText(QString::fromStdString(nsVC->getVC()->name()));
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index bcfff10eefa..563de723da3 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -437,6 +437,8 @@ class NsLinkDiagramRectangle : public QGraphicsRectItem
+ {
+ public:
+     NsLinkDiagramRectangle(const QRectF&, const QString, NetSpeed::Router* = nullptr, QGraphicsItem* = nullptr);
++    std::string getName() const { return router->name(); }
++
+ private:
+     QString name;
+     NetSpeed::Router *router = nullptr;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index a9a7e5f7786..d30ed97c624 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -682,7 +682,8 @@ NsMeshViewScene::NsMeshViewScene(NetSpeed::NocConsole* console, NsWorkArea * nsW
+                     auto routerDiagramVC = dynamic_cast<NsRouterDiagramVC*>(item);
+                     auto arrowItem = dynamic_cast<NsArrowItem*>(item);
+                     auto vc = dynamic_cast<NsVC*>(item);
+-                    if (routerDiagramVC || arrowItem || vc) {
++                    auto linkDiagramRectangle = dynamic_cast<NsLinkDiagramRectangle*>(item);
++                    if (routerDiagramVC || arrowItem || vc || linkDiagramRectangle) {
+                         auto hlDialog = mw->getHLDialog();
+                         if (hlDialog && hlDialog->isVisible()) {
+                             hlDialog->prefill();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+index 16d7e52f4f2..8f47f4b9a4f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -875,6 +875,10 @@ void CustomHighLightDialog::prefill()
+         } else if (item->type() == ROUTER) {
+             auto nsRouter = dynamic_cast<NsRouter*>(item);
+             comboBoxRouter->setCurrentText(QString::fromStdString(nsRouter->getRouter()->name()));
++        } else if (auto linkDiagramRectangle = dynamic_cast<NsLinkDiagramRectangle*>(item)) {
++            QString name = QString::fromStdString(linkDiagramRectangle->getName());
++            if (name.isEmpty()) continue;
++            comboBoxRouter->setCurrentText(name);
+         } else if (item->type() == VC_ITEM) {
+             auto nsVC = dynamic_cast<NsVC*>(item);
+             comboBoxChannel->setCurrentText(QString::fromStdString(nsVC->getVC()->name()));
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h
+index bcfff10eefa..563de723da3 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h
+@@ -437,6 +437,8 @@ class NsLinkDiagramRectangle : public QGraphicsRectItem
+ {
+ public:
+     NsLinkDiagramRectangle(const QRectF&, const QString, NetSpeed::Router* = nullptr, QGraphicsItem* = nullptr);
++    std::string getName() const { return router->name(); }
++
+ private:
+     QString name;
+     NetSpeed::Router *router = nullptr;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+index edb86b58c46..e7e5570d0bc 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+@@ -682,7 +682,8 @@ NsMeshViewScene::NsMeshViewScene(NetSpeed::NocConsole* console, NsWorkArea * nsW
+                     auto routerDiagramVC = dynamic_cast<NsRouterDiagramVC*>(item);
+                     auto arrowItem = dynamic_cast<NsArrowItem*>(item);
+                     auto vc = dynamic_cast<NsVC*>(item);
+-                    if (routerDiagramVC || arrowItem || vc) {
++                    auto linkDiagramRectangle = dynamic_cast<NsLinkDiagramRectangle*>(item);
++                    if (routerDiagramVC || arrowItem || vc || linkDiagramRectangle) {
+                         auto hlDialog = mw->getHLDialog();
+                         if (hlDialog && hlDialog->isVisible()) {
+                             hlDialog->prefill();

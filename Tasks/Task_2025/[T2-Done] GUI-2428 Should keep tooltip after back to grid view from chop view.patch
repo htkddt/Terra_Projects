@@ -1,0 +1,17 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index cf666c04975..7c8dc86b360 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -484,6 +484,9 @@ void MainWindow::showDomainColorLegend()
+         QImage img;
+         if (meshScene->viewMode() == NsScene::RTL_GROUP_VIEW) {
+             img = meshScene->makeRTLColorLegend();
++        } else if (meshScene->viewMode() == NsScene::LAYER_BLOCKAGE) {
++            displayBlockageColorLegend();
++            return;
+         } else {
+             img = meshScene->makeColorLegend();
+         }

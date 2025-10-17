@@ -1,0 +1,38 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 4 ++--
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 5d76bb7368e..355e5c60a5c 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -1175,10 +1175,10 @@ void MainWindow::createLayerButtons(NetSpeed::Grid * grid)
+         if (grid->is_regbus_layer(l) || l >= grid->num_normal_layers()) { // TODO: Modify is_regbus_layer() to return true for any layer > normal layers
+             const QString rbId = QString::number(grid->get_regbus_id(l));
+             id = "r";
+-            layerTxt = "Regbus Layer ";
++            layerTxt = "Regbus Layer";
+             if (grid->get_num_regbus_layers() > 1) {
+                 id += rbId;
+-                layerTxt += rbId;
++                layerTxt += " " + rbId;
+             }
+             layerPb->setToolTip(layerTxt);
+         }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 2907964560a..918d58c1785 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -1175,10 +1175,10 @@ void MainWindow::createLayerButtons(NetSpeed::Grid * grid)
+         if (grid->is_regbus_layer(l) || l >= grid->num_normal_layers()) { // TODO: Modify is_regbus_layer() to return true for any layer > normal layers
+             const QString rbId = QString::number(grid->get_regbus_id(l));
+             id = "r";
+-            layerTxt = "Regbus Layer ";
++            layerTxt = "Regbus Layer";
+             if (grid->get_num_regbus_layers() > 1) {
+                 id += rbId;
+-                layerTxt += rbId;
++                layerTxt += " " + rbId;
+             }
+             layerPb->setToolTip(layerTxt);
+         }

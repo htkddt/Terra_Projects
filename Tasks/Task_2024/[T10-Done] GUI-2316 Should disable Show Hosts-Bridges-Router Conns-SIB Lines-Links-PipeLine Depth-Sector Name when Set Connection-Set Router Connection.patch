@@ -1,0 +1,96 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp         |  2 +-
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp |  5 +++++
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp          | 18 ++++++++++--------
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp       |  4 ++--
+ 4 files changed, 18 insertions(+), 11 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+index e18d8f562b0..028366928aa 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.cpp
+@@ -521,7 +521,7 @@ void NsNormalHost::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+                 mw->showMessageToStatusBar(MSG_ADD_BRIDGE);
+                 mw->setCheckAddBridgeButtons();
+                 mw->setAllInstrumentsUnchecked(mw->getInstrumentsActMap()[ADD_BRIDGE]);
+-                mw->enableControlsViewMenu(true);
++                mw->enableControlsViewMenu(false);
+                 break;
+             }
+             case COMMAND_ACT:
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index b804f96d007..6b288d6b7e8 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1000,6 +1000,11 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
+     clearPortDrawingItems();
+     mw->clearSttBar();
+     auto type = InstrumentsEnum(action->property(TITLE_TYPE).toInt());
++    if (type == ADD_CONNECT || type == ADD_DEPENDENCY) {
++        mw->enableControlsViewMenu(!state);
++    } else if (type == ADD_ROUTER_CONN) {
++        mw->enableControlsViewMenu(state);
++    }
+     if ((!state) && (type != ADD_ROUTER_CONN)) return;
+     setInstrumentType(type);
+     switch (type) {
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 24ee8a90afe..911f8f82af2 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2004,6 +2004,8 @@ void MainWindow::destroySimulationToolbar()
+ 
+ void MainWindow::toggleDomainAct(bool state)
+ {
++    enableControlsViewMenu(true);
++
+     if (propPanel) {
+         propPanel->clearData();
+         propPanel->clearSelection();
+@@ -5719,17 +5721,17 @@ bool MainWindow::isViewValidForAddAction(QAction* action) {
+ }
+ 
+ void MainWindow::enableControlsViewMenu(bool state) {
+-    instrumentsActMap[SHOW_HOSTS]->setDisabled(state);
+-    instrumentsActMap[SHOW_BRIDGES]->setDisabled(state);
+-    instrumentsActMap[SHOW_ROUTER_CONNS]->setDisabled(state);
+-    instrumentsActMap[SHOW_LINKS]->setDisabled(state);
+-    instrumentsActMap[SHOW_SIB_LINES]->setDisabled(state);
+-    instrumentsActMap[SHOW_SECTORNAME]->setDisabled(state);
+-    instrumentsActMap[SHOW_PIPELINE_DEPTH]->setDisabled(state);
++    instrumentsActMap[SHOW_HOSTS]->setEnabled(state);
++    instrumentsActMap[SHOW_BRIDGES]->setEnabled(state);
++    instrumentsActMap[SHOW_ROUTER_CONNS]->setEnabled(state);
++    instrumentsActMap[SHOW_LINKS]->setEnabled(state);
++    instrumentsActMap[SHOW_SIB_LINES]->setEnabled(state);
++    instrumentsActMap[SHOW_SECTORNAME]->setEnabled(state);
++    instrumentsActMap[SHOW_PIPELINE_DEPTH]->setEnabled(state);
+ }
+ 
+ void MainWindow::toggleAddHost(bool state) {
+-    enableControlsViewMenu(state);
++    enableControlsViewMenu(!state);
+     if (state && !isViewValidForAddAction(dynamic_cast<QAction*>(sender()))) return;
+     QAction* currentAction = static_cast<QAction*>(sender());
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 49e01f2c554..9f7cdf4aeea 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -7635,7 +7635,7 @@ void PropertyPanel::okButtonClickedMeshView()
+ 
+ void PropertyPanel::cancelButtonClickedMeshView()
+ {
+-    mw->enableControlsViewMenu(false);
++    mw->enableControlsViewMenu(true);
+     if (!mw->isDisplayingMeshView()) return;
+     auto scene = mw->isNocOrBlockageViewShown(); // get scene from noc view or blockage view
+     if (!scene) return;
+@@ -7771,7 +7771,7 @@ void PropertyPanel::okButtonClickedSocview() {
+ }
+ 
+ void PropertyPanel::cancelButtonClickedSocView() {
+-    mw->enableControlsViewMenu(false);
++    mw->enableControlsViewMenu(true);
+     InstrumentsEnum currentIns = DataSingleton::Instance()->getInstrument();
+     if (isAddAgentSocView(currentIns))
+     {

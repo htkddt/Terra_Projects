@@ -1,0 +1,435 @@
+ src/sw/noc_dev/GUICore_qt6/global.h             |   1 +
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp    | 156 ++++++++++++++++++++++++
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.h      |  14 +++
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp |  95 +++++++++++++++
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h   |  51 ++++++++
+ 5 files changed, 317 insertions(+)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/global.h b/src/sw/noc_dev/GUICore_qt6/global.h
+index 8ac73742b17..cb7fd46f019 100644
+--- a/src/sw/noc_dev/GUICore_qt6/global.h
++++ b/src/sw/noc_dev/GUICore_qt6/global.h
+@@ -271,6 +271,7 @@ const char* const TOOLBAR_OPEN_SAVE_OPTIONS           = "Open/Save options";
+ const char* const TOOLBAR_VIEW_OPTIONS                = "View options";
+ const char* const TOOLBAR_UNDO_REDO_OPTIONS           = "Undo/Redo options";
+ const char* const TOOLBAR_VIEW                        = "viewToolbar";
++const char* const TOOLBAR_QUICK_ACCESS                = "quickaccessToolbar";
+ const char* const TOOLBAR_REGION_SHOW_FOREGROUND      = "Region Show Foreground";
+ const char* const TOOLBAR_REGION_SHOW_BACKGROUND      = "Region Show Background";
+ const char* const TOOLBAR_REGION_SHOW_NONE            = "Region Show None";
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index 39b011ec48c..311f71b0044 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5153,6 +5153,162 @@ QTableWidget* RouteDialog::createTable(NetSpeed::DataTable dt) {
+     return m_pTableWidget;
+ }
+ 
++EditQuickAccessToolbarDialog::EditQuickAccessToolbarDialog(QList<QAction*> listActs, QWidget* parent) : QDialog(parent)
++{
++    mw = dynamic_cast<MainWindow*>(parent);
++    if (!mw) return;
++
++    QList<QString> listTextActs;
++    for (const auto& act : listActs) listTextActs.append(act->text().split("\t").first().replace("__", "_"));
++
++    QFont font;
++    font.setBold(true);
++    font.setPointSize(12);
++
++    QLabel* supportedFeaturesHeader = new QLabel("Supported Features");
++    QLabel* pinnedFeaturesHeader = new QLabel("Pinned Features");
++    supportedFeaturesHeader->setFont(font);
++    supportedFeaturesHeader->setAlignment(Qt::AlignCenter);
++    pinnedFeaturesHeader->setFont(font);
++    pinnedFeaturesHeader->setAlignment(Qt::AlignCenter);
++
++    initData(listTextActs);
++
++    QVBoxLayout* navigationButtonLayout = new QVBoxLayout;
++    navigationButtonLayout->setAlignment(Qt::AlignVCenter);
++    QTransform transform;
++    QPixmap pixmap, rotated;
++
++    font.setPointSize(15);
++
++    QPushButton* addButton = new QPushButton;
++    addButton->setFixedSize(QSize(32, 32));
++    addButton->setIconSize(QSize(16, 16));
++    pixmap = QIcon(":/images/icons/close_right.png").pixmap(QSize(16, 16));
++    rotated = pixmap.transformed(transform);
++    addButton->setIcon(QIcon(rotated));
++    connect(addButton, &QPushButton::clicked, this, [this]() {
++        auto listItemSelected = supportedFeatures->selectedItems();
++        for (auto& item : listItemSelected) {
++            supportedFeatures->takeItem(supportedFeatures->row(item));
++            pinnedFeatures->addItem(item);
++        }
++    });
++
++    QPushButton* delButton = new QPushButton;
++    delButton->setFixedSize(QSize(32, 32));
++    delButton->setIconSize(QSize(16, 16));
++    transform.rotate(180);
++    rotated = pixmap.transformed(transform);
++    delButton->setIcon(QIcon(rotated));
++    connect(delButton, &QPushButton::clicked, this, [this]() {
++        auto listItemSelected = pinnedFeatures->selectedItems();
++        for (auto& item : listItemSelected) {
++            pinnedFeatures->takeItem(pinnedFeatures->row(item));
++            supportedFeatures->addItem(item);
++        }
++    });
++
++    QPushButton* upButton = new QPushButton;
++    upButton->setFixedSize(QSize(32, 32));
++    upButton->setIconSize(QSize(16, 16));
++    transform.rotate(90);
++    rotated = pixmap.transformed(transform);
++    upButton->setIcon(QIcon(rotated));
++    connect(upButton, &QPushButton::clicked, this, [this]() {
++        auto listItemSelected = pinnedFeatures->selectedItems();
++        for (auto& item : listItemSelected) {
++            auto row = pinnedFeatures->row(item);
++            if (row == 0) return;
++            pinnedFeatures->takeItem(row);
++            pinnedFeatures->insertItem(row - 1, item);
++        }
++    });
++
++    QPushButton* downButton = new QPushButton;
++    downButton->setFixedSize(QSize(32, 32));
++    downButton->setIconSize(QSize(16, 16));
++    transform.rotate(180);
++    rotated = pixmap.transformed(transform);
++    downButton->setIcon(QIcon(rotated));
++    connect(downButton, &QPushButton::clicked, this, [this]() {
++        auto listItemSelected = pinnedFeatures->selectedItems();
++        for (int i = (listItemSelected.count() - 1); i >= 0; i--) {
++            auto row = pinnedFeatures->row(listItemSelected.at(i));
++            if (row == (pinnedFeatures->count() - 1)) return;
++            pinnedFeatures->takeItem(row);
++            pinnedFeatures->insertItem(row + 1, listItemSelected.at(i));
++        }
++    });
++
++    navigationButtonLayout->addWidget(addButton);
++    navigationButtonLayout->addSpacing(5);
++    navigationButtonLayout->addWidget(delButton);
++
++    QVBoxLayout* supportedLayout = new QVBoxLayout;
++    supportedLayout->addWidget(supportedFeaturesHeader);
++    supportedLayout->addSpacing(5);
++    supportedLayout->addWidget(supportedFeatures);
++
++    QHBoxLayout* pinnedHeaderLayout = new QHBoxLayout;
++    pinnedHeaderLayout->addWidget(pinnedFeaturesHeader);
++    pinnedHeaderLayout->addSpacing(15);
++    pinnedHeaderLayout->addWidget(upButton);
++    pinnedHeaderLayout->addSpacing(5);
++    pinnedHeaderLayout->addWidget(downButton);
++
++    QVBoxLayout* pinnedLayout = new QVBoxLayout;
++    pinnedLayout->addLayout(pinnedHeaderLayout);
++    pinnedLayout->addSpacing(5);
++    pinnedLayout->addWidget(pinnedFeatures);
++
++    QHBoxLayout* topLayout = new QHBoxLayout;
++    topLayout->addLayout(supportedLayout);
++    topLayout->addSpacing(5);
++    topLayout->addLayout(navigationButtonLayout);
++    topLayout->addSpacing(5);
++    topLayout->addLayout(pinnedLayout);
++
++    QGridLayout* bottomLayout = new QGridLayout;
++    QPushButton* okButton = new QPushButton("OK");
++    connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
++    QPushButton* cancelButton = new QPushButton("CANCEL");
++    connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
++    bottomLayout->addWidget(okButton, 0, 0, Qt::AlignCenter);
++    bottomLayout->addWidget(cancelButton, 0, 1, Qt::AlignCenter);
++
++    QVBoxLayout* mainLayout = new QVBoxLayout(this);
++    mainLayout->addLayout(topLayout);
++    mainLayout->addSpacing(5);
++    mainLayout->addLayout(bottomLayout);
++    setLayout(mainLayout);
++    setWindowTitle("Edit Quick Access Toolbar");
++    setWindowFlags(getFlagsDialog());
++    setWindowIcon(QIcon(ICON_NOC_M1));
++}
++
++void EditQuickAccessToolbarDialog::initData(QList<QString> listTextActs)
++{
++    supportedFeatures = new QListWidget;
++    pinnedFeatures = new QListWidget;
++
++    supportedFeatures->setSelectionMode(QAbstractItemView::ExtendedSelection);
++    supportedFeatures->setMinimumHeight(500);
++    supportedFeatures->setMinimumWidth(supportedFeatures->sizeHint().width() +
++                                       supportedFeatures->verticalScrollBar()->sizeHint().width());
++    pinnedFeatures->setSelectionMode(QAbstractItemView::ExtendedSelection);
++    pinnedFeatures->setMinimumHeight(500);
++    pinnedFeatures->setMinimumWidth(pinnedFeatures->sizeHint().width() +
++                                    pinnedFeatures->verticalScrollBar()->sizeHint().width());
++
++    auto instruments = mw->getInstrumentsActQuickAccessMap();
++    for (const auto& key : instruments.keys()) {
++        QListWidgetItem* item = new QListWidgetItem(instruments[key].icon, instruments[key].text);
++        if (listTextActs.contains(instruments[key].text)) pinnedFeatures->addItem(item);
++        else supportedFeatures->addItem(item);
++    }
++}
++
+ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers, bool compBr,
+     QString m_router, QString m_port, QWidget* parent) : QDialog(parent), grid(g)
+ {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+index 8822af50409..5294d2aea29 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+@@ -1166,6 +1166,20 @@ private:
+     QLineEdit* timeSrc;
+ };
+ 
++class EditQuickAccessToolbarDialog : public QDialog
++{
++    Q_OBJECT
++public:
++    EditQuickAccessToolbarDialog(QList<QAction*> listActs, QWidget* parent = nullptr);
++    void initData(QList<QString> listActs);
++    QListWidget* getPinnedFeaturesWidget() { return pinnedFeatures; }
++
++private:
++    QListWidget* supportedFeatures;
++    QListWidget* pinnedFeatures;
++    MainWindow* mw = nullptr;
++};
++
+ class chooseArgumentDialog : public QDialog
+ {
+     Q_OBJECT
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index b6e9884ee9c..f2671475305 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -190,6 +190,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     progressBar->setMinimum(0);
+     progressBar->setMaximum(100);
+     setPrgrBarValue(100);
++
+     consoleDock = new NSDockWidget(OBJ_CONSOLE_MAINWINDOW, this, Qt::Widget);
+     connect(consoleDock, SIGNAL(consoleFinderSignal()), this, SLOT(consoleFinderFocus()));
+     connect(consoleDock, &NSDockWidget::topLevelChanged, this, [this]() { console->setFocus(); });
+@@ -229,6 +230,9 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     /* Create menus */
+     createMenus();
+ 
++    /* Create tool features tool bar */
++    createQuickAccessToolbar();
++
+     /* Init Property Panel */
+     propPanel = new PropertyPanel(this);
+     dockLintTab = propPanel->getDockLint();
+@@ -2829,6 +2833,18 @@ void MainWindow::createStatusBar()
+     stopWidget->setStyleSheet("border:1px; width:20px; height:20px; margin:0");
+     sttBar->addPermanentWidget(stopWidget);
+ 
++    /* Add quick access button into statusBar */
++    btnQuickAccess = new QPushButton(this);
++    btnQuickAccess->setToolTip("Features tool bar");
++    btnQuickAccess->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    btnQuickAccess->setCheckable(true);
++    btnQuickAccess->setIcon(QIcon(":/images/icons/close_right.png"));
++    connect(btnQuickAccess, &QPushButton::clicked, this, [this](bool checked) {
++        if (checked) quickaccessToolbar->show();
++        else quickaccessToolbar->hide();
++    });
++    sttBar->addWidget(btnQuickAccess);
++
+     sttBar->setFixedHeight(30);
+     sttBar->setContentsMargins(5, 1, 5, 1);
+     sttBar->addPermanentWidget(ECOIndicator);
+@@ -8977,6 +8993,85 @@ void MainWindow::raiseSelectionTab()
+     QTimer::singleShot(0, propPanel, SLOT(raiseSelectionTab()));
+ }
+ 
++InstrumentsEnum MainWindow::getKeyQuickAccessFromString(QString text)
++{
++    InstrumentsEnum ins;
++    for (const auto& key : instrumentsActQuickAccessMap.keys()) {
++        auto insText = instrumentsActMap[key]->text().split("\t").first().replace("__", "_");
++        ins = key;
++        if (insText == text) break;
++    }
++    return ins;
++}
++
++void MainWindow::createQuickAccessToolbar()
++{
++    quickaccessToolbar = new QToolBar(tr(TOOLBAR_QUICK_ACCESS), this);
++    quickaccessToolbar->setObjectName(TOOLBAR_QUICK_ACCESS);
++    quickaccessToolbar->setStyleSheet("QToolBar{spacing:3px; background:#f0f0f0; margin:1px; "
++                                      "padding:1px; border-bottom: 1px solid gray;};");
++    quickaccessToolbar->setIconSize(QSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE));
++    quickaccessToolbar->setFloatable(false);
++    quickaccessToolbar->setMovable(false);
++    addToolBar(Qt::BottomToolBarArea, quickaccessToolbar);
++
++    const int NUMBER_OF_FEATURES_DEFAULT = 10;
++    int countFeatures = 0;
++    for (auto& key : instrumentsActQuickAccessMap.keys()) {
++        if (countFeatures > NUMBER_OF_FEATURES_DEFAULT) break;
++        quickaccessToolbar->addAction(instrumentsActMap[key]);
++        countFeatures++;
++    }
++
++    /* Add spacing to keep the edit button always on the right */
++    QWidget* spacer = new QWidget;
++    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
++
++    btnEditQuickAccess = new QPushButton(this);
++    btnEditQuickAccess->setStyleSheet("QPushButton {background: transparent;border: 0px;}");
++    btnEditQuickAccess->setIcon(QIcon(ICON_USER_MANUAL));
++    btnEditQuickAccess->setToolTip(QString("Edit"));
++    btnEditQuickAccess->setIconSize(QSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE));
++
++    quickaccessToolbar->addWidget(spacer);
++    quickaccessToolbar->addSeparator();
++    quickaccessToolbar->addWidget(btnEditQuickAccess);
++
++    connect(btnEditQuickAccess, &QPushButton::clicked, this, [this]() {
++        auto editDialog = new EditQuickAccessToolbarDialog(quickaccessToolbar->actions(), this);
++        if (editDialog->exec() == QDialog::Accepted) {
++            QAction* spacerAct;
++            for (auto& act : quickaccessToolbar->actions()) {
++                if (act->text().isEmpty()) {
++                    spacerAct = act;
++                    break;
++                }
++                quickaccessToolbar->removeAction(act);
++            }
++            auto listWidget = editDialog->getPinnedFeaturesWidget();
++            for (int i = 0; i < listWidget->count(); i++) {
++                auto key = getKeyQuickAccessFromString(listWidget->item(i)->text());
++                quickaccessToolbar->insertAction(spacerAct, instrumentsActMap[key]);
++            }
++        }
++    });
++
++    connect(quickaccessToolbar, &QToolBar::visibilityChanged, this, [this](bool visible) {
++        QPixmap pix(":/images/icons/close_right.png");
++        QTransform transform;
++        if (visible) {
++            transform.rotate(90);
++            if (!btnQuickAccess->isChecked()) btnQuickAccess->setChecked(true);
++        } else {
++            transform.rotate(-90);
++            if (btnQuickAccess->isChecked()) btnQuickAccess->setChecked(false);
++        }
++        QPixmap rotated = pix.transformed(transform);
++        QIcon rotatedIcon(rotated);
++        btnQuickAccess->setIcon(rotatedIcon);
++    });
++}
++
+ void MainWindow::createToolbars()
+ {
+     //Create new toolbar
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h
+index 2d44b63591a..40bd095ceea 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.h
+@@ -280,6 +280,7 @@ public:
+     INIConsole* getConsole() { return console; }
+     QTabWidget* getDisplayPanel() { return displayPanel; }
+     InstrumentsEnum getInstrumentsEnum(QAction* currentAction) { return instrumentsActMap.key(currentAction); }
++    InstrumentsEnum getKeyQuickAccessFromString(QString text);
+ 
+     QList<QGraphicsItem*> getListDiagrams() { return listDiagrams; }
+     void appendListDiagrams(QGraphicsItem* item);
+@@ -699,6 +700,7 @@ private:
+     QMenu* boxMenu, * highLightMenu, * windowsMenu = nullptr;
+     QComboBox* powerProfilesComboBox;
+     QToolButton* mapOptButton, * analyzeLinksButton, * runButton, * contButton, * createTraceFilesButton;
++    QPushButton *btnQuickAccess, *btnEditQuickAccess;
+     NsMenuBar* menuBar;
+     QLabel* ECOIndicator, * currentPowerProfile, * currentView;
+     QList<QDialog*> tooltipDialogs;
+@@ -713,6 +715,7 @@ private:
+   */
+     QToolButton* popupListButton;
+     QToolBar* newToolbar, * viewToolbar, * addToolbar, * mapToolbar, * analyzeToolbar, * toolsToolbar, * simulateToolbar, * generateToolbar, * tooltipToolbar = nullptr;
++    QToolBar* quickaccessToolbar = nullptr;
+     QMenu* popupListMenu;
+     /* Shortcut for "NOC_VIEW" mode */
+     QShortcut* toggleNoc;
+@@ -834,6 +837,7 @@ private:
+ public:
+     QMap<QWidget*, QSharedPointer<StatTab>> getTabStatTabMap() { return tabStatTabMap; }
+     QMap<QWidget*, QMap<QString, QCustomPlot*>*> getTabPlotsMap() { return tabPlotsMap; }
++    QMap<InstrumentsEnum, ActionParams> getInstrumentsActQuickAccessMap() { return instrumentsActQuickAccessMap; }
+     QWidget* getLiveWidget() { return liveTab; }
+     bool isLiveSimOpened() { return showLiveSim; }
+ 
+@@ -1072,6 +1076,7 @@ private slots:
+ 
+ private:
+     void createToolbars();
++    void createQuickAccessToolbar();
+     void createLowerRightDock();
+     void createDisplayPanel();
+     void removePropTable(QString, QString = "", QWidget* = nullptr);
+@@ -1269,6 +1274,52 @@ private:
+     QTimer* storeStateTimer;
+ 
+ private:
++    QMap<InstrumentsEnum, ActionParams> instrumentsActQuickAccessMap
++    {
++        {NEW_MESH_CUSTOM,                    ActionParams(TEXT_NEW_MESH_CUSTOM,                 QIcon(ICON_NEW_MESH),           QString())},
++        {NEW_SOC,                            ActionParams(TEXT_NEW_SOC,                         QIcon(ICON_SOC),                QString())},
++        {GRID,                               ActionParams(TEXT_GRID,                            QIcon(ICON_GRID),               TOOLTIP_SHOW_HIDE_GRID, true)},
++        {TUNE_PLACE_CUSTOM,                  ActionParams(TEXT_TUNE_PLACE,                      QIcon(ICON_TUNE_PLACE ))},
++        {TUNE_SIBS_CUSTOM,                   ActionParams(TEXT_TUNE_SIBS,                       QIcon(ICON_TUNE_SIBS))},
++        {MAP,                                ActionParams(TEXT_MAP,                             QIcon(ICON_MAP),                TOOLTIP_MAP)},
++        {MAP_OPT_CUSTOM,                     ActionParams(TEXT_MAP_OPT,                         QIcon(ICON_MAP_OPTIMIZE))},
++      //{ML_BUILD_CUSTOM,                    ActionParams(TEXT_ML_BUILD,                        QIcon(ICON_ML_BUILD),           TOOLTIP_ML_BUILD)},
++        {ANALYZE_LINKS_CUSTOM,               ActionParams(TEXT_ANALYZE_LINKS,                   QIcon(ICON_ANALYZE_LINKS))},
++        {TUNE_LINK_CUSTOM,                   ActionParams(TEXT_TUNE_LINKS,                      QIcon(ICON_TUNE_LINK_CUSTOM))},
++        {TUNE_FAST_INPUTS_DEFAULT,           ActionParams(TEXT_TUNE_FAST_INPUT,                 QIcon(ICON_TUNE_FAST_INPUTS))},
++        {TUNE_MAX_OUTSTANDING_CUSTOM,        ActionParams(TEXT_TUNE_MAX_OUT_STANDING,           QIcon(ICON_TUNE_MAX_OD ))},
++        {TUNE_PLACE_DEFAULT,                 ActionParams(TEXT_TUNE_PLACE_DEFAULT,              QIcon(ICON_TUNE_PLACE ))},
++        {MAP_OPT_DEFAULT,                    ActionParams(TEXT_MAP_OPT_DIST_BALANCED,           QIcon(ICON_MAP_OPTIMIZE),       TOOLTIP_MAP_OPT_DB)},
++        {ML_BUILD_DEFAULT,                   ActionParams(TEXT_ML_BUILD,                        QIcon(ICON_ML_BUILD),           TOOLTIP_ML_BUILD)},
++        {ANALYZE_LINKS_DEFAULT,              ActionParams(TEXT_ANALYZE_LINKS_BALANCE.trimmed(), QIcon(ICON_ANALYZE_LINKS),      TOOLTIP_ALB.trimmed())},
++        {RUN_CUSTOM,                         ActionParams(TEXT_RUN_EXTERNAL_TRACE,              QIcon(ICON_RUN),                TOOLTIP_RUN_ET)},
++        {STEP,                               ActionParams(TEXT_STEP,                            QIcon(ICON_STEP),               TOOLTIP_STEP)},
++        {CONT_CUSTOM,                        ActionParams(TEXT_CONTINUE,                        QIcon(ICON_CONTINUE),           TOOLTIP_CONTINUE)},
++        {FINALIZE,                           ActionParams(TEXT_FINALIZE_SIMULATION,             QIcon(ICON_FINALIZE),           TOOLTIP_FINALIZE)},
++        {ANALYZE_POWER_PROFILES,             ActionParams(TEXT_ANALYZE_POWER,                   QIcon(ICON_ANALYZE_POWER),      TOOLTIP_ANALYZE_POWER)},
++        {CONT_DEFAULT,                       ActionParams(TEXT_CONTINUE_DEFAULT,                QIcon(ICON_CONTINUE),           TOOLTIP_CONN_DEFAULT)},
++        {GEN_IP,                             ActionParams(TEXT_GEN_NOC_IP,                      QIcon(ICON_GEN_RTL),            TOOLTIP_GEN_IP)},
++        {GEN_IMAGE,                          ActionParams(TEXT_GEN_NOC_IMAGES,                  QIcon(ICON_GEN_IMAGE),          TOOLTIP_GEN_IMAGE)},
++        {EXPORT_SUBSYSTEM,                   ActionParams(TEXT_EXPORT_SUBSYSTEM,                QIcon(ICON_EXPORT_SUBSYSTEM))},
++        {GEN_SOC,                            ActionParams(TEXT_GEN_SOC_IP,                      QIcon(ICON_GEN_RTL))},
++        {ANALYZE_TRAFFIC_CUSTOM,             ActionParams(TEXT_ANALYZE_TRAFFICE,                QIcon(ICON_ANALYZE_TRAFFIC),    TOOLTIP_AF)},
++        {SHOW_LATENCY_CUSTOM,                ActionParams(TEXT_SHOW_LATENCY,                    QIcon(ICON_SHOW_LATENCY),       TOOLTIP_SHOW_LATENCY)},
++        {SHOW_ROUTE_CUSTOM,                  ActionParams(TEXT_SHOW_ROUTE,                      QIcon(ICON_SHOW_ROUTE),         TOOLTIP_SHOW_ROUTE)},
++        {SHOW_ROUTE_WAYPOINT_CUSTOM,         ActionParams(TEXT_SHOW_ROUTE_WAYPOINT,             QIcon(ICON_SHOW_ROUTE_WAYPOINT),TOOLTIP_SHOW_ROUTE_WAYPOINT)},
++        {LINT,                               ActionParams(TEXT_LINT,                            QIcon(ICON_LINT),               TOOLTIP_LINT)},
++        {HIGH_LIGHT,                         ActionParams(TEXT_HIGHLIGHT,                       QIcon(ICON_HIGHLIGHT),          TOOLTIP_HIGHLIGHT)},
++        {TRAFFIC,                            ActionParams(TEXT_TRAFFIC_CREATOR,                 QIcon(ICON_TRAFFIC),                     QString(),              true)},
++        {ZOOM_FIT,                           ActionParams(TEXT_ZOOMFIT,                         QIcon(ICON_ZOOM_100),                    TOOLTIP_ZOOM_AUTOFIT)},
++        {ZOOM_SELECTION,                     ActionParams(TEXT_ZOOM_SELECTION,                  QIcon(ICON_ZOOM_SELECT),        TOOLTIP_ZOOM_SELECTION, true)},
++        {ZOOM_IN,                            ActionParams(TEXT_ZOOM_IN,                         QIcon(ICON_ZOOM_IN),            TOOLTIP_ZOOM_IN)},
++        {ZOOM_OUT,                           ActionParams(TEXT_ZOOM_OUT,                        QIcon(ICON_ZOOM_OUT),           TOOLTIP_ZOOM_OUT)},
++        {TOGGLE_CLOCK_DOMAIN_VIEW,           ActionParams(TOOLTIP_CLOCK_DOMAIN_BUTTON_UNCHECKED,                    QIcon(ICON_SWITCH_CLOCK),    TOOLTIP_CLOCK_DOMAIN_BUTTON_UNCHECKED,    true)},
++        {TOGGLE_POWER_DOMAIN_VIEW,           ActionParams(TOOLTIP_POWER_DOMAIN_BUTTON_UNCHECKED,                    QIcon(ICON_SWITCH_POWER),    TOOLTIP_POWER_DOMAIN_BUTTON_UNCHECKED,    true)},
++        {TOGGLE_VOLTAGE_DOMAIN_VIEW,         ActionParams(TOOLTIP_VOLTAGE_DOMAIN_BUTTON_UNCHECKED,                  QIcon(ICON_SWITCH_VOLTAGAE), TOOLTIP_VOLTAGE_DOMAIN_BUTTON_UNCHECKED,  true)},
++        {TOGGLE_MERGE_DOMAIN_VIEW,           ActionParams(TOOLTIP_MERGE_DOMAIN_BUTTON_UNCHECKED,                    QIcon(ICON_SWITCH_POWER),    TOOLTIP_MERGE_DOMAIN_BUTTON_UNCHECKED,    true)},
++        {TOGGLE_LAYER_BLOCKAGE_VIEW,         ActionParams(TOOLTIP_LAYER_BLOCKAGE_BUTTON_UNCHECKED,                  QIcon(ICON_SWITCH_BLOCKAGE), TOOLTIP_LAYER_BLOCKAGE_BUTTON_UNCHECKED,  true)},
++        {TOGGLE_RTL_GROUP_VIEW,              ActionParams(TOOLTIP_RTL_GROUP_BUTTON_UNCHECKED,                       QIcon(ICON_SWITCH_RTL_GROUP), TOOLTIP_RTL_GROUP_BUTTON_UNCHECKED,      true)}
++    };
+     QMap<InstrumentsEnum, ActionParams> instrumentsActParamsMap
+     {
+         {NEW_MESH_CUSTOM,                    ActionParams(TEXT_NEW_MESH_CUSTOM,                 QIcon(ICON_NEW_MESH),           QString())},

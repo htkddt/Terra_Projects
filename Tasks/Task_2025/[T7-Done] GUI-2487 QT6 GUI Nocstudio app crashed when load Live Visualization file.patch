@@ -1,0 +1,23 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 4de3ba8529a..2d1365344c9 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -4896,6 +4896,7 @@ void PropertyPanel::updateNormalPlot(QSharedPointer<StatTab> st, EventGroup & eg
+         if (customPlot->axisRect(0)->axes()[i]->label().contains("Time")) {
+             if (reopenLiveTab || refresh) {
+                 /* Get the first showed point */
++                if (eg.latency_points.keys().isEmpty()) continue;
+                 auto rangeLower = eg.latency_points.keys().first();
+                 /* Edit range to contain this point */
+                 if (!eg.zoomLower && eg.zoomUpper <= rangeLower)
+@@ -5189,6 +5190,7 @@ void PropertyPanel::updateComparisonPlot(QSharedPointer<StatTab> st, Plot & p, Q
+         EventGroup& eg = it->second;
+         eg.get_graphs_points(st, p.bin_size, p.bin_interval);
+ 
++        if (eg.latency_points.keys().isEmpty()) continue;
+         if (!eg.latency_points.size() || !eg.pkt_size_points.size() || !eg.throughput_points.size()) continue;
+ 
+         if (maxTime < eg.latency_points.keys().last()) maxTime = eg.latency_points.keys().last();

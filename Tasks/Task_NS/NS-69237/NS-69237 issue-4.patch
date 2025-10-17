@@ -1,0 +1,524 @@
+ src/sw/noc_dev/IPCore/include/IPTypes.h            |   1 +
+ .../IPStudio_qt6/GUI/Item/IPConnectivity.cpp       |  11 +-
+ .../IPStudio_qt6/GUI/MainWindow/IPDesign.cpp       | 254 ++++++++++++++-------
+ .../IPStudio_qt6/GUI/MainWindow/IPDialog.cpp       |  14 +-
+ src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h     |   2 +-
+ src/sw/noc_dev/IPStudio_qt6/include/IPDialog.h     |   4 +-
+ 6 files changed, 186 insertions(+), 100 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPCore/include/IPTypes.h b/src/sw/noc_dev/IPCore/include/IPTypes.h
+index 0b71e8d61de..e1e7ceec3f4 100755
+--- a/src/sw/noc_dev/IPCore/include/IPTypes.h
++++ b/src/sw/noc_dev/IPCore/include/IPTypes.h
+@@ -39,6 +39,7 @@
+ #include "Rtl_lib.common.h"
+ #include "IPTypes.Common.h"
+ #include "json/json.hpp"
++#define IP_TCL = 1
+ namespace NetSpeed {
+ 
+ using ip_json = nlohmann::json;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp
+index 9eb807f692c..a8236d92ce1 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp
+@@ -69,9 +69,7 @@ void IPConnectivity::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
+         painter->drawRect(boundingRect());
+     }
+ 
+-    if (QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform()) < 0.2) {
+-       return;
+-    }
++    if (QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform()) < 0.2) return;
+ 
+     // Body pen
+     QPen bodyPen;
+@@ -198,28 +196,33 @@ QVariant IPConnectivity::itemChange(QGraphicsItem::GraphicsItemChange change, co
+ }
+ 
+ 
+-void IPConnectivity::alignInterfaceLabel() {
++void IPConnectivity::alignInterfaceLabel()
++{
+     QPointF labelNewPos = ifceLabel->pos();
+     const QRectF& textRect = ifceLabel->textRect();
+     switch (_textDirection) {
+     case QSchematic::LeftToRight:
+         labelNewPos.rx() = -textRect.width() - TEXT_PADDING;
+         labelNewPos.ry() = textRect.height() / 4;
++        dir = 3;
+         break;
+ 
+     case QSchematic::RightToLeft:
+         labelNewPos.rx() = TEXT_PADDING;
+         labelNewPos.ry() = textRect.height() / 4;
++        dir = 1;
+         break;
+ 
+     case QSchematic::TopToBottom:
+         labelNewPos.rx() = textRect.height() / 4;
+         labelNewPos.ry() = -TEXT_PADDING;
++        dir = 0;
+         break;
+ 
+     case QSchematic::BottomToTop:
+         labelNewPos.rx() = textRect.height() / 4;
+         labelNewPos.ry() = textRect.width() + TEXT_PADDING;
++        dir = 2;
+         break;
+     }
+     auto transform = label()->transform();
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+index aff79c3642d..3e264a02fc4 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+@@ -369,6 +369,7 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+                     if ((wiresRouted[conn.first] == desConn) || (wiresRouted[desConn] == conn.first)) break;
+                     auto wire = constructWire(conn.first, desConn, true);
+                     if (wire) {
++                        wire->setHighlighted(true);
+                         desConn->setHighlighted(true);
+                         wireList.append(wire);                           
+                         connList.append(desConn);
+@@ -399,7 +400,7 @@ QList<std::shared_ptr<Wire>> IPDesign::renderWires(QString instName, QList<QStri
+         for (auto const& ifce : ifces) {
+             if (conn.first->text() == ifce) {
+                 for (auto const desConn : conn.second) {
+-                    auto wire = constructWire(conn.first, desConn, true);
++                    auto wire = constructWire(conn.first, desConn, false);
+                     if (wire) {
+                         wireList.append(wire);
+                     }
+@@ -412,7 +413,7 @@ QList<std::shared_ptr<Wire>> IPDesign::renderWires(QString instName, QList<QStri
+     return wireList;
+ }
+ 
+-void IPDesign::renderWires(QList<QString> ifces, bool obstacle_avoidance)
++void IPDesign::renderWires(QMap<QString, QList<QString>> map, bool obstacle_avoidance)
+ {
+     QList<std::shared_ptr<Wire>> wireList;
+     scene->setMode(Scene::NormalMode);
+@@ -430,18 +431,15 @@ void IPDesign::renderWires(QList<QString> ifces, bool obstacle_avoidance)
+             new Avoid::ShapeRef(router.get(), poly);
+         }
+         std::unordered_map<Avoid::ConnRef*, QPair<IPConnectivity*, IPConnectivity*>> wireMap;
+-        for (auto it = instanceWires.begin(), end = instanceWires.end(); it != end; ++it) {
+-            for (auto const& conn : it.value()) {
+-                /* Check with checkbox items*/
+-                for (auto const& cbText : ifces) {
+-                    if (conn.first->text() == cbText) {
+-                        for (auto const desConn : conn.second) {
+-                            wireMap[computeWire(conn.first, desConn, router.get())] = {conn.first, desConn};
+-                        }                       
+-                        break;
+-                    }
+-                }              
+-            }                        
++        for (auto it = map.begin(), end = map.end(); it != end; ++it) {
++            auto conns = instanceWires.value(it.key());
++            /* Check with checkbox items*/
++            for (auto const& conn : conns) {
++                if (!it.value().contains(conn.first->text())) continue;
++                for (auto const& des : conn.second) {
++                    wireMap[computeWire(conn.first, des, router.get())] = {conn.first, des};
++                }
++            }
+         }
+ 
+         router->processTransaction();
+@@ -451,16 +449,13 @@ void IPDesign::renderWires(QList<QString> ifces, bool obstacle_avoidance)
+     }
+     else {
+         wiresRouted.clear();
+-        for (auto it = instanceWires.begin(), end = instanceWires.end(); it != end; ++it) {
+-            for (auto const& conn : it.value()) {
+-                /* Check with checkbox items*/
+-                for (auto const& cbText : ifces) {
+-                    if (conn.first->text() == cbText) {
+-                        for (auto const desConn : conn.second) {
+-                            (void)constructWire(conn.first, desConn, false);
+-                        }
+-                        break;
+-                    }
++        for (auto it = map.begin(), end = map.end(); it != end; ++it) {
++            auto conns = instanceWires.value(it.key());
++            /* Check with checkbox items*/
++            for (auto const& conn : conns) {
++                if (!it.value().contains(conn.first->text())) continue;
++                for (auto const& des : conn.second) {
++                    (void)constructWire(conn.first, des, false);
+                 }
+             }
+         }
+@@ -540,133 +535,220 @@ Avoid::ConnRef * IPDesign::computeWire(IPConnectivity * start, IPConnectivity *
+ 
+ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectivity* end, bool highlight)
+ {
+-    int delta = 0;
+-    int offset = 0;
++    bool swap = false;
+ 
+     if (!highlight) {
+         if ((wiresRouted[start] == end) || (wiresRouted[end] == start)) {
+             return nullptr;
+         }
+         wiresRouted[start] = end;
+-        offset = 50 + 2 * (rand() % 100);
+-        _offset = offset;
+-    } else {
+-        delta = 10;
+-        offset = _offset + 100;
++    } else if (wiresRouted[end] == start) {
++        swap = true;
++    }
++
++    IPConnectivity* ptrSrc = start;
++    IPConnectivity* ptrDes = end;
++    QPointF temp, pre_temp;
++
++    if (swap) {
++        auto temp = ptrDes;
++        ptrDes = ptrSrc;
++        ptrSrc = temp;
+     }
+     
+     std::shared_ptr<Wire> wire = nullptr;
+     if (!scene) return wire;
+     wire = scene->makeWire();
+-    attachWireToConnector(wire, static_cast<IPInstance*>(start->parentItem()), start->scenePos());
+-    auto src = start->getConnectingScenePos();
+-    auto des = end->getConnectingScenePos();
+-    auto centerPoint = QLineF(src, des).center();
++    attachWireToConnector(wire, static_cast<IPInstance*>(ptrSrc->parentItem()), ptrSrc->scenePos());
++    auto src = ptrSrc->getConnectingScenePos();
++    auto des = ptrDes->getConnectingScenePos();
++
++    int offset = 100;
++    int wirePadding = 50;
++
+     wire->append_point(_settings.snapToGrid(src));
+     /* Config wires direction */
+-    switch (start->dir) {
++    switch (ptrSrc->dir) {
+         case TOP:
+             /* Config source wires direction */
+-            wire->append_point(_settings.snapToGrid(QPointF(src.rx() + delta, src.ry() - offset)));         /* Draw up */
++            temp = QPointF(src.rx(), src.ry() - wirePadding);
++            pre_temp = temp;
++            wire->append_point(_settings.snapToGrid(temp)); /* Draw up */
+             
+             /* Config destination wires direction */
+-            switch (end->dir) {
++            switch (ptrDes->dir) {
+                 case TOP:
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), src.ry() - offset))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), des.ry() - offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() - offset))); /* Draw horizontal */
++                    temp = QPointF(des.rx(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case RIGHT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), src.ry() - offset)));  /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, src.ry() - offset))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, des.ry() + delta)));  /* Draw vertical */
++                    temp = QPointF(des.rx() + wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
+                     break;
+                 case BOTTOM:
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), src.ry() - offset))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), des.ry() + offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() + offset))); /* Draw horizontal */
++                    temp = QPointF(pre_temp.x() + offset, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry() + wirePadding);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case LEFT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), src.ry() - offset))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), des.ry() + delta)));  /* Draw vertical */
++                    temp = QPointF(des.rx() - wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
+                     break;
+                 default:
+                     break;
+             }
+             break;
+         case RIGHT:
+-            wire->append_point(_settings.snapToGrid(QPointF(src.rx() + offset, src.ry() + delta)));         /* Draw horizontal */
++            temp = QPointF(src.rx() + wirePadding, src.ry());
++            pre_temp = temp;
++            wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontally to the right */
++
+             /* Config destination wires direction */
+-            switch (end->dir) {
++            switch (ptrDes->dir) {
+                 case TOP:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() + offset, des.ry() - offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() - offset)));  /* Draw horizontal */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() - offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.x(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case RIGHT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() + offset, centerPoint.ry())));  /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, centerPoint.ry())));  /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, des.ry() + delta)));  /* Draw vertical */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() - offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx() + wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.y());
++                    wire->append_point(_settings.snapToGrid(temp));  /* Draw vertical */
+                     break;
+                 case BOTTOM:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() + offset, des.ry() + offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() + offset))); /* Draw horizontal */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() + offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case LEFT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() + offset, centerPoint.ry()))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() - offset, centerPoint.ry()))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() - offset, des.ry() + delta))); /* Draw vertical */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() - offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx() - wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
+                     break;
+                 default:
+                     break;
+             }
+             break;
+         case BOTTOM:
+-            wire->append_point(_settings.snapToGrid(QPointF(src.rx() + delta, src.ry() + offset)));         /* Draw down */            
++            temp = QPointF(src.rx(), src.ry() + wirePadding);
++            pre_temp = temp;
++            wire->append_point(_settings.snapToGrid(temp)); /* Draw down */
++
+             /* Config destination wires direction */
+-            switch (end->dir) {
++            switch (ptrDes->dir) {
+                 case TOP:
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), src.ry() + offset))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), des.ry() - offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() - offset))); /* Draw horizontal */
++                    temp = QPointF(pre_temp.x() + offset, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry() - wirePadding);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case RIGHT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, src.ry() + offset)));/* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, des.ry() + delta))); /* Draw vertical */
++                    temp = QPointF(des.rx() + wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
+                     break;
+                 case BOTTOM:
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), src.ry() + offset))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(centerPoint.rx(), des.ry() + offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() + offset))); /* Draw horizontal */
++                    temp = QPointF(des.rx(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case LEFT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() - offset, src.ry() + offset)));/* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() - offset, des.ry() + delta))); /* Draw vertical */
++                    temp = QPointF(des.rx() - wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
+                     break;
+                 default:
+                     break;
+             }
+             break;
+         case LEFT:
+-            wire->append_point(_settings.snapToGrid(QPointF(src.rx() - offset, src.ry() + delta)));          /* Draw horizontal */
++            temp = QPointF(src.rx() - wirePadding, src.ry());
++            pre_temp = temp;
++            wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontally to the left */
++
+             /* Config destination wires direction */
+-            switch (end->dir) {
++            switch (ptrDes->dir) {
+                 case TOP:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() - offset, des.ry() - offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() - offset)));  /* Draw horizontal */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() - offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx() + wirePadding, pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case RIGHT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() - offset, centerPoint.ry()))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, centerPoint.ry()))); /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + offset, des.ry() + delta))); /* Draw vertical */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() - offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx() + wirePadding, pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case BOTTOM:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() - offset, des.ry() + offset))); /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() + delta, des.ry() + offset)));  /* Draw horizontal */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() + offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx(), pre_temp.y());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
+                     break;
+                 case LEFT:
+-                    wire->append_point(_settings.snapToGrid(QPointF(src.rx() - offset, centerPoint.ry())));  /* Draw vertical */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() - offset, centerPoint.ry())));  /* Draw horizontal */
+-                    wire->append_point(_settings.snapToGrid(QPointF(des.rx() - offset, des.ry() + delta)));  /* Draw vertical */
++                    temp = QPointF(pre_temp.x(), pre_temp.y() - offset * 2);
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++
++                    temp = QPointF(des.rx() - wirePadding, pre_temp.y());
++                    pre_temp = temp;
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++
++                    temp = QPointF(pre_temp.x(), des.ry());
++                    wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
+                     break;
+                 default:
+                     break;
+@@ -677,7 +759,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     }
+     
+     wire->append_point(_settings.snapToGrid(des));
+-    attachWireToConnector(wire, static_cast<IPInstance*>(end->parentItem()), end->scenePos());
++    attachWireToConnector(wire, static_cast<IPInstance*>(ptrDes->parentItem()), ptrDes->scenePos());
+     completeWire(wire);
+     return wire;
+ }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDialog.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDialog.cpp
+index bf08e522da7..496f00ff344 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDialog.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDialog.cpp
+@@ -200,13 +200,13 @@ void ShowWiresDialog::refresh(std::map<QString, QList<QString>> ifces)
+             auto child = addTreeChild(parent, ifce);
+             childs.push_back(child);
+         }
+-        treeWidgetItems.insert(std::pair<QTreeWidgetItem*, QList<QTreeWidgetItem*>>(parent, childs));
++        treeWidgetItems.push_back(QPair<QTreeWidgetItem*, QList<QTreeWidgetItem*>>(parent, childs));
+     }
+-
++    std::reverse(treeWidgetItems.begin(), treeWidgetItems.end());
+     for (auto const& it : treeWidgetItems) {
+         treeWidget->insertTopLevelItem(0, it.first);
+         treeWidget->insertTopLevelItems(0, it.second);
+-    }   
++    }
+     treeWidgetLayout->addWidget(treeWidget);
+ 
+     connect(selectAll,&QPushButton::clicked,this,[&](){
+@@ -260,20 +260,20 @@ void ShowWiresDialog::setCheckAllState(QTreeWidgetItem *item, int column)
+     }
+ }
+ 
+-const QList<QString> ShowWiresDialog::getCheckedValues() const
++const QMap<QString, QList<QString>> ShowWiresDialog::getCheckedValues() const
+ {
+-    QList<QString> ifceRet;
++    QMap<QString, QList<QString>> map;
+ 
+     for (auto const& it : treeWidgetItems) {
+         for (auto const& ifce : it.second) {
+             /*Get all items had checked by user */
+             if (ifce->checkState(0) == Qt::Checked) {
+-                ifceRet.push_back(ifce->text(0));
++                map[it.first->text(0)].append(ifce->text(0));
+             }
+         }
+     }
+ 
+-    return ifceRet;
++    return map;
+ }
+ 
+ 
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+index 8b25ea1de3f..37a7b010d26 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+@@ -41,7 +41,7 @@ public:
+     void refresh();
+     void refresh(const NetSpeed::BDS::Module*);
+     QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> highlightWires(QString instName, QList<QString> ifces);
+-    void renderWires(const QList<QString> ifces, bool obstacle_avoidance);
++    void renderWires(const QMap<QString, QList<QString>> map, bool obstacle_avoidance);
+     QList<std::shared_ptr<Wire>> renderWires(QString instName, QList<QString> ifces, QList<std::shared_ptr<Wire>> renderedWireList);
+     const NetSpeed::BDS::Module* getModule() const { return module; }
+     const std::shared_ptr<IPObject>& getIPObject() const { return object; }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPDialog.h b/src/sw/noc_dev/IPStudio_qt6/include/IPDialog.h
+index 5550ee7b358..5e69d4d6ee6 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPDialog.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPDialog.h
+@@ -67,7 +67,7 @@ public:
+     QTreeWidgetItem* addTreeChild(QTreeWidgetItem* parent, QString ifce_name);
+     void refresh(std::map<QString, QList<QString>>);
+     bool isSmartRouting() const;
+-    const QList<QString> getCheckedValues() const;
++    const QMap<QString, QList<QString>> getCheckedValues() const;
+ 
+ public slots:
+     void setCheckAllState(QTreeWidgetItem*, int);
+@@ -79,7 +79,7 @@ protected:
+     QCheckBox* smartRouting = nullptr;
+     QGridLayout* treeWidgetLayout = nullptr;
+     QTreeWidget* treeWidget = nullptr;
+-    std::map<QTreeWidgetItem*, QList<QTreeWidgetItem*>> treeWidgetItems;
++    QList<QPair<QTreeWidgetItem*, QList<QTreeWidgetItem*>>> treeWidgetItems;
+ };
+ 
+ class ConstraintDialog : public QDialog

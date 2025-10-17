@@ -1,0 +1,455 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp        |  17 ++
+ src/sw/noc_dev/prototype/Gui/dialogs.h          |  11 ++
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 243 +++++++++++++++++-------
+ src/sw/noc_dev/prototype/Gui/mainwindow.h       |   5 +-
+ src/sw/noc_dev/prototype/Utils/initabwidget.cpp |   9 +
+ src/sw/noc_dev/prototype/Utils/initabwidget.h   |   3 +
+ 6 files changed, 217 insertions(+), 71 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index dd891279006..43556ad7415 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -3084,6 +3084,12 @@ ToolTipAppDialog::ToolTipAppDialog(QWidget * w, QString name, int count)
+     mW = w;
+     mW->setParent(this);
+ 
++    zoom_fit = new QShortcut(QKeySequence("Ctrl+K"), this);
++    zoom_in = {new QShortcut(QKeySequence(tr("Ctrl++")), this),
++        new QShortcut(QKeySequence(tr("Ctrl+=")), this)};
++    zoom_out = new QShortcut(QKeySequence(tr("Ctrl+-")), this);
++    zoom_select = new QShortcut(QKeySequence("Ctrl+S"), this);
++
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addWidget(w);
+     w->show();
+@@ -3136,6 +3142,17 @@ void ToolTipAppDialog::unDock()
+     this->close();
+ }
+ 
++void ToolTipAppDialog::mousePressEvent(QMouseEvent* event)
++{
++    auto mw = getMainWindow();
++    if (!mw) return;
++    auto tooltip = dynamic_cast<QTextBrowser*>(getMainWidget());
++    if (event->button() == Qt::MiddleButton && tooltip) {
++        mw->zoomDisplayingTooltip(ZOOM_FIT, tooltip);
++    }
++    QDialog::mousePressEvent(event);
++}
++
+ LintDialog::LintDialog(QWidget * w, QString name)
+ {
+     w->setParent(this);
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index de64b7ff0fd..c81847d722b 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -925,9 +925,16 @@ public:
+     ToolTipAppDialog(QWidget* w, QString name, int count = 0);
+     void closeEvent(QCloseEvent*);
+     void changeEvent(QEvent*);
++    void setMainWindow(MainWindow* main) { mainWindow = main; }
++    MainWindow* getMainWindow() { return mainWindow; }
+     QWidget* getMainWidget() { return mW; }
+     QString getmName() { return mName; }
+ 
++    QShortcut* zoom_fit = nullptr;
++    std::vector<QShortcut*> zoom_in;
++    QShortcut* zoom_out = nullptr;
++    QShortcut* zoom_select = nullptr;
++
+ private:
+     bool isTable;
+     bool unDocking;
+@@ -935,6 +942,10 @@ private:
+     int m_count;
+     QTextEdit* mTE;
+     QWidget* mW;
++    MainWindow* mainWindow;
++
++protected:
++    void mousePressEvent(QMouseEvent* event) override;
+ 
+ signals:
+     void a(int);
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 6407266e261..747489603ad 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -908,7 +908,8 @@ void MainWindow::setActionsShortcut()
+     instrumentsActMap[TOGGLE_RTL_GROUP_VIEW]->setShortcut(QKeySequence("Alt+R"));
+ 
+     /* For zoom action */
+-    instrumentsActMap[ZOOM_SELECTION]->setShortcut(QKeySequence("Ctrl+S"));
++    QShortcut* zoom_select = new QShortcut(QKeySequence("Ctrl+S"), this);
++    connect(zoom_select, SIGNAL(activated()), this, SLOT(zoomSelectAct()));
+     /* For zoom in action */
+     QShortcut* zoom_fit = new QShortcut(QKeySequence("Ctrl+K"), this);
+     connect(zoom_fit, SIGNAL(activated()), this, SLOT(zoomAutoFitAct()));
+@@ -3135,115 +3136,200 @@ void MainWindow::about() {
+ 
+ void MainWindow::zoomInAct()
+ {
+-    if (getActiveFloatView() && isDisplayingFloatStatsView()){
+-        statsView = (StatsView*)getActiveFloatView()->getMainWidget();
+-        if(statsView) statsView->zoom(ZOOM_STEP);
+-    }else if (getActiveFloatView()) {
+-        auto nsChipView = dynamic_cast<NsChipView*>(getActiveFloatView()->getMainWidget());
++    auto activeFloatView = getActiveFloatView();
++    if (activeFloatView && isDisplayingFloatStatsView()) {
++        statsView = dynamic_cast<StatsView*>(activeFloatView->getMainWidget());
++        if (statsView) {
++            statsView->zoom(ZOOM_STEP);
++        }
++    } else if (activeFloatView) {
++        auto nsChipView = dynamic_cast<NsChipView*>(activeFloatView->getMainWidget());
+         if (nsChipView) {
+             zoomDisplayingChipView(ZOOM_STEP);
+         }
+-    }else if (isDisplayingStatsView()){
+-        statsView = (StatsView*)displayPanel->currentWidget();
+-        if(statsView) statsView->zoom(ZOOM_STEP);
+-    }
+-    else if (isDisplayingChipView()) zoomDisplayingChipView(ZOOM_STEP);
+-    else if (isDisplayingSocView()) zoomDisplayingSocView(ZOOM_STEP);
+-    else if (isDisplayingMeshView()) zoomDisplayingMeshView(ZOOM_STEP);
+-    else if(isDisplayingChopView()){
++        auto nsChopView = dynamic_cast<NsChopView*>(activeFloatView->getMainWidget());
++        if (nsChopView) {
++            nsChopView->zoom(ZOOM_STEP);
++        }
++        auto tooltip = dynamic_cast<QTextBrowser*>(activeFloatView->getMainWidget());
++        if (tooltip) {
++            zoomDisplayingTooltip(ZOOM_IN, tooltip);
++        }
++    } else if (isDisplayingStatsView()){
++        statsView = dynamic_cast<StatsView*>(displayPanel->currentWidget());
++        if (statsView) {
++            statsView->zoom(ZOOM_STEP);
++        }
++    } else if (isDisplayingChipView()) {
++        zoomDisplayingChipView(ZOOM_STEP);
++    } else if (isDisplayingSocView()) {
++        zoomDisplayingSocView(ZOOM_STEP);
++    } else if (isDisplayingMeshView()) {
++        zoomDisplayingMeshView(ZOOM_STEP);
++    } else if (isDisplayingChopView()) {
+         auto nsChopView = dynamic_cast<NsChopView*>(displayPanel->currentWidget());
+         if (nsChopView) {
+             nsChopView->zoom(ZOOM_STEP);           
+         }
++    } else if (isDisplayingToolTip()) {
++        auto tooltip = dynamic_cast<QTextBrowser*>(displayPanel->currentWidget());
++        if (tooltip) {
++            zoomDisplayingTooltip(ZOOM_IN, tooltip);
++        }
+     }
+-    else if (isDisplayingToolTip()) zoomDisplayingTooltip(ZOOM_IN);
+ }
+ 
+ void MainWindow::zoomOutAct()
+ {
+-    if (getActiveFloatView() && isDisplayingFloatStatsView()) {
+-        statsView = (StatsView*)getActiveFloatView()->getMainWidget();
+-        if(statsView) statsView->zoom(-ZOOM_STEP);
+-    }else if (getActiveFloatView()) {
+-        auto nsChipView = dynamic_cast<NsChipView*>(getActiveFloatView()->getMainWidget());
++    auto activeFloatView = getActiveFloatView();
++    if (activeFloatView && isDisplayingFloatStatsView()) {
++        statsView = dynamic_cast<StatsView*>(activeFloatView->getMainWidget());
++        if (statsView) {
++            statsView->zoom(-ZOOM_STEP);
++        }
++    } else if (activeFloatView) {
++        auto nsChipView = dynamic_cast<NsChipView*>(activeFloatView->getMainWidget());
+         if (nsChipView) {
+             zoomDisplayingChipView(-ZOOM_STEP);
+         }
+-    }else if (isDisplayingStatsView()) {
+-        statsView = (StatsView*)displayPanel->currentWidget();
+-        if (statsView) statsView->zoom(-ZOOM_STEP);
+-    }
+-    else if (isDisplayingChipView()) zoomDisplayingChipView(-ZOOM_STEP);
+-    else if (isDisplayingSocView()) zoomDisplayingSocView(-ZOOM_STEP);
+-    else if (isDisplayingMeshView()) zoomDisplayingMeshView(-ZOOM_STEP);
+-    else if(isDisplayingChopView()){
++        auto nsChopView = dynamic_cast<NsChopView*>(activeFloatView->getMainWidget());
++        if (nsChopView) {
++            nsChopView->zoom(-ZOOM_STEP);
++        }
++        auto tooltip = dynamic_cast<QTextBrowser*>(activeFloatView->getMainWidget());
++        if (tooltip) {
++            zoomDisplayingTooltip(ZOOM_OUT, tooltip);
++        }
++    } else if (isDisplayingStatsView()) {
++        statsView = dynamic_cast<StatsView*>(displayPanel->currentWidget());
++        if (statsView) {
++            statsView->zoom(-ZOOM_STEP);
++        }
++    } else if (isDisplayingChipView()) {
++        zoomDisplayingChipView(-ZOOM_STEP);
++    } else if (isDisplayingSocView()) {
++        zoomDisplayingSocView(-ZOOM_STEP);
++    } else if (isDisplayingMeshView()) {
++        zoomDisplayingMeshView(-ZOOM_STEP);
++    } else if (isDisplayingChopView()) {
+         auto nsChopView = dynamic_cast<NsChopView*>(displayPanel->currentWidget());
+-        if(nsChopView) nsChopView->zoom(-ZOOM_STEP);
++        if (nsChopView) {
++            nsChopView->zoom(-ZOOM_STEP);
++        }
++    } else if (isDisplayingToolTip()) {
++        auto tooltip = dynamic_cast<QTextBrowser*>(displayPanel->currentWidget());
++        if (tooltip) {
++            zoomDisplayingTooltip(ZOOM_OUT, tooltip);
++        }
++    }
++}
++
++void MainWindow::zoomSelectAct()
++{
++    if (instrumentsActMap[ZOOM_SELECTION]->isChecked()) {
++        instrumentsActMap[ZOOM_SELECTION]->setChecked(false);
++    } else {
++        instrumentsActMap[ZOOM_SELECTION]->setChecked(true);
+     }
+-    else if (isDisplayingToolTip()) zoomDisplayingTooltip(ZOOM_OUT);
+ }
+ 
+-void MainWindow::zoomDisplayingTooltip(InstrumentsEnum ins)
++void MainWindow::zoomDisplayingTooltip(InstrumentsEnum ins, QTextBrowser* tooltip)
+ {
+-    auto tooltip = qobject_cast<QTextBrowser*>(displayPanel->currentWidget());
++    auto fontSizeAuto = ResizeDialog::getResizeDialog()->getMSlider()->value();
++    QFont font = tooltip->font();
+     if (!tooltip) return;
+-    if (ins == ZOOM_IN) {
++    switch (ins) {
++    case ZOOM_IN:
+         tooltip->zoomIn();
+-    }
+-    else if (ins == ZOOM_OUT) {
++        break;
++    case ZOOM_OUT:
+         tooltip->zoomOut();
++        break;
++    case ZOOM_FIT:
++        font.setPointSize(fontSizeAuto);
++        tooltip->setFont(font);
++        break;
++    default:
++        break;
+     }
+ }
+ 
+ void MainWindow::zoomAutoFitAct()
+ {
+-    if (getActiveFloatView() && isDisplayingFloatStatsView()) {
+-        statsView = dynamic_cast<StatsView*> (getActiveFloatView()->getMainWidget());
+-        if (!statsView) return;
++    auto activeFloatView = getActiveFloatView();
++    if (activeFloatView && isDisplayingFloatStatsView()) {
++        statsView = dynamic_cast<StatsView*>(activeFloatView->getMainWidget());
++        if (!statsView) {
++            return;
++        }
+         statsView->setAutoFit(true);
+-        if (!statsViewMap.isEmpty()) refreshStatsView();
+-    }
+-    else if (getActiveFloatView()) {
+-        auto nsChopView = dynamic_cast<NsChopView*> (getActiveFloatView()->getMainWidget());
++        if (!statsViewMap.isEmpty()) {
++            refreshStatsView();
++        }
++    } else if (activeFloatView) {
++        auto nsChopView = dynamic_cast<NsChopView*>(activeFloatView->getMainWidget());
+         if (nsChopView) {
+-            if (nsChopView->isAutoFit()) return;
++            if (nsChopView->isAutoFit()) {
++                return;
++            }
+             nsChopView->triggerAutoFit(true);
+         }
+-        auto nsChipView = dynamic_cast<NsChipView*>(getActiveFloatView()->getMainWidget());
++        auto nsChipView = dynamic_cast<NsChipView*>(activeFloatView->getMainWidget());
+         if (nsChipView) {
+-            if (nsChipView->isAutoFit()) return;
++            if (nsChipView->isAutoFit()) {
++                return;
++            }
+             nsChipView->triggerAutoFit(true);
+         }
+-        
+-    }
+-    else if (isDisplayingStatsView()) { // for statview
++        auto tooltip = dynamic_cast<QTextBrowser*>(activeFloatView->getMainWidget());
++        if (tooltip) {
++            zoomDisplayingTooltip(ZOOM_FIT, tooltip);
++        }
++    } else if (isDisplayingStatsView()) { // for statview
+         statsView = dynamic_cast<StatsView*>(displayPanel->currentWidget());
+-        if (!statsView) return;
+-        if (statsView->isAutoFit()) return;
++        if (!statsView) {
++            return;
++        }
++        if (statsView->isAutoFit()) {
++            return;
++        }
+         statsView->setAutoFit(true);
+-        if (!statsViewMap.isEmpty()) refreshStatsView();
+-    }
+-    else if (isDisplayingChipView()) // for chipview(heat map)
+-    {
++        if (!statsViewMap.isEmpty()) {
++            refreshStatsView();
++        }
++    } else if (isDisplayingToolTip()) {
++        auto tooltip = dynamic_cast<QTextBrowser*>(displayPanel->currentWidget());
++        if (!tooltip) {
++            return;
++        }
++        zoomDisplayingTooltip(ZOOM_FIT, tooltip);
++    } else if (isDisplayingChipView()) {  // for chipview(heat map)
+         auto nsChipView = qobject_cast<NsChipView*>(displayPanel->currentWidget());
+-        if (nsChipView->isAutoFit()) return;
++        if (nsChipView->isAutoFit()) {
++            return;
++        }
+         nsChipView->triggerAutoFit(true);
+-    }
+-    else if(isDisplayingChopView()){
++    } else if(isDisplayingChopView()){
+         auto nsChopView = dynamic_cast<NsChopView*>(displayPanel->currentWidget());
+-        if (!nsChopView) return;
+-        if (nsChopView->isAutoFit()) return;
++        if (!nsChopView) {
++            return;
++        }
++        if (nsChopView->isAutoFit()) {
++            return;
++        }
+         nsChopView->triggerAutoFit(true);
+-    }
+-    else if (isDisplayingSocView()) // for floorplan view
+-    {
++    } else if (isDisplayingSocView()) {   // for floorplan view
+         if (getActiveSocView()) {
+-            if (socView->isAutoFit()) return;
++            if (socView->isAutoFit()) {
++                return;
++            }
+             socView->triggerAutoFit(true);
+         }
+     }
+     else if (nsWorkArea && isDisplayingMeshView()) {  // for gridview
+-        if (nsWorkArea->isAutoFit()) return;
++        if (nsWorkArea->isAutoFit()) {
++            return;
++        }
+         nsWorkArea->triggerAutoFit(true);
+     }
+ }
+@@ -4379,6 +4465,13 @@ bool MainWindow::floatingTab(int index)
+     displayPanel->removeTab(index);
+     ToolTipAppDialog * dialog = new ToolTipAppDialog(w, title);
+     tooltipDialogs.append(dialog);
++    dialog->setMainWindow(this);
++    connect(dialog->zoom_fit, SIGNAL(activated()), this, SLOT(zoomAutoFitAct()));
++    for (auto const& zoom : dialog->zoom_in) {
++        connect(zoom, SIGNAL(activated()), this, SLOT(zoomInAct()));
++    }
++    connect(dialog->zoom_out, SIGNAL(activated()), this, SLOT(zoomOutAct()));
++    connect(dialog->zoom_select, SIGNAL(activated()), this, SLOT(zoomSelectAct()));
+     connect(dialog, SIGNAL(closeTable(QString, QWidget*)), this, SLOT(closeTable(QString, QWidget*)));
+     connect(dialog, SIGNAL(unDockTable(QString, QWidget*, int)), this, SLOT(createNewDisplayTab(QString, QWidget*, int)));
+     dialog->show();
+@@ -7676,12 +7769,22 @@ void MainWindow::changeFontSize(int size)
+ 
+     if (text.startsWith("C")) {
+         setConsoleTextSize(tmpFont); //resize console text
+-    }
+-    else if (text.startsWith("M"))
+-        setTabTextSize(size, tmpFont); //resize main tab text
+-    else if (text.startsWith("P"))
+-        setPropertyTabTextSize(tmpFont); //Resize property tab text
+-    else if (text.startsWith("S")) {
++    } else if (text.startsWith("M")) {
++        setTabTextSize(size, tmpFont);  // resize main tab text
++        if (tooltipDialogs.size() > 0) {
++            for (const auto& dialog : tooltipDialogs) {
++                auto toolTipAppDialog = dynamic_cast<ToolTipAppDialog*>(dialog);
++                if (toolTipAppDialog) {
++                    auto tooltip = dynamic_cast<QTextBrowser*>(toolTipAppDialog->getMainWidget());
++                    if (tooltip) {
++                        tooltip->setFont(tmpFont);
++                    }
++                }
++            }
++        }
++    } else if (text.startsWith("P")){
++        setPropertyTabTextSize(tmpFont);  // Resize property tab text
++    } else if (text.startsWith("S")) {
+         if(displayPanel) {
+             /* Update font size of tab widgets was docked */
+             auto tabCount = displayPanel->count();
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index 7f5ddf5d94e..f76abbe9ae5 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -918,7 +918,7 @@ public slots:
+      * If some instrument has specific behavior, edit this slot.
+      */
+ 
+-    void zoomDisplayingTooltip(InstrumentsEnum);
++    void zoomDisplayingTooltip(InstrumentsEnum, QTextBrowser*);
+ 
+     void zoomAutoFitAct();
+     /*
+@@ -933,6 +933,9 @@ public slots:
+      * If some instrument has specific behavior, edit this slot.
+      */
+     void zoomOutAct();
++
++    void zoomSelectAct();
++
+     QWidget* createPropTable(QString, std::string = "");
+ 
+     void handleGrayHighLight(bool value);
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+index 5f961b4e36d..125ed1540ed 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+@@ -1,4 +1,5 @@
+ #include <QtGui>
++#include <QTextBrowser>
+ #include "initabwidget.h"
+ #include "initabbar.h"
+ #include "mainwindow.h"
+@@ -85,3 +86,11 @@ void INITabWidget::keyPressEvent(QKeyEvent* event)
+     }
+     QTabWidget::keyPressEvent(event);
+ }
++
++void INITabWidget::mousePressEvent(QMouseEvent* event) {
++    auto tooltip = dynamic_cast<QTextBrowser*>(mw->displayPanel->currentWidget());
++    if (event->button() == Qt::MiddleButton && tooltip) {
++        mw->zoomDisplayingTooltip(ZOOM_FIT, tooltip);
++    }
++    QTabWidget::mousePressEvent(event);
++}
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.h b/src/sw/noc_dev/prototype/Utils/initabwidget.h
+index 6c651e6242e..b4b13ce0c14 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.h
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.h
+@@ -15,6 +15,9 @@ public:
+ public:
+     QString* currentActiveTabName;
+ 
++protected:
++    void mousePressEvent(QMouseEvent* event) override;
++
+ public slots:
+     void dockTab(int index);
+     void onTabChanged(int index);

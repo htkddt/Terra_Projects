@@ -1,0 +1,146 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 3 +++
+ src/sw/noc_dev/prototype/Gui/statsview.cpp      | 7 ++++---
+ src/sw/noc_dev/prototype/Gui/statsview.h        | 1 +
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 3 +++
+ src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp  | 7 ++++---
+ src/sw/noc_dev/prototype_qt6/Gui/statsview.h    | 1 +
+ 6 files changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index e1eac34ebb4..975604e625d 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -3603,6 +3603,7 @@ void MainWindow::zoomAutoFitAct()
+         statsView->setAutoFit(true);
+         if (!statsViewMap.isEmpty()) {
+             refreshStatsView();
++            statsView->triggerAutoFit(statsView->isAutoFit());
+         }
+     } else if (activeFloatView) {
+         auto nsChopView = dynamic_cast<NsChopView*>(activeFloatView->getMainWidget());
+@@ -3634,6 +3635,7 @@ void MainWindow::zoomAutoFitAct()
+         statsView->setAutoFit(true);
+         if (!statsViewMap.isEmpty()) {
+             refreshStatsView();
++            statsView->triggerAutoFit(statsView->isAutoFit());
+         }
+     } else if (isDisplayingToolTip()) {
+         auto tooltip = dynamic_cast<QTextBrowser*>(displayPanel->currentWidget());
+@@ -7169,6 +7171,7 @@ void MainWindow::setLayerButtonState(NetSpeed::Layer_id layer, bool state, bool
+         
+         for (auto tab : statsViewMap){
+             tab->refresh();
++            tab->triggerAutoFit(tab->isAutoFit());
+         }
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/statsview.cpp b/src/sw/noc_dev/prototype/Gui/statsview.cpp
+index 72cdcccc715..1d99b9ac695 100644
+--- a/src/sw/noc_dev/prototype/Gui/statsview.cpp
++++ b/src/sw/noc_dev/prototype/Gui/statsview.cpp
+@@ -338,7 +338,8 @@ void StatsView::refresh()
+ 
+     if (autofit)
+     {
+-        zoomAutofit(layer_columns);
++        columns = layer_columns;
++        zoomAutofit(columns);
+     }
+ 
+     QMatrix matrix;
+@@ -352,12 +353,12 @@ void StatsView::refresh()
+         lg->setVisible(layerId.not_null() && (!mw || mw->isLayerButtonChecked(layerId)));
+ 
+         if (!lg->isVisible()) { lg->setPos(0, 0); continue; } // move invisible layers to top left to fix scrollbar
+-        int tem_lcol = active_layer_cnt % layer_columns;
++        int tem_lcol = active_layer_cnt % columns;
+         if (tem_lcol > lcol)
+         {
+             lcol = tem_lcol;
+         }
+-        int tem_lrow = active_layer_cnt / layer_columns;
++        int tem_lrow = active_layer_cnt / columns;
+         {
+             if (tem_lrow > lrow)
+             {
+diff --git a/src/sw/noc_dev/prototype/Gui/statsview.h b/src/sw/noc_dev/prototype/Gui/statsview.h
+index 962038b1928..49abf5a23ac 100644
+--- a/src/sw/noc_dev/prototype/Gui/statsview.h
++++ b/src/sw/noc_dev/prototype/Gui/statsview.h
+@@ -182,6 +182,7 @@ private:
+     QList<QGraphicsItemGroup*> layer_groups; //! item groups for each layer
+     int width, height;
+     int width_scene, height_scene;
++    int columns;
+     QGraphicsScene* scene;
+     QPointF m_focusPoint = QPointF();
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index d415acbc6ef..8dc29d6c926 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -3600,6 +3600,7 @@ void MainWindow::zoomAutoFitAct()
+         statsView->setAutoFit(true);
+         if (!statsViewMap.isEmpty()) {
+             refreshStatsView();
++            statsView->triggerAutoFit(statsView->isAutoFit());
+         }
+     } else if (activeFloatView) {
+         auto nsChopView = dynamic_cast<NsChopView*>(activeFloatView->getMainWidget());
+@@ -3631,6 +3632,7 @@ void MainWindow::zoomAutoFitAct()
+         statsView->setAutoFit(true);
+         if (!statsViewMap.isEmpty()) {
+             refreshStatsView();
++            statsView->triggerAutoFit(statsView->isAutoFit());
+         }
+     } else if (isDisplayingToolTip()) {
+         auto tooltip = dynamic_cast<QTextBrowser*>(displayPanel->currentWidget());
+@@ -7152,6 +7154,7 @@ void MainWindow::setLayerButtonState(NetSpeed::Layer_id layer, bool state, bool
+         nsWorkArea->display();
+         for (auto tab : statsViewMap){
+             tab->refresh();
++            tab->triggerAutoFit(tab->isAutoFit());
+         }
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp b/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp
+index 8b5d35211c6..b7a581a2366 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/statsview.cpp
+@@ -333,7 +333,8 @@ void StatsView::refresh()
+ 
+     if (autofit)
+     {
+-        zoomAutofit(layer_columns);
++        columns = layer_columns;
++        zoomAutofit(columns);
+     }
+ 
+     QTransform matrix;
+@@ -347,12 +348,12 @@ void StatsView::refresh()
+         lg->setVisible(layerId.not_null() && (!mw || mw->isLayerButtonChecked(layerId)));
+ 
+         if (!lg->isVisible()) { lg->setPos(0, 0); continue; } // move invisible layers to top left to fix scrollbar
+-        int tem_lcol = active_layer_cnt % layer_columns;
++        int tem_lcol = active_layer_cnt % columns;
+         if (tem_lcol > lcol)
+         {
+             lcol = tem_lcol;
+         }
+-        int tem_lrow = active_layer_cnt / layer_columns;
++        int tem_lrow = active_layer_cnt / columns;
+         {
+             if (tem_lrow > lrow)
+             {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/statsview.h b/src/sw/noc_dev/prototype_qt6/Gui/statsview.h
+index 962038b1928..49abf5a23ac 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/statsview.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/statsview.h
+@@ -182,6 +182,7 @@ private:
+     QList<QGraphicsItemGroup*> layer_groups; //! item groups for each layer
+     int width, height;
+     int width_scene, height_scene;
++    int columns;
+     QGraphicsScene* scene;
+     QPointF m_focusPoint = QPointF();
+ 

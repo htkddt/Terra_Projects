@@ -1,0 +1,16 @@
+ src/sw/noc_dev/NocCore/src/Commands.grp.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/NocCore/src/Commands.grp.cpp b/src/sw/noc_dev/NocCore/src/Commands.grp.cpp
+index 50c52293d6b..95227a8514c 100644
+--- a/src/sw/noc_dev/NocCore/src/Commands.grp.cpp
++++ b/src/sw/noc_dev/NocCore/src/Commands.grp.cpp
+@@ -3331,7 +3331,7 @@ COMMAND(set_rtl_group, eco_t::ECO_ALLOWED,
+         "Sync reset modules (ns_reset) can be added to an RTL group by specifying the name of the sync reset region in this command.\n"
+         "Power supervisor modules (NSPS) can be added to an RTL group by specifying \"nsps_<pd name>\" in this command.\n"
+         "Bist controller can be added to an RTL group by specifying \"bist_ctrl\" in this command.\n"
+-        "{% if lic.STAMP %} When using -stamp_nodes, only nodes can be specified for grouping.  A single group module will then be created that will be instantiated"
++        "{% if lic.STAMP %} When using -stamp_nodes, only nodes can be specified for grouping.  A single group module will then be created that will be instantiated "
+         "once for each node in the stamp group.  This must be set up before mapping, and success/failure will occur when mapping is finalized, based on whether "
+         "the routers and bridges at corresponding nodes are actually compatible for superset construction.\n"
+         "When using -group_stamp, NS will attempt to instantiate grp0's design to implement the other "

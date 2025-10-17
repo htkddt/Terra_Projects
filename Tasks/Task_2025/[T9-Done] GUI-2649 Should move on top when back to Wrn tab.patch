@@ -1,0 +1,30 @@
+ src/sw/noc_dev/GUICore/genericconsole.cpp     | 2 +-
+ src/sw/noc_dev/GUICore_qt6/genericconsole.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/genericconsole.cpp b/src/sw/noc_dev/GUICore/genericconsole.cpp
+index c7a4a98cd9d..324250d2b04 100644
+--- a/src/sw/noc_dev/GUICore/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore/genericconsole.cpp
+@@ -269,7 +269,7 @@ void MainConsole::onTabIndexChanged(int index)
+         while (iter.hasNext()) {
+             tmp.append(iter.next());
+         }
+-        emit printWarning(tmp);
++        if (!tmp.isEmpty()) emit printWarning(tmp);
+         warningBuff.clear();
+     }
+ }
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+index 8abd3c91769..0e94d3d38da 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+@@ -269,7 +269,7 @@ void MainConsole::onTabIndexChanged(int index)
+         for (auto itr = warningBuff.buff.begin(); itr != warningBuff.buff.end(); ++itr) {
+             tmp.append(*itr);
+         }
+-        emit printWarning(tmp);
++        if (!tmp.isEmpty()) emit printWarning(tmp);
+         warningBuff.clear();
+     }
+ }

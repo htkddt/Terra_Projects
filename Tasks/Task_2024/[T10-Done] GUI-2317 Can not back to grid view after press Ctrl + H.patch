@@ -1,0 +1,103 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 43 +++++++++++++++++++++--------
+ src/sw/noc_dev/prototype/Gui/mainwindow.h   | 11 ++++++++
+ 2 files changed, 42 insertions(+), 12 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 34432fd5168..a87f3aebe70 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -5235,25 +5235,46 @@ void MainWindow::showCancelButtonOnSelectionPropTab()
+     propPanel->setShowButtonProperty(PropertyPanel::PropertyButton::Cancel);
+ }
+ 
+-void MainWindow::setStateAllShortCut(bool state)
++void MainWindow::toggleShortCuts(bool state)
+ {
+-    instrumentsActMap[GRID]->blockSignals(state);    
+     if (state) {
+-        instrumentsActMap[ADD_HOST]->setShortcut(QKeySequence());
++        for (auto act : addMenu->actions()) {
++            if (!act->shortcut().isEmpty()) {
++                act->setShortcut(QKeySequence());
++                auto ins = getInstrumentsEnum(act);
++                if (ins) {
++                    act->setText(instrumentsShortCuts[ins].first);
++                }
++            }
++        }
+     } else {
+         instrumentsActMap[ADD_HOST]->setShortcut(QKeySequence("Alt+3"));
++        instrumentsActMap[ADD_ALIAS]->setShortcut(QKeySequence("Alt+5"));
++        instrumentsActMap[ADD_DEPENDENCY]->setShortcut(QKeySequence("Alt+6"));
++        instrumentsActMap[ADD_RANGE_TO_AXI_SLAVES]->setShortcut(QKeySequence("Alt+7"));
++        instrumentsActMap[ADD_RANGE_TO_AXI_MASTER]->setShortcut(QKeySequence("Alt+8"));
++        instrumentsActMap[ADD_CONNECT]->setShortcut(QKeySequence("Alt+T"));
++        instrumentsActMap[SHOW_HELP_DIALOG]->setShortcut(QKeySequence("F1"));
++        for (const auto& act : addMenu->actions()) {
++            if (!act->shortcut().isEmpty()) {
++                auto ins = getInstrumentsEnum(act);
++                if (ins) {
++                    act->setText(instrumentsShortCuts[ins].first + "\t" + instrumentsShortCuts[ins].second);
++                }
++            }
++        }
+     }
+-    
+-    instrumentsActMap[ADD_BLOCKAGE]->blockSignals(state);
+-    instrumentsActMap[ADD_ALIAS]->blockSignals(state);
+-    instrumentsActMap[ADD_DEPENDENCY]->blockSignals(state);
+-    instrumentsActMap[ADD_RANGE_TO_AXI_SLAVES]->blockSignals(state);
+-    instrumentsActMap[ADD_RANGE_TO_AXI_MASTER]->blockSignals(state);
++}
++
++void MainWindow::setStateAllShortCut(bool state)
++{
++    toggleShortCuts(state);
++
+     for (auto act : layersActions) {
+         act->blockSignals(state);
+     }
+ 
+-    instrumentsActMap[SHOW_HELP_DIALOG]->blockSignals(state);
++    instrumentsActMap[GRID]->blockSignals(state);
+     closeTabButt->blockSignals(state);
+     // View Mode
+     instrumentsActMap[TOGGLE_CLOCK_DOMAIN_VIEW]->blockSignals(state);
+@@ -5262,8 +5283,6 @@ void MainWindow::setStateAllShortCut(bool state)
+     instrumentsActMap[TOGGLE_RTL_GROUP_VIEW]->blockSignals(state);
+     instrumentsActMap[TOGGLE_MERGE_DOMAIN_VIEW]->blockSignals(state);
+     instrumentsActMap[TOGGLE_LAYER_BLOCKAGE_VIEW]->blockSignals(state);
+-    /* Set connection */
+-    instrumentsActMap[ADD_CONNECT]->blockSignals(state);
+     /* Shortcut for "NOC_VIEW" mode */
+     if (toggleNoc) toggleNoc->blockSignals(state);
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index b853f534991..a9aaa4d58eb 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -629,6 +629,7 @@ private:
+                                       TEXT_SHOW_PIPELINE_DEPTH,
+                                       TEXT_SHOW_SECTORNAME};
+     void changeFontSizeFinder(QLineEdit* lineEdit, QPushButton* button);
++    void toggleShortCuts(bool state);
+ 
+ public:
+     QList<QAction*> simulationToolbarActions;
+@@ -1447,6 +1448,16 @@ private:
+         {HL_REGBUS_LAYER,          NsActionParams(TEXT_HL_REGBUS_LAYER,          CMD_HL_ALL_REGBUS_LAYERS,     QString())},
+         {HL_CUSTOM,                NsActionParams(TEXT_HL_CUSTOM,                QString(),                    QString())}
+     };
++    QMap<InstrumentsEnum, QPair<QString, QString>> instrumentsShortCuts
++    {
++        {ADD_HOST,                  qMakePair(QString(TEXT_ADD_HOST),               QString("Alt+3"))},
++        {ADD_ALIAS,                 qMakePair(QString(TEXT_ADD_ALIAS),              QString("Alt+5"))},
++        {ADD_DEPENDENCY,            qMakePair(QString(TEXT_ADD_DEPENDENCY),         QString("Alt+6"))},
++        {ADD_RANGE_TO_AXI_SLAVES,   qMakePair(QString(TEXT_ADD_RANGE),              QString("Alt+7"))},
++        {ADD_RANGE_TO_AXI_MASTER,   qMakePair(QString(TEXT_ADD_RANGE_TO_MASTER),    QString("Alt+8"))},
++        {ADD_CONNECT,               qMakePair(QString(TEXT_SET_CONN),               QString("Alt+T"))},
++        {SHOW_HELP_DIALOG,          qMakePair(QString(TEXT_HELP),                   QString("F1"))}
++    };
+ };
+ 
+ class RecentlySourced : public QAction {

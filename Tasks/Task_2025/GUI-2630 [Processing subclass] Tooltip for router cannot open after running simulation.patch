@@ -1,0 +1,391 @@
+ src/sw/noc_dev/GUICore_qt6/NsTypes.cpp             | 56 ++--------------------
+ src/sw/noc_dev/GUICore_qt6/NsTypes.h               |  2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp | 11 ++---
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.h   |  3 +-
+ .../prototype_qt6/Gui/Item/NsGraphicsItem.cpp      | 41 +++++++++++++++-
+ .../prototype_qt6/Gui/Item/NsGraphicsItem.h        | 18 +++++++
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp   | 11 ++---
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.h     |  5 +-
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp | 12 ++---
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h   |  3 +-
+ 10 files changed, 84 insertions(+), 78 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+index a0448aaf216..bc19cbb594b 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+@@ -61,7 +61,7 @@ QColor text_color_for_bg(const QColor & background) {
+ * @return String format HTML
+ * @author Tai.Vu
+ */
+-QString toolTip2Html(QString toolTipString, int dis)
++QString toolTip2Html(QString toolTipString)
+ {
+     QString toolTip = "";
+     if (!toolTipString.isEmpty()) {
+@@ -69,58 +69,8 @@ QString toolTip2Html(QString toolTipString, int dis)
+         toolTipString.replace("\bgreen\b", "#00ff00");
+         toolTipString.replace("\bred\b", "#fa8072");
+         toolTipString.replace("\borange\b", "#f69220");
+-
+-        QStringList alist = toolTipString.split("\n");
+-        const int NUM_LINES_TOOLTIP = 5;
+-
+-        if (alist.size() < NUM_LINES_TOOLTIP) {
+-            toolTipString = "<p style='font-family: \"Consolas\"; white-space:pre'>" + toolTipString + "</p>";
+-            toolTip = toolTipString.replace("\n", "<br />");
+-        } else {
+-            QString newlist;
+-            if (dis > 0) {
+-                QStringList row = alist.at(0).split("<tr>");
+-                if (row.size() > 1) {
+-                    QStringList colunm = row.at(1).split("<th>");
+-                    auto cols = dis / (colunm.size() * 0.75);
+-                    if (colunm.size() > cols) {
+-                        newlist.append(row.at(0) + "<tr>");
+-                        for (int i = 0; i < cols; ++i) {
+-                            newlist.append("<th>" + colunm.at(i));
+-                        }
+-                        newlist.append("<th> ... </th> </tr>");
+-                        newlist.append("<tr>" + row.at(2));
+-                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
+-                            newlist.append(alist.at(i) + "<br />");
+-                        }
+-                        newlist.append("...");
+-                    } else {
+-                        newlist.append(alist.at(0));
+-                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
+-                            newlist.append(alist.at(i) + "<br />");
+-                        }
+-                        newlist.append("...");
+-                    }
+-                } else {
+-                    auto alistBrSplit = alist.at(0).split("<br>");
+-                    if (alistBrSplit.size() > 16) {
+-                        for (int i = 0; i < 16; i++) {
+-                            newlist.append(alistBrSplit.at(i) + "<br>");
+-                        }
+-                    } else newlist.append(alist.at(0));
+-                    newlist.append("...");
+-                }
+-            } else {
+-                auto alistBrSplit = alist.at(0).split("<br>");
+-                if (alistBrSplit.size() > 16) {
+-                    for (int i = 0; i < 16; i++) {
+-                        newlist.append(alistBrSplit.at(i) + "<br>");
+-                    }
+-                } else newlist.append(alist.at(0));
+-                newlist.append("...");
+-            }
+-            toolTip = "<p style='font-family: \"Consolas\"; white-space:pre'>" + newlist + "</p>";
+-        }
++        toolTipString = "<p style='font-family: \"Consolas\"; white-space:pre'>" + toolTipString + "</p>";
++        toolTip = toolTipString.replace("\n", "<br />");
+     }
+     return toolTip;
+ }
+diff --git a/src/sw/noc_dev/GUICore_qt6/NsTypes.h b/src/sw/noc_dev/GUICore_qt6/NsTypes.h
+index b7d999b7ea4..8ce8ba425d0 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NsTypes.h
++++ b/src/sw/noc_dev/GUICore_qt6/NsTypes.h
+@@ -34,7 +34,7 @@ QColor text_color_for_bg(const QColor& background);
+ * @return String format HTML
+ * @author Tai.Vu
+ */
+-QString toolTip2Html(QString toolTipString, int dis = 0);
++QString toolTip2Html(QString toolTipString);
+ QString toolTip2Html(std::string toolTipString);
+ 
+ QString wrapTextForTooltip(const QString& text, int width);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+index aaae88651c3..24c91e32cb3 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+@@ -237,10 +237,11 @@ bool NsNormalBridge::isSelectedInRTLView()
+     return ret;
+ }
+ 
+-void NsNormalBridge::setToolTip()
++void NsNormalBridge::setToolTip(QPointF pos)
+ {
+     if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty()) {
+-        QGraphicsItem::setToolTip(toolTip2Html(bridge->get_tooltip(true)));
++        if (!customTooltip) customTooltip = new CustomToolTip();
++        customTooltip->showText(pos.toPoint(), toolTip2Html(bridge->get_tooltip(true)));
+     }
+ }
+ 
+@@ -815,8 +816,7 @@ void NsNormalBridge::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+ 
+ void NsNormalBridge::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    setToolTip();
+-    QGraphicsRectItem::hoverEnterEvent(event);
++    setToolTip(event->screenPos());
+ }
+ 
+ void NsNormalBridge::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+@@ -831,7 +831,6 @@ void NsNormalBridge::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+             }
+         }
+     }
+-
+     QGraphicsRectItem::hoverMoveEvent(event);
+ }
+ 
+@@ -841,7 +840,7 @@ void NsNormalBridge::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+     if (meshScene && (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC))) {
+         meshScene->resetSizeComponents();
+     }
+-
++    if (customTooltip->isVisible()) customTooltip->hide();
+     QGraphicsRectItem::hoverLeaveEvent(event);
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.h
+index f98c6079180..8500bbbaeaa 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.h
+@@ -93,7 +93,7 @@ public:
+      */
+     NetSpeed::Layer_id getLayerID() { return layerID; }
+     bool isSelectedInRTLView();
+-    void setToolTip();
++    void setToolTip(QPointF pos = QPointF(0, 0));
+     QString getName() const { return bridgeName; }
+     void setDataColor(std::string color);
+     std::string getRTLGroup();
+@@ -178,6 +178,7 @@ private:
+     const NetSpeed::Voltage_domain_props_t* volateDomainBridge = nullptr;
+     const NetSpeed::Power_domain_props_t* powerDomainBridge = nullptr;
+     QRectF rec = QRectF();
++    CustomToolTip* customTooltip = nullptr;
+ };
+ 
+ class NsChopViewBridge: public QGraphicsRectItem
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.cpp
+index ce972f367cb..32e913d3986 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.cpp
+@@ -12,6 +12,8 @@
+ 
+ #include "NsGraphicsItem.h"
+ #include <QDebug>
++#include <QLayout>
++#include <QApplication>
+ 
+ NsGraphicsItem::NsGraphicsItem()
+ {
+@@ -148,4 +150,41 @@ void NsGraphicsItem::setDragged(bool d)
+ void NsGraphicsItem::setAnchorPoint(const QPointF & anchorPoint)
+ {
+     this->anchorPoint = anchorPoint;
+-}
+\ No newline at end of file
++}
++
++CustomToolTip::CustomToolTip(QWidget* parent) : QFrame(parent)
++{
++    setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint);
++    setFrameStyle(QFrame::Box | QFrame::Plain);
++
++    textEdit = new QTextEdit(this);
++    textEdit->setReadOnly(true);
++    textEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
++    textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
++
++    QVBoxLayout* layout = new QVBoxLayout(this);
++    layout->setContentsMargins(0, 0, 0, 0);
++    layout->addWidget(textEdit);
++
++    setLayout(layout);
++    setFixedSize(600, 300);
++}
++
++void CustomToolTip::showText(const QPoint& pos, const QString& text)
++{
++    textEdit->setHtml(text);
++    move(pos);
++    show();
++}
++
++void CustomToolTip::enterEvent(QEnterEvent* event)
++{
++    show();
++    QFrame::enterEvent(event);
++}
++
++void CustomToolTip::leaveEvent(QEvent* event)
++{
++    hide();
++    QFrame::leaveEvent(event);
++}
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.h
+index fc27f757953..c4e7092d6d1 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsGraphicsItem.h
+@@ -14,6 +14,8 @@
+ #define NS_GRAPHICSITEM_H
+ 
+ #include <QObject>
++#include <QFrame>
++#include <QPlainTextEdit>
+ #include <QGraphicsItemGroup>
+ 
+ class NsGraphicsItem : public QObject
+@@ -126,4 +128,20 @@ protected:
+     QPointF anchorPoint; // for drag
+ };
+ 
++class CustomToolTip : public QFrame
++{
++    Q_OBJECT
++public:
++    CustomToolTip(QWidget* parent = nullptr);
++    void showText(const QPoint& pos, const QString& text);
++
++private:
++    QTextEdit* textEdit;
++    bool isFocusing = false;
++
++protected:
++    void enterEvent(QEnterEvent* event) override;
++    void leaveEvent(QEvent* event) override;
++};
++
+ #endif // NS_GRAPHICSITEM_H
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
+index 7811497434f..7860d087496 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
+@@ -705,8 +705,7 @@ void NsNormalHost::setHostFlags(bool val)
+ 
+ void NsNormalHost::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    setToolTip();
+-    QGraphicsRectItem::hoverEnterEvent(event);
++    setToolTip(event->screenPos());
+ }
+ 
+ void NsNormalHost::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+@@ -720,7 +719,6 @@ void NsNormalHost::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+             }
+         }
+     }
+-
+     QGraphicsRectItem::hoverMoveEvent(event);
+ }
+ 
+@@ -730,7 +728,7 @@ void NsNormalHost::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+     if (meshScene && (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC))) {
+         meshScene->resetSizeComponents();
+     }
+-
++    if (customTooltip->isVisible()) customTooltip->hide();
+     QGraphicsRectItem::hoverLeaveEvent(event);
+ }
+ 
+@@ -762,10 +760,11 @@ const NetSpeed::Power_domain_props_t* NsNormalHost::getPowerDomain() const
+     return br0_pd;
+ }
+ 
+-void NsNormalHost::setToolTip()
++void NsNormalHost::setToolTip(QPointF pos)
+ {
+     if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty()) {
+-        QGraphicsItem::setToolTip(toolTip2Html(host->get_tooltip()));
++        if (!customTooltip) customTooltip = new CustomToolTip();
++        customTooltip->showText(pos.toPoint(), toolTip2Html(QString::fromStdString(host->get_tooltip())));
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.h
+index 3027283770e..947330eb1a2 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.h
+@@ -103,7 +103,7 @@ public:
+     void restoreAnchorPoint();
+ 
+     const NetSpeed::Power_domain_props_t* getPowerDomain() const;
+-    void setToolTip();
++    void setToolTip(QPointF pos = QPointF(0, 0));
+     QString getName() const { return name; }
+     NetSpeed::Layer_id getLayerID();
+     bool isRTLGroup(QString name);
+@@ -175,7 +175,8 @@ private:
+     const NetSpeed::Voltage_domain_props_t* voltageDomainHost = nullptr;
+     NetSpeed::Host_t hostType;
+     NetSpeed::Grid* g = nullptr;
+-    QRectF rec  = QRectF();  
++    QRectF rec = QRectF();
++    CustomToolTip* customTooltip = nullptr;
+ };
+ 
+ class NsStorageComponents : public QGraphicsRectItem
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+index 54c164f0105..696cb2ae1ea 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+@@ -415,9 +415,7 @@ void NsRouter::disableRouterActionInViewMode()
+ 
+ void NsRouter::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    if (event->screenPos().x() < 0) setToolTip(event->screenPos().x() * (-1));
+-    else setToolTip(event->screenPos().x());
+-    QGraphicsRectItem::hoverEnterEvent(event);
++    setToolTip(event->screenPos());
+ }
+ 
+ void NsRouter::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+@@ -431,7 +429,6 @@ void NsRouter::hoverMoveEvent(QGraphicsSceneHoverEvent * event)
+             }
+         }
+     }
+-
+     QGraphicsRectItem::hoverMoveEvent(event);
+ }
+ 
+@@ -441,7 +438,7 @@ void NsRouter::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+     if (meshScene && (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW) || meshScene->isViewMode(NsScene::NOC))) {
+         meshScene->resetSizeComponents();
+     }
+-    
++    if (customTooltip->isVisible()) customTooltip->hide();
+     QGraphicsRectItem::hoverLeaveEvent(event);
+ }
+ 
+@@ -467,10 +464,11 @@ void NsRouter::setOrientation() {
+         new NsRouterOrientation(orientation, isSCFMode, this);
+ }
+ 
+-void NsRouter::setToolTip(int dis)
++void NsRouter::setToolTip(QPointF pos)
+ {
+     if (NetSpeed::Grid::tooltip_on && toolTip().isEmpty() && router->is_enabled()) {
+-        QGraphicsItem::setToolTip(toolTip2Html(QString::fromStdString(router->get_tooltip()), dis));
++        if (!customTooltip) customTooltip = new CustomToolTip();
++        customTooltip->showText(pos.toPoint(), toolTip2Html(QString::fromStdString(router->get_tooltip())));
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
+index edcbbbe6678..8ebd4e105c9 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.h
+@@ -59,7 +59,7 @@ public:
+     QRectF getSceneRect() const;
+ 
+     void setOrientation();
+-    void setToolTip(int dis = 0);
++    void setToolTip(QPointF pos = QPointF(0, 0));
+     QString getName() const { return routerName; }
+     NetSpeed::Layer_id getLayerID() { return layer; }
+     bool isRTLGroup(QString name);
+@@ -125,6 +125,7 @@ private:
+     bool showLinkOnly = false;
+     bool isSCFMode = false;
+     QRectF rec = QRectF();
++    CustomToolTip* customTooltip = nullptr;
+ };
+ 
+ class NsChopViewRouter : public QGraphicsRectItem

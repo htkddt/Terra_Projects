@@ -1,0 +1,20 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 403de5bc85e..07ef35ef8f0 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -6926,11 +6926,8 @@ void PropertyPanel::updateHostProperties(const NetSpeed::Host * h, bool clickOn)
+     QtTreePropertyBrowserPrivate* selectionTreeProperty = selectionPropertyEditor->getTreePropertyBrowserPrivate();
+     QtPropertyEditorView* selectionEditorView = selectionTreeProperty->treeWidget();
+     selectionEditorView->setProperty(TYPE_PROP, QString(HOST_PROP));
+-    setShowButtonProperty(PropertyButton::HideAll);
+-    raiseSelectionTab();
+-    currentHost = h;
+ 
+-    mw->showMessageToStatusBar(QString());
++    currentHost = h;
+ 
+     if (clickOn) {
+         // if click on the same host many times -> not update property

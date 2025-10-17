@@ -1,0 +1,154 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     |  2 +-
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 60 +++++++++++++++++++---
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        | 25 ++++++---
+ src/sw/noc_dev/prototype/Gui/mainwindow.h          |  2 +-
+ 4 files changed, 72 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index e4eff5935b4..42cfe138a09 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -370,7 +370,7 @@ void bridgeContextMenu(QGraphicsItem* guiBridge, NetSpeed::Bridge* b, Qt::Layout
+ 
+     if (contextMenu.exec()) {
+         std::vector<QGraphicsItem*> to_be_deleted;
+-        for (auto const& item : guiBridge->scene()->items()) {
++        for (auto const& item : mw->getNsWorkArea()->scene()->items()) {
+             if (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION,
+                                                    LINK_DIAGRAM, STORAGE_DIAGRAM})) {
+                 to_be_deleted.push_back(item);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index bac5de83d3a..36a64cd1225 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1390,16 +1390,62 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+         portDrawingItemsStoreTmp.clear();
+     }
+     mw->clearSttBar();
++
++    QString info = "";
++    if (!mw->getInstrumentsActMap()[SHOW_HOSTS]->isChecked()) {
++        info = QString(TEXT_SHOW_HOST).split("&").last();
++    }
++    if (!mw->getInstrumentsActMap()[SHOW_BRIDGES]->isChecked()) {
++        if (info.isEmpty()) {
++            info = QString(TEXT_SHOW_BRIDGE).split("&").last();
++        } else {
++            info += " and " + QString(TEXT_SHOW_BRIDGE).split("&").last();
++        }
++    }
++
+     auto type = InstrumentsEnum(action->property(TITLE_TYPE).toInt());
+     if (type == ADD_CONNECT || type == ADD_DEPENDENCY) {
+-        mw->enableControlsViewMenu(!state);
+         if ((type == ADD_DEPENDENCY) && (!state)) {
+             propPanel->clearPropPanel();
+             propPanel->clearData();
+         }
++        if (!info.isEmpty()) {
++            if (type == ADD_CONNECT) {
++                mw->getInstrumentsActMap()[ADD_CONNECT]->setChecked(false);
++            } else if (type == ADD_DEPENDENCY) {
++                mw->getInstrumentsActMap()[ADD_DEPENDENCY]->setChecked(false);
++            }
++            QMessageBox msgBox;
++            if (type == ADD_CONNECT) {
++                msgBox.setWindowTitle(TEXT_SET_CONN);
++            } else if (type == ADD_DEPENDENCY) {
++                msgBox.setWindowTitle(TEXT_ADD_DEPENDENCY);
++            }
++            msgBox.setIcon(QMessageBox::Information);
++            msgBox.setText("This feature requires to enable " + info + ".\nWould you like to enable it?");
++            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
++            if (msgBox.exec() == QMessageBox::Yes) {
++                mw->enableControlsViewMenu(state, true);
++            }
++        } else {
++            mw->enableControlsViewMenu(!state);
++        }
+     } else if (type == ADD_ROUTER_CONN) {
+-        mw->enableControlsViewMenu(state);
++        if (!info.isEmpty()) {
++            mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->setChecked(false);
++            QMessageBox msgBox;
++            msgBox.setWindowTitle(TEXT_SET_ROUTER_CONN);
++            msgBox.setIcon(QMessageBox::Information);
++            msgBox.setText("This feature requires to enable " + info + ".\nWould you like to enable it?");
++            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
++            if (msgBox.exec() == QMessageBox::Yes) {
++                mw->enableControlsViewMenu(!state, true);
++            }
++        } else {
++            mw->enableControlsViewMenu(state);
++        }
+     }
++    if (!info.isEmpty()) return;
+     if ((!state) && (type != ADD_ROUTER_CONN)) {
+         mw->getPropertyPanel()->clearSelection();
+         mw->getPropertyPanel()->raiseMeshTab();
+@@ -1453,11 +1499,11 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+             auto bridge = nsBridge->getBridge();
+             if (!bridge) return;
+             auto mesh = getFirst<NsMesh>(items(nsBridge->scenePos()), MESH);
+-            if (!mesh){
+-                    auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(nsBridge->parentItem());
+-                    if (diagram) {
+-                        mesh = dynamic_cast<NsMesh*>(diagram->getMesh());
+-                    }
++            if (!mesh) {
++                auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(nsBridge->parentItem());
++                if (diagram) {
++                    mesh = dynamic_cast<NsMesh*>(diagram->getMesh());
++                }
+             }
+             if (mesh){
+                 const NetSpeed::Node_id nodeId = bridge->get_pos();
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index f5b4e29bcdf..cf666c04975 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -5933,14 +5933,23 @@ bool MainWindow::isViewValidForAddAction(QAction* action) {
+     return true;
+ }
+ 
+-void MainWindow::enableControlsViewMenu(bool state) {
+-    instrumentsActMap[SHOW_HOSTS]->setEnabled(state);
+-    instrumentsActMap[SHOW_BRIDGES]->setEnabled(state);
+-    instrumentsActMap[SHOW_ROUTER_CONNS]->setEnabled(state);
+-    instrumentsActMap[SHOW_LINKS]->setEnabled(state);
+-    instrumentsActMap[SHOW_SIB_LINES]->setEnabled(state);
+-    instrumentsActMap[SHOW_SECTORNAME]->setEnabled(state);
+-    instrumentsActMap[SHOW_PIPELINE_DEPTH]->setEnabled(state);
++void MainWindow::enableControlsViewMenu(bool state, bool refresh)
++{
++    std::vector<InstrumentsEnum> insViewMenu = {SHOW_HOSTS, SHOW_BRIDGES, SHOW_ROUTER_CONNS, SHOW_LINKS, SHOW_SIB_LINES,
++                                                SHOW_SECTORNAME, SHOW_PIPELINE_DEPTH, MESH_CHOP, CHOP_VIEW};
++    for (const auto& ins : insViewMenu) {
++        if (refresh) {
++            if ((ins == SHOW_HOSTS) || (ins == SHOW_BRIDGES)) {
++                if (!instrumentsActMap[ins]->isChecked()) {
++                    instrumentsActMap[ins]->setChecked(refresh);
++                    emit instrumentsActMap[ins]->triggered(refresh);
++                }
++            }
++            instrumentsActMap[ins]->setEnabled(refresh);
++        } else {
++            instrumentsActMap[ins]->setEnabled(state);
++        }
++    }
+ }
+ 
+ void MainWindow::toggleAddHost(bool state) {
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index 3ff366fe58c..254319e05f9 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -517,7 +517,7 @@ public:
+     const QVector<QString>& getChopsToDisplay() { return chopsToDisplay; }
+     QMap<QString, QAction*> getTopoButtons() { return topoButtons; }
+     void resetPropertyPanel();
+-    void enableControlsViewMenu(bool state);
++    void enableControlsViewMenu(bool state, bool refresh = false);
+ 
+     std::map<int, QByteArray> dockEvents;
+     int startTimeSinceEpoch;

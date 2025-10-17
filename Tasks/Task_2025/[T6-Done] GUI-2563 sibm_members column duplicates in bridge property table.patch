@@ -1,0 +1,16 @@
+ src/sw/noc_dev/NocCore/src/BridgeProperty.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/NocCore/src/BridgeProperty.cpp b/src/sw/noc_dev/NocCore/src/BridgeProperty.cpp
+index d016ef361cb..6006dd5f95c 100644
+--- a/src/sw/noc_dev/NocCore/src/BridgeProperty.cpp
++++ b/src/sw/noc_dev/NocCore/src/BridgeProperty.cpp
+@@ -4336,7 +4336,7 @@ BridgePropMap build_bridge_props() {
+         if (propmap.find("sibm_masters") != propmap.end()) {
+             propmap["sibm_members"] = make_unique<ObjProperty<Bridge>>(
+                 *static_cast<ObjProperty<Bridge>*>(propmap["sibm_masters"].get()));
+-            propmap["sibm_masters"]->help_description.name  = "sibm_members";
++            propmap["sibm_masters"]->help_description.name  = "sibm_masters";
+             propmap["sibm_members"]->help_description.name = "sibm_members";
+             propmap["sibm_masters"]->show_in_help           = false;
+         }

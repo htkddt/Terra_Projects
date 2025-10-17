@@ -1,0 +1,24 @@
+ src/sw/noc_dev/NocCore/src/Commands.grp.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/NocCore/src/Commands.grp.cpp b/src/sw/noc_dev/NocCore/src/Commands.grp.cpp
+index 271cb8d2d4c..4ceecf1eb6e 100644
+--- a/src/sw/noc_dev/NocCore/src/Commands.grp.cpp
++++ b/src/sw/noc_dev/NocCore/src/Commands.grp.cpp
+@@ -2578,12 +2578,14 @@ COMMAND(add_alias, eco_t::ECO_DISABLED, AddHost,
+         vector<Host_name> more_hids = grid->get_alias(hi);
+         if (more_hids.empty()) { // check to see if the user has specified hosts in the form of a glob
+             for (auto& h : hosts)
+-                if (isMatch(hi.c_str(), h.first.c_str())) insert_nodup(hid_vecs, Host_name(hi));
++                if (isMatch(hi.c_str(), h.first.c_str())) insert_nodup(more_hids, Host_name(h.first));
+         }
+-        if (hid_vecs.empty()) {
++        if (more_hids.empty()) {
+             LOG_ERROR("1704") << "No host or alias of name " << hi << " found; cannot add to alias " << name << endl;
+             return false;
+         }
++
++        for (auto& hid : more_hids) insert_nodup(hid_vecs, hid);
+     }
+ 
+     for (auto& hid : hid_vecs) grid->add_alias(name, hid);

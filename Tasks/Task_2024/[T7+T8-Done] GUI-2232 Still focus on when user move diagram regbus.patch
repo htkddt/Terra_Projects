@@ -1,0 +1,16 @@
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index 4a6f8c3cb69..2da49ba7b44 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -2499,7 +2499,7 @@ void NsMeshViewScene::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+     if (isViewMode(NsScene::CLOCK_DOMAIN) || isViewMode(NsScene::POWER_DOMAIN)) {
+         if (event->button() == Qt::LeftButton) {
+             auto isMatched = [&](QGraphicsItem* item) -> bool {
+-                if ((item->type() == MULTIPLE_BRIDGE) || (item->type() == PLUS)) return true;
++                if ((item->type() == MULTIPLE_BRIDGE) || (item->type() == PLUS) || (item->type() == RING_VISUALIZATION)) return true;
+                 return false;
+             };
+             auto itemList = items(event->scenePos());

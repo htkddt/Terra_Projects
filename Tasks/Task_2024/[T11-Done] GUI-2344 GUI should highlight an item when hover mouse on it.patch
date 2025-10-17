@@ -1,0 +1,199 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp  | 32 ++++++++++++++++-
+ src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h    |  2 ++
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 42 ++++++++++++++--------
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.h   |  2 +-
+ 4 files changed, 61 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+index 8cb2ed33266..8a7b190e592 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+@@ -56,6 +56,7 @@ NsArrowItem::NsArrowItem(const QPainterPath& paintePath, QGraphicsItem* parent)
+     : QGraphicsPathItem(paintePath, parent)
+ {
+ 	setFlag(QGraphicsItem::ItemIsSelectable, true);
++    setFlag(QGraphicsItem::ItemIsFocusable, true);
+     setAcceptHoverEvents(true);
+ }
+ 
+@@ -159,6 +160,7 @@ void NsArrowItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+ 
+ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+ {
++    this->setSelected(true);
+     auto mw = static_cast<MainWindow*>(QApplication::activeWindow());
+     auto propertyPanel = mw->getPropertyPanel();
+     if (!propertyPanel) return;
+@@ -169,8 +171,21 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+     mw->raiseTooltipTab();
+ }
+ 
+-void NsArrowItem::hoverEnterEvent(QGraphicsSceneHoverEvent* /*event*/) {
++void NsArrowItem::hoverEnterEvent(QGraphicsSceneHoverEvent* /*event*/)
++{
+     setToolTip();
++    this->setFocus();
++    if (this->parentItem()) {
++        this->parentItem()->update();
++    }
++}
++
++void NsArrowItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* /*event*/)
++{
++    this->clearFocus();
++    if (this->parentItem()) {
++        this->parentItem()->update();
++    }
+ }
+ 
+ QVariant NsArrowItem::itemChange(GraphicsItemChange change, const QVariant& value)
+@@ -184,6 +199,21 @@ QVariant NsArrowItem::itemChange(GraphicsItemChange change, const QVariant& valu
+     return QGraphicsItem::itemChange(change, value);
+ }
+ 
++void NsArrowItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
++{
++    painter->setRenderHint(QPainter::Antialiasing);
++    if (isSelected() || hasFocus()) {
++        QStyleOptionGraphicsItem opt(*option);
++        opt.state &= ~QStyle::State_Selected;
++        painter->setPen(QPen(QColor("#CB01E4"), 1, Qt::DashLine));
++        painter->setBrush(Qt::NoBrush);
++        painter->drawRect(shape().boundingRect());
++        QGraphicsPathItem::paint(painter, &opt, widget);
++        return;
++    }
++    QGraphicsPathItem::paint(painter, option, widget);
++}
++
+ QPainterPath NsArrowItem::shape() const
+ {
+     QPainterPath path;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h
+index d5615b3b446..e2f5576b6c6 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.h
+@@ -25,8 +25,10 @@ public:
+ protected:
+     friend class Test_NsArrowItem;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
++    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+     void mousePressEvent(QGraphicsSceneMouseEvent* event);
+     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
++    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+     QPainterPath shape() const override;
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 7189ae8f80f..4d17f638de9 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -505,6 +505,7 @@ NsRouterDiagramVC::NsRouterDiagramVC(const QPainterPath & path, const QColor col
+     setAcceptHoverEvents(true);
+     setPath(path);
+     setFlag(QGraphicsItem::ItemIsSelectable);
++    setFlag(QGraphicsItem::ItemIsFocusable);
+ }
+ 
+ void NsRouterDiagramVC::setToolTip()
+@@ -523,13 +524,12 @@ void NsRouterDiagramVC::paint(QPainter * painter, const QStyleOptionGraphicsItem
+     painter->setRenderHint(QPainter::Qt4CompatiblePainting);
+ 
+     auto arrowPath = path();
+-    bool selected = isSelected();
+-    if (selected) {
++    if (isSelected() || hasFocus()) {
+         QPainterPathStroker stroker;
+         stroker.setWidth(5);
+         stroker.setJoinStyle(Qt::MiterJoin);
+         auto newPath = (stroker.createStroke(arrowPath) + arrowPath).simplified();
+-        painter->setPen(QPen(Qt::darkGray, 1, Qt::DashLine));
++        painter->setPen(QPen(QColor("#CB01E4"), 1, Qt::DashLine));
+         painter->setBrush(Qt::white);
+         painter->drawPath(newPath);
+     }
+@@ -568,6 +568,14 @@ void NsRouterDiagramVC::mousePressEvent(QGraphicsSceneMouseEvent * event) {
+ 
+ void NsRouterDiagramVC::hoverEnterEvent(QGraphicsSceneHoverEvent * event) {
+     setToolTip();
++    setFocus();
++    update();
++    QGraphicsItem::hoverEnterEvent(event);
++}
++
++void NsRouterDiagramVC::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
++    clearFocus();
++    update();
+     QGraphicsItem::hoverEnterEvent(event);
+ }
+ 
+@@ -1985,17 +1993,6 @@ NsBridgeDiagramTextItem::NsBridgeDiagramTextItem(const QPainterPath & path, NetS
+     setAcceptHoverEvents(true);
+ }
+ 
+-void NsBridgeDiagramTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+-{
+-    if (m_relatedItem) {
+-        if (m_relatedItem->toolTip().isEmpty()){
+-            scene()->sendEvent(m_relatedItem, event);
+-        }
+-        setToolTip(m_relatedItem->toolTip());
+-    }
+-    QGraphicsPathItem::hoverEnterEvent(event);
+-}
+-
+ void NsBridgeDiagramTextItem::setRelatedItem(QGraphicsItem* relatedItem)
+ {
+     m_relatedItem = relatedItem;
+@@ -2006,8 +2003,11 @@ void NsBridgeDiagramTextItem::setRelatedItem(QGraphicsItem* relatedItem)
+ 
+ bool NsBridgeDiagramTextItem::sceneEvent(QEvent* event)
+ {
+-    if (m_relatedItem && (event->type() != QEvent::GraphicsSceneHoverEnter)) {
++    if (m_relatedItem) {
+         scene()->sendEvent(m_relatedItem, event);
++        if (event->type() == QEvent::GraphicsSceneHoverEnter) {
++            setToolTip(m_relatedItem->toolTip());
++        }
+         return true;
+     }
+     return QGraphicsItem::sceneEvent(event);
+@@ -2016,6 +2016,18 @@ bool NsBridgeDiagramTextItem::sceneEvent(QEvent* event)
+ void NsBridgeDiagramTextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+ {
+     painter->setRenderHint(QPainter::Antialiasing);
++    if (m_relatedItem && (m_relatedItem->isSelected() || m_relatedItem->hasFocus())) {
++        QStyleOptionGraphicsItem opt(*option);
++        if (m_relatedItem->isSelected()) {
++            this->setSelected(true);
++            opt.state &= ~QStyle::State_Selected;
++        }
++        painter->setPen(QPen(QColor("#CB01E4"), 1, Qt::DashLine));
++        painter->setBrush(Qt::NoBrush);
++        painter->drawRect(shape().boundingRect());
++        QGraphicsPathItem::paint(painter, &opt, widget);
++        return;
++    }
+     QGraphicsPathItem::paint(painter, option, widget);
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index c30c459412c..18add786eb7 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -139,7 +139,6 @@ private:
+ protected:
+     friend class Test_NsBridgeDiagram;
+     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+-    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+     bool sceneEvent(QEvent *event) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+     QPainterPath shape() const override;
+@@ -273,6 +272,7 @@ protected:
+     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+     void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
++    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+     QPainterPath shape() const override;
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+ };

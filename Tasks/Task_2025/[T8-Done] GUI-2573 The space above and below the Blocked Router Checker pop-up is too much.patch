@@ -1,0 +1,86 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 19 +++++++------------
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 19 +++++++------------
+ 2 files changed, 14 insertions(+), 24 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 9a4264293a4..10074127e12 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -1280,20 +1280,16 @@ AddHostWarningAppDialog::AddHostWarningAppDialog(QString text, bool enableCheckB
+     image->setMaximumWidth(32);
+     image->setPixmap(QPixmap("://images/icons/alert.png"));
+     layout->addWidget(image);
+-    if (text.size() > 2000)
+-    {
+-        QScrollArea* m_scrollArea = new QScrollArea;
++    if (text.size() > 2000) {
++        text = text.replace("\n", " ");
+         QLabel* content_msg = new QLabel(text);
+-        content_msg->setMargin(5);
+-
++        content_msg->setWordWrap(true);
++        QScrollArea* m_scrollArea = new QScrollArea;
+         m_scrollArea->setWidget(content_msg);
++        m_scrollArea->setWidgetResizable(true);
+         m_scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+         layout->addWidget(m_scrollArea);
+-    }
+-    else
+-    {
+-        layout->addWidget(new QLabel(text));
+-    }
++    } else layout->addWidget(new QLabel(text));
+     layout->setSpacing(10);
+ 
+     QGridLayout* buttonLayout = new QGridLayout;
+@@ -1303,8 +1299,7 @@ AddHostWarningAppDialog::AddHostWarningAppDialog(QString text, bool enableCheckB
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+     mainLayout->addLayout(buttonLayout);
+-    if (enableCheckBox)
+-    {
++    if (enableCheckBox) {
+         checkBox->setChecked(true);
+         mainLayout->addWidget(checkBox);
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index 96c236eb14e..d036d26fc0f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -1293,20 +1293,16 @@ AddHostWarningAppDialog::AddHostWarningAppDialog(QString text, bool enableCheckB
+     image->setMaximumWidth(32);
+     image->setPixmap(QPixmap("://images/icons/alert.png"));
+     layout->addWidget(image);
+-    if (text.size() > 2000)
+-    {
+-        QScrollArea* m_scrollArea = new QScrollArea;
++    if (text.size() > 2000) {
++        text = text.replace("\n", " ");
+         QLabel* content_msg = new QLabel(text);
+-        //content_msg->setMargin(5);
+-
++        content_msg->setWordWrap(true);
++        QScrollArea* m_scrollArea = new QScrollArea;
+         m_scrollArea->setWidget(content_msg);
++        m_scrollArea->setWidgetResizable(true);
+         m_scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+         layout->addWidget(m_scrollArea);
+-    }
+-    else
+-    {
+-        layout->addWidget(new QLabel(text));
+-    }
++    } else layout->addWidget(new QLabel(text));
+     layout->setSpacing(10);
+ 
+     QGridLayout* buttonLayout = new QGridLayout;
+@@ -1316,8 +1312,7 @@ AddHostWarningAppDialog::AddHostWarningAppDialog(QString text, bool enableCheckB
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+     mainLayout->addLayout(buttonLayout);
+-    if (enableCheckBox)
+-    {
++    if (enableCheckBox) {
+         checkBox->setChecked(true);
+         mainLayout->addWidget(checkBox);
+     }

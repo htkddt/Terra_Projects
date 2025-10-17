@@ -1,0 +1,692 @@
+ src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj         | 377 ---------------------
+ src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj.filters | 152 ---------
+ src/sw/noc_dev/NoC.sln                             |  29 ++
+ src/sw/noc_dev/prototype_qt6/NocStudio.pro         |   2 +-
+ src/sw/noc_dev/prototype_qt6/NocStudio_qt6.vcxproj |  19 +-
+ 5 files changed, 38 insertions(+), 541 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj b/src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj
+deleted file mode 100644
+index a244d2a233b..00000000000
+--- a/src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj
++++ /dev/null
+@@ -1,377 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+-  <ItemGroup Label="ProjectConfigurations">
+-    <ProjectConfiguration Include="Debug|Win32">
+-      <Configuration>Debug</Configuration>
+-      <Platform>Win32</Platform>
+-    </ProjectConfiguration>
+-    <ProjectConfiguration Include="Release|Win32">
+-      <Configuration>Release</Configuration>
+-      <Platform>Win32</Platform>
+-    </ProjectConfiguration>
+-    <ProjectConfiguration Include="Debug|x64">
+-      <Configuration>Debug</Configuration>
+-      <Platform>x64</Platform>
+-    </ProjectConfiguration>
+-    <ProjectConfiguration Include="Release|x64">
+-      <Configuration>Release</Configuration>
+-      <Platform>x64</Platform>
+-    </ProjectConfiguration>
+-  </ItemGroup>
+-  <PropertyGroup Label="Globals">
+-    <VCProjectVersion>16.0</VCProjectVersion>
+-    <Keyword>QtVS_v303</Keyword>
+-    <ProjectGuid>{f9e95b73-4108-4249-ba4f-55d3b21728d9}</ProjectGuid>
+-    <RootNamespace>GUICore</RootNamespace>
+-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+-    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+-  </PropertyGroup>
+-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+-    <ConfigurationType>Application</ConfigurationType>
+-    <UseDebugLibraries>true</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
+-    <CharacterSet>Unicode</CharacterSet>
+-  </PropertyGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+-    <ConfigurationType>Application</ConfigurationType>
+-    <UseDebugLibraries>false</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
+-    <WholeProgramOptimization>true</WholeProgramOptimization>
+-    <CharacterSet>Unicode</CharacterSet>
+-  </PropertyGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+-    <ConfigurationType>StaticLibrary</ConfigurationType>
+-    <UseDebugLibraries>true</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
+-    <CharacterSet>Unicode</CharacterSet>
+-  </PropertyGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+-    <ConfigurationType>StaticLibrary</ConfigurationType>
+-    <UseDebugLibraries>false</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
+-    <WholeProgramOptimization>true</WholeProgramOptimization>
+-    <CharacterSet>Unicode</CharacterSet>
+-  </PropertyGroup>
+-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+-  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+-    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+-  </Target>
+-  <ImportGroup Label="ExtensionSettings">
+-  </ImportGroup>
+-  <ImportGroup Label="Shared">
+-  </ImportGroup>
+-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+-  </ImportGroup>
+-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+-  </ImportGroup>
+-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+-  </ImportGroup>
+-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+-  </ImportGroup>
+-  <PropertyGroup Label="UserMacros" />
+-  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+-    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+-  </ImportGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+-    <LinkIncremental>true</LinkIncremental>
+-  </PropertyGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+-    <LinkIncremental>false</LinkIncremental>
+-  </PropertyGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <LinkIncremental>true</LinkIncremental>
+-  </PropertyGroup>
+-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <LinkIncremental>false</LinkIncremental>
+-  </PropertyGroup>
+-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
+-    <QtModules>core;gui;printsupport;widgets</QtModules>
+-  </PropertyGroup>
+-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
+-    <QtModules>core;gui;printsupport;widgets</QtModules>
+-  </PropertyGroup>
+-  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+-    <Import Project="$(QtMsBuild)\qt.props" />
+-  </ImportGroup>
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+-    <ClCompile>
+-      <WarningLevel>Level3</WarningLevel>
+-      <SDLCheck>true</SDLCheck>
+-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-      <ConformanceMode>true</ConformanceMode>
+-    </ClCompile>
+-    <Link>
+-      <SubSystem>Console</SubSystem>
+-      <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+-    </Link>
+-    <ResourceCompile>
+-      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-    </ResourceCompile>
+-    <QtMoc>
+-      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+-      <DynamicSource>output</DynamicSource>
+-      <QtMocDir>$(Configuration)</QtMocDir>
+-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+-    </QtMoc>
+-    <ProjectReference>
+-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+-    </ProjectReference>
+-    <QtRcc>
+-      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+-      <Compression>default</Compression>
+-      <InitFuncName>dockresource</InitFuncName>
+-      <QtRccDir>$(Configuration)</QtRccDir>
+-      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+-    </QtRcc>
+-  </ItemDefinitionGroup>
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+-    <ClCompile>
+-      <WarningLevel>Level3</WarningLevel>
+-      <FunctionLevelLinking>true</FunctionLevelLinking>
+-      <IntrinsicFunctions>true</IntrinsicFunctions>
+-      <SDLCheck>true</SDLCheck>
+-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-      <ConformanceMode>true</ConformanceMode>
+-    </ClCompile>
+-    <Link>
+-      <SubSystem>Console</SubSystem>
+-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+-      <OptimizeReferences>true</OptimizeReferences>
+-      <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+-    </Link>
+-    <ResourceCompile>
+-      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-    </ResourceCompile>
+-    <ProjectReference />
+-    <QtMoc>
+-      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+-      <DynamicSource>output</DynamicSource>
+-      <QtMocDir>$(Configuration)</QtMocDir>
+-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+-    </QtMoc>
+-    <ProjectReference>
+-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+-    </ProjectReference>
+-    <QtRcc>
+-      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+-      <Compression>default</Compression>
+-      <InitFuncName>dockresource</InitFuncName>
+-      <QtRccDir>$(Configuration)</QtRccDir>
+-      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+-    </QtRcc>
+-  </ItemDefinitionGroup>
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <ClCompile>
+-      <WarningLevel>Level3</WarningLevel>
+-      <SDLCheck>true</SDLCheck>
+-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-      <ConformanceMode>false</ConformanceMode>
+-      <LanguageStandard>stdcpp17</LanguageStandard>
+-      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+-    </ClCompile>
+-    <Link>
+-      <SubSystem>Console</SubSystem>
+-      <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+-    </Link>
+-    <ResourceCompile>
+-      <PreprocessorDefinitions>_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-    </ResourceCompile>
+-    <ProjectReference>
+-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+-    </ProjectReference>
+-    <QtMoc>
+-      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+-      <DynamicSource>output</DynamicSource>
+-      <QtMocDir>$(Configuration)</QtMocDir>
+-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+-    </QtMoc>
+-    <QtRcc>
+-      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+-      <Compression>default</Compression>
+-      <InitFuncName>dockresource</InitFuncName>
+-      <QtRccDir>$(Configuration)</QtRccDir>
+-      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+-    </QtRcc>
+-  </ItemDefinitionGroup>
+-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <ClCompile>
+-      <WarningLevel>Level3</WarningLevel>
+-      <FunctionLevelLinking>true</FunctionLevelLinking>
+-      <IntrinsicFunctions>true</IntrinsicFunctions>
+-      <SDLCheck>true</SDLCheck>
+-      <PreprocessorDefinitions>_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-      <ConformanceMode>true</ConformanceMode>
+-      <LanguageStandard>stdcpp17</LanguageStandard>
+-      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+-    </ClCompile>
+-    <Link>
+-      <SubSystem>Console</SubSystem>
+-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+-      <OptimizeReferences>true</OptimizeReferences>
+-      <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+-    </Link>
+-    <ResourceCompile>
+-      <PreprocessorDefinitions>_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-    </ResourceCompile>
+-    <ProjectReference />
+-    <QtMoc>
+-      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+-      <DynamicSource>output</DynamicSource>
+-      <QtMocDir>$(Configuration)</QtMocDir>
+-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+-    </QtMoc>
+-    <ProjectReference>
+-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+-    </ProjectReference>
+-  </ItemDefinitionGroup>
+-  <ItemGroup>
+-    <ClCompile Include="genericdialog.cpp" />
+-    <ClCompile Include="NSDockWidget.cpp" />
+-    <ClCompile Include="genericconsole.cpp" />
+-    <ClCompile Include="NsTypes.cpp" />
+-    <ClCompile Include="propertytab.cpp" />
+-    <ClCompile Include="Utils\qcustomplot.cpp" />
+-    <ClCompile Include="Utils\qtcolorpushbutton.cpp" />
+-    <ClCompile Include="Qtproperty\qtpropertybrowser.cpp" />
+-    <ClCompile Include="Qtproperty\qtpropertybrowserutils.cpp" />
+-  </ItemGroup>
+-  <ItemGroup>
+-    <None Include="..\.editorconfig" />
+-    <QtRcc Include="dockresource.qrc">
+-    </QtRcc>
+-  </ItemGroup>
+-  <ItemGroup>
+-    <Natvis Include="..\qt5.natvis" />
+-  </ItemGroup>
+-  <ItemGroup>
+-    <ClInclude Include="global.h" />
+-    <ClInclude Include="NsTypes.h" />
+-    <ClInclude Include="style.h" />
+-    <QtMoc Include="genericdialog.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="genericconsole.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="NSDockWidget.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="propertytab.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Utils\qcustomplot.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Utils\qtcolorpushbutton.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qteditorfactory.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertybrowser.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertybrowserutils_p.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertymanager.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qttreepropertybrowser.h">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+-    </QtMoc>
+-  </ItemGroup>
+-  <ItemGroup>
+-    <ClCompile Include="debug\moc_genericdialog.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_genericdialog.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_genericconsole.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_genericconsole.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_NSDockWidget.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_NSDockWidget.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_propertytab.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_propertytab.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_qcustomplot.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_qcustomplot.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_qtcolorpushbutton.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_qtcolorpushbutton.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_qtpropertybrowserutils_p.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_qtpropertybrowserutils_p.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <QtMoc Include="Qtproperty\qteditorfactory.cpp">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+-      <QtMocDir>release</QtMocDir>
+-      <QtMocFileName>%(Filename).moc</QtMocFileName>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertymanager.cpp">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+-      <QtMocDir>release</QtMocDir>
+-      <QtMocFileName>%(Filename).moc</QtMocFileName>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qttreepropertybrowser.cpp">
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+-      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+-      <QtMocDir>release</QtMocDir>
+-      <QtMocFileName>%(Filename).moc</QtMocFileName>
+-    </QtMoc>
+-  </ItemGroup>
+-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+-  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+-    <Import Project="$(QtMsBuild)\qt.targets" />
+-  </ImportGroup>
+-  <ImportGroup Label="ExtensionTargets">
+-  </ImportGroup>
+-</Project>
+\ No newline at end of file
+diff --git a/src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj.filters b/src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj.filters
+deleted file mode 100644
+index fe4774b5fc4..00000000000
+--- a/src/sw/noc_dev/GUICore_qt6/GUICore.vcxproj.filters
++++ /dev/null
+@@ -1,152 +0,0 @@
+-﻿<?xml version="1.0" encoding="utf-8"?>
+-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+-  <ItemGroup>
+-    <Filter Include="Source Files">
+-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+-    </Filter>
+-    <Filter Include="Header Files">
+-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+-    </Filter>
+-    <Filter Include="Resource Files">
+-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+-    </Filter>
+-  </ItemGroup>
+-  <ItemGroup>
+-    <ClCompile Include="NsTypes.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="NSDockWidget.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="genericconsole.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="propertytab.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="Utils\qcustomplot.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="Utils\qtcolorpushbutton.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="Qtproperty\qtpropertybrowser.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="Qtproperty\qtpropertybrowserutils.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_genericconsole.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_genericconsole.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_NSDockWidget.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_NSDockWidget.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_qcustomplot.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_qcustomplot.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_qtcolorpushbutton.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_qtcolorpushbutton.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_qtpropertybrowserutils_p.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_qtpropertybrowserutils_p.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="genericdialog.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_genericdialog.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_genericdialog.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_propertytab.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="release\moc_propertytab.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-  </ItemGroup>
+-  <ItemGroup>
+-    <Natvis Include="..\qt5.natvis" />
+-  </ItemGroup>
+-  <ItemGroup>
+-    <QtRcc Include="dockresource.qrc" />
+-  </ItemGroup>
+-  <ItemGroup>
+-    <None Include="..\.editorconfig" />
+-  </ItemGroup>
+-  <ItemGroup>
+-    <ClInclude Include="NsTypes.h">
+-      <Filter>Header Files</Filter>
+-    </ClInclude>
+-    <ClInclude Include="style.h">
+-      <Filter>Header Files</Filter>
+-    </ClInclude>
+-    <ClInclude Include="global.h">
+-      <Filter>Header Files</Filter>
+-    </ClInclude>
+-  </ItemGroup>
+-  <ItemGroup>
+-    <QtMoc Include="genericconsole.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="NSDockWidget.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="propertytab.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Utils\qcustomplot.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Utils\qtcolorpushbutton.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qteditorfactory.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertybrowser.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertybrowserutils_p.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertymanager.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qttreepropertybrowser.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qteditorfactory.cpp">
+-      <Filter>Source Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qtpropertymanager.cpp">
+-      <Filter>Source Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="Qtproperty\qttreepropertybrowser.cpp">
+-      <Filter>Source Files</Filter>
+-    </QtMoc>
+-    <QtMoc Include="genericdialog.h">
+-      <Filter>Header Files</Filter>
+-    </QtMoc>
+-  </ItemGroup>
+-</Project>
+\ No newline at end of file
+diff --git a/src/sw/noc_dev/NoC.sln b/src/sw/noc_dev/NoC.sln
+index c0eecd92fd8..339a1ca1c5b 100644
+--- a/src/sw/noc_dev/NoC.sln
++++ b/src/sw/noc_dev/NoC.sln
+@@ -72,6 +72,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCFNocStudio", "SCFNocStudi
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPTest", "IPTest\IPTest.vcxproj", "{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}"
+ EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GUICore_qt6", "GUICore_qt6\GUICore_qt6.vcxproj", "{A01D1618-1FEE-4180-B46A-38733CC076CC}"
++EndProject
++Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NocStudio_qt6", "prototype_qt6\NocStudio_qt6.vcxproj", "{E05FC362-6056-43F3-8843-64EA6C0132AA}"
++	ProjectSection(ProjectDependencies) = postProject
++		{A01D1618-1FEE-4180-B46A-38733CC076CC} = {A01D1618-1FEE-4180-B46A-38733CC076CC}
++	EndProjectSection
++EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|x64 = Debug|x64
+@@ -226,6 +233,28 @@ Global
+ 		{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
+ 		{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}.Release-NETSPEED_BUILD|x86.ActiveCfg = Release|Win32
+ 		{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}.Release-NETSPEED_BUILD|x86.Build.0 = Release|Win32
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x64.ActiveCfg = Debug|x64
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x64.Build.0 = Debug|x64
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x86.ActiveCfg = Debug|Win32
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x86.Build.0 = Debug|Win32
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x64.ActiveCfg = Release|x64
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x64.Build.0 = Release|x64
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x86.ActiveCfg = Release|Win32
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x86.Build.0 = Release|Win32
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x64.ActiveCfg = Release|x64
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x86.ActiveCfg = Release|Win32
++		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x86.Build.0 = Release|Win32
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Debug|x64.ActiveCfg = Debug|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Debug|x64.Build.0 = Debug|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Debug|x86.ActiveCfg = Debug|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release|x64.ActiveCfg = Release|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release|x64.Build.0 = Release|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release|x86.ActiveCfg = Release|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x64.ActiveCfg = Release|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x86.ActiveCfg = Debug|x64
++		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x86.Build.0 = Debug|x64
+ 	EndGlobalSection
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+diff --git a/src/sw/noc_dev/prototype_qt6/NocStudio.pro b/src/sw/noc_dev/prototype_qt6/NocStudio.pro
+index ba70fd93104..adc89f57fb6 100644
+--- a/src/sw/noc_dev/prototype_qt6/NocStudio.pro
++++ b/src/sw/noc_dev/prototype_qt6/NocStudio.pro
+@@ -7,7 +7,7 @@ win32:RC_FILE = netspeed.rc
+ CONFIG += console
+ CONFIG += silent
+ greaterThan(QT_MAJOR_VERSION, 4): {QT += widgets printsupport}
+-include(../GUICore/Qtproperty/qtpropertybrowser.pri)
++include(../GUICore_qt6/Qtproperty/qtpropertybrowser.pri)
+ TARGET = NocStudio
+ TEMPLATE = app
+ QMAKE_CXXFLAGS = $$(QTCFLAGS) -I. $$QMAKE_CXXFLAGS
+diff --git a/src/sw/noc_dev/prototype_qt6/NocStudio_qt6.vcxproj b/src/sw/noc_dev/prototype_qt6/NocStudio_qt6.vcxproj
+index 2bc480ea77d..653e32e7689 100644
+--- a/src/sw/noc_dev/prototype_qt6/NocStudio_qt6.vcxproj
++++ b/src/sw/noc_dev/prototype_qt6/NocStudio_qt6.vcxproj
+@@ -65,11 +65,11 @@
+     <LinkIncremental>true</LinkIncremental>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -77,7 +77,7 @@
+   </ImportGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;release;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore_qt6;../GUICore_qt6/Utils;../GUICore_qt6/DRC;../include;.;../GUICore_qt6/Qtproperty;..\prototype_qt6;..\NocCore\include;..\prototype_qt6\Gui;..\prototype_qt6\Gui\Item;..\prototype_qt6\Gui\View;C:\Qt6\6.7.3\msvc2019_64\include;C:\Qt6\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt6\6.7.3\msvc2019_64\include\QtSvg;C:\Qt6\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt6\6.7.3\msvc2019_64\include\QtGui;C:\Qt6\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt6\6.7.3\msvc2019_64\include\QtCore;release;C:\Qt6\6.7.3\msvc2019_64\mkspecs\win32-msvc;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+       <AssemblerListingLocation>release\</AssemblerListingLocation>
+       <BrowseInformation>false</BrowseInformation>
+@@ -101,7 +101,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>Shell32.lib;libEGL.lib;libGLESv2.lib;gdi32.lib;user32.lib;libcrvs.lib;libsb.lib;lmgr_dongle_stub.lib;libFNPload.lib;lmgr.lib;lmgr_trl.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;libredir_std.lib;lm_new.obj;Dhcpcsvc.lib;Shlwapi.lib;%(AdditionalDependencies);tcl86tsx.lib</AdditionalDependencies>
+-      <AdditionalLibraryDirectories>..\NocCore\releaseLib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(SolutionDir)$(Platform)\$(Configuration)\NocCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalLibraryDirectories>..\NocCore\releaseLib;C:\Qt6\6.7.3\msvc2019_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(SolutionDir)$(Platform)\$(Configuration)\NocCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+       <DataExecutionPrevention>true</DataExecutionPrevention>
+       <GenerateDebugInformation>Debug</GenerateDebugInformation>
+@@ -135,7 +135,7 @@
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../Infra/include;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;debug;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5/;../../lib/tcl/;../Isabelle/include;..\IPCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore_qt6;../GUICore_qt6/Utils;../GUICore_qt6/DRC;../Infra/include;../include;.;../GUICore_qt6/Qtproperty;..\prototype_qt6;..\NocCore\include;..\prototype_qt6\Gui;..\prototype_qt6\Gui\Item;..\prototype_qt6\Gui\View;C:\Qt6\6.7.3\msvc2019_64\include;C:\Qt6\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt6\6.7.3\msvc2019_64\include\QtSvg;C:\Qt6\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt6\6.7.3\msvc2019_64\include\QtGui;C:\Qt6\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt6\6.7.3\msvc2019_64\include\QtCore;debug;C:\Qt6\6.7.3\msvc2019_64\mkspecs\win32-msvc;../../lib/cpptcl-2.2.5/;../../lib/tcl/;../Isabelle/include;..\IPCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+       <AssemblerListingLocation>debug\</AssemblerListingLocation>
+       <BrowseInformation>false</BrowseInformation>
+@@ -163,7 +163,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>Shell32.lib;libEGLd.lib;libGLESv2d.lib;gdi32.lib;user32.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;Dhcpcsvc.lib;Shlwapi.lib;tcl86tsgx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <AdditionalLibraryDirectories>..\IPCore\releaseLib;$(Platform)\$(Configuration)\IPCore.lib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalLibraryDirectories>..\IPCore\releaseLib;$(Platform)\$(Configuration)\IPCore.lib;C:\Qt6\6.7.3\msvc2019_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+       <DataExecutionPrevention>true</DataExecutionPrevention>
+       <GenerateDebugInformation>true</GenerateDebugInformation>
+@@ -206,7 +206,7 @@
+     <ClCompile Include="Gui\View\NsChipViewData.cpp" />
+     <ClCompile Include="Gui\View\NsChipViewRect.cpp" />
+     <ClCompile Include="Gui\View\NsChipViewScene.cpp" />
+-    <ClCompile Include="..\GUICore\Utils\NsFilterWidget.cpp" />
++    <ClCompile Include="..\GUICore_qt6/Utils\NsFilterWidget.cpp" />
+     <ClCompile Include="Gui\Item\NsGraphicsItem.cpp" />
+     <ClCompile Include="Gui\Item\NsHost.cpp" />
+     <ClCompile Include="Gui\Item\NsBridge.cpp" />
+@@ -286,7 +286,7 @@
+     <ClInclude Include="Gui\View\NsChipViewData.h" />
+     <ClInclude Include="Gui\View\NsChipViewRect.h" />
+     <ClInclude Include="Gui\View\NsChipViewScene.h" />
+-    <QtMoc Include="..\GUICore\Utils\NsFilterWidget.h">
++    <QtMoc Include="..\GUICore_qt6/Utils\NsFilterWidget.h">
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+@@ -779,9 +779,6 @@ echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+     <Natvis Include="..\qt5.natvis" />
+   </ItemGroup>
+   <ItemGroup>
+-    <ProjectReference Include="..\GUICore\GUICore.vcxproj">
+-      <Project>{f9e95b73-4108-4249-ba4f-55d3b21728d9}</Project>
+-    </ProjectReference>
+     <ProjectReference Include="..\Infra\Infra.vcxproj">
+       <Project>{8bbf89ce-34cb-4f56-b3f7-083f87c455b8}</Project>
+     </ProjectReference>

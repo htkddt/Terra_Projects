@@ -1,0 +1,27 @@
+ src/sw/noc_dev/GUICore_qt6/genericdialog.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp b/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp
+index a0c5d036271..419441b597a 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp
+@@ -391,7 +391,8 @@ QString NsTextBrowser::removeFontSizeHtml(QString html)
+ void NsTextBrowser::updateHeightImgHtml()
+ {
+     QString html = toHtml();
+-
++    qDebug() << "Current text: " << this->toPlainText();
++    qDebug() << "Current html: " << this->toHtml();
+     for (size_t i = 0; i < imgPathList.size(); i++) {
+         QString img_Path = imgPathList.at(i);
+         int pos_start = html.indexOf("height=", html.indexOf(img_Path)) + 7;
+@@ -400,7 +401,9 @@ void NsTextBrowser::updateHeightImgHtml()
+             html.replace(pos_start, pos_end - pos_start, QString::number(heightCurrList.at(i)));
+         }
+     }
++    qDebug() << "Before:\n" << html;
+     html = removeFontSizeHtml(html);
++    qDebug() << "After:\n" << html;
+     setHtml(html);
+ }
+ 

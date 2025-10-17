@@ -1,0 +1,867 @@
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  |   2 +-
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp           | 198 ++++++++++++++------
+ src/sw/noc_dev/prototype/Gui/dialogs.h             |   9 +-
+ .../prototype_qt6/Gui/View/NsNocViewScene.cpp      |   2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp       | 203 ++++++++++++++-------
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.h         |   9 +-
+ 6 files changed, 294 insertions(+), 129 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 15b2aad010f..93e827d8822 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -2618,7 +2618,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                 auto bridge_src = nocScene->instrumentMediator->src;
+                 if (bridge_src) {
+                     auto listLayer = checkRegbusLayers(nocScene->getLayers().keys());
+-                    chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port);
++                    chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port, mw);
+                     if (msgBox->exec() == QDialog::Accepted) {
+                         selected_port = false;
+                         QString destRouter = m_router + m_port;
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index cb06874d127..71711aaf9c0 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5164,24 +5164,22 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     headerRouters->setFont(font);
+     headerPorts->setFont(font);
+ 
+-    layoutOfLayers = new QGridLayout;
+-    layoutOfLayers->addWidget(headerLayers, row, 0, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(headerRouters, row, 1, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(headerPorts, row++, 2, Qt::AlignCenter);
++    layoutOfComboBoxs = new QGridLayout;
++    layoutOfComboBoxs->addWidget(headerLayers, row, 0, Qt::AlignCenter);
++    layoutOfComboBoxs->addWidget(headerRouters, row, 1, Qt::AlignCenter);
++    layoutOfComboBoxs->addWidget(headerPorts, row++, 2, Qt::AlignCenter);
+ 
+     QComboBox* layers = new QComboBox;
+     layers->addItem("-");
+     for (int i = 0; i < numberOfLayers; i++) {
+         layers->addItem("Layer " + QString::number(i));
+     }
+-    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(layers) + 1); });
+ 
+     QComboBox* routers = new QComboBox;
+     routers->addItem("-");
+     for (NetSpeed::Node_id nodeId : g->get_nodes()) {
+         routers->addItem(QString::number(nodeId));
+     }
+-    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(routers)); });
+ 
+     QComboBox* ports = new QComboBox;
+     ports->addItem("-");
+@@ -5226,14 +5224,27 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+             break;
+         }
+     }
+-    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ 
+-    layers->setFixedWidth(150);
+-    routers->setFixedWidth(100);
+-    ports->setFixedWidth(100);
+-    layoutOfLayers->addWidget(layers, row, 0, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(routers, row, 1, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(ports, row, 2, Qt::AlignCenter);
++    layers->setMinimumWidth(150);
++    routers->setMinimumWidth(100);
++    ports->setMinimumWidth(100);
++    layers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    routers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    ports->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    layoutOfComboBoxs->addWidget(layers, row, 0);
++    layoutOfComboBoxs->addWidget(routers, row, 1);
++    layoutOfComboBoxs->addWidget(ports, row, 2);
++    layoutOfComboBoxs->setAlignment(Qt::AlignTop);
++
++    QWidget* widgetLayoutOfComboBoxs = new QWidget;
++    widgetLayoutOfComboBoxs->setLayout(layoutOfComboBoxs);
++    scrollArea = new QScrollArea;
++    scrollArea->setWidget(widgetLayoutOfComboBoxs);
++    scrollArea->setWidgetResizable(true);
++    scrollArea->setMinimumHeight(300);
++    scrollArea->setMinimumWidth(widgetLayoutOfComboBoxs->width() + scrollArea->verticalScrollBar()->sizeHint().width());
++    scrollArea->verticalScrollBar()->setPageStep(1);
++    scrollArea->horizontalScrollBar()->setPageStep(1);
+ 
+     addButton = new QPushButton("ADD ROW");
+     addButton->setIcon(QIcon(ICON_ADD));
+@@ -5260,11 +5271,7 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     labelAllLayers->setStyleSheet("QLabel { color: rgba(128, 128, 128, 120); }");
+ 
+     textRouterDest = new QLineEdit;
+-    textRouterDest->setMinimumWidth(400);
+     textRouterDest->setReadOnly(true);
+-    textRouterDest->setEnabled(false);
+-    QGridLayout* layoutTextRouterDest = new QGridLayout;
+-    layoutTextRouterDest->addWidget(textRouterDest, 0, 0, Qt::AlignCenter);
+ 
+     rdBtn1->setChecked(true);
+ 
+@@ -5283,8 +5290,8 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     connect(cbAll, &QCheckBox::clicked, this, [&](bool checked) {
+         addButton->setEnabled(!checked);
+         if (checked) {
+-            for (int i = 0; i < layoutOfLayers->count(); i++) {
+-                auto item = layoutOfLayers->itemAt(i);
++            for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
++                auto item = layoutOfComboBoxs->itemAt(i);
+                 if (!item) continue;
+                 auto widget = item->widget();
+                 if (!widget) continue;
+@@ -5293,8 +5300,8 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+                 comboBox->setEnabled(false);
+             }
+         } else {
+-            for (int i = 0; i < layoutOfLayers->count(); i++) {
+-                auto item = layoutOfLayers->itemAt(i);
++            for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
++                auto item = layoutOfComboBoxs->itemAt(i);
+                 if (!item) continue;
+                 auto widget = item->widget();
+                 if (!widget) continue;
+@@ -5331,9 +5338,26 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     rdBtn2->setVisible(!compBr);
+     rdBtn3->setVisible(!compBr);
+ 
+-    QVBoxLayout* mainLayout = new QVBoxLayout;
++    if (!m_router.isEmpty()) {
++        layers->setCurrentText("Layer " + QString(itemLayerComboBox));
++        routers->setCurrentText(QString(itemRouterComboBox));
++        ports->setCurrentText(m_port);
++        textRouterDest->setText(m_router + m_port);
++        valueRouterDest = textRouterDest->text();
++        QString dst = "Router|" + textRouterDest->text();
++        auto mw = dynamic_cast<MainWindow*>(parent);
++        if (mw) {
++            auto p = mw->getPropertyPanel();
++            if (p) {
++                p->addConnectProperties(dst);
++            }
++        }
++        textRouterDest->setToolTip(valueRouterDest);
++    }
++
++    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+     if (compBr) {
+-        mainLayout->addLayout(layoutOfLayers);
++        mainLayout->addWidget(scrollArea);
+         mainLayout->addStretch(1);
+         mainLayout->addSpacing(30);
+         mainLayout->addLayout(addButtonLayout);
+@@ -5347,20 +5371,18 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     mainLayout->addLayout(layoutAllOption);
+     mainLayout->addSpacing(5);
+     if (compBr) {
+-        mainLayout->addLayout(layoutTextRouterDest);
++        mainLayout->addWidget(textRouterDest);
+         mainLayout->addSpacing(5);
+     }
+     mainLayout->addLayout(buttonLayout);
+     setLayout(mainLayout);
+-    setModal(true);
+     setWindowTitle("Arguments");
+     setWindowFlags(getFlagsDialog());
+     setWindowIcon(QIcon(ICON_NOC_M1));
+ 
+-    layers->setCurrentText("Layer " + QString(itemLayerComboBox));
+-    routers->setCurrentText(QString(itemRouterComboBox));
+-    ports->setCurrentText(m_port);
+-    textRouterDest->setText(m_router + m_port);
++    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(layers) + 1); });
++    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(routers)); });
++    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ }
+ 
+ void chooseArgumentDialog::addComboBox(int cntLayer)
+@@ -5370,14 +5392,12 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+     for (int i = 0; i < cntLayer; i++) {
+         layers->addItem("Layer " + QString::number(i));
+     }
+-    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(layers) + 1); });
+ 
+     QComboBox* routers = new QComboBox;
+     routers->addItem("-");
+     for (NetSpeed::Node_id nodeId : grid->get_nodes()) {
+         routers->addItem(QString::number(nodeId));
+     }
+-    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(routers)); });
+ 
+     QComboBox* ports = new QComboBox;
+     ports->addItem("-");
+@@ -5409,7 +5429,6 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+             break;
+         }
+     }
+-    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ 
+     auto removeRow = new QPushButton();
+     removeRow->setIcon(QIcon(ICON_DEL_CIRCLE));
+@@ -5419,30 +5438,30 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+                              "}");
+     connect(removeRow, &QPushButton::clicked, this, [=]() {
+         int row, col, rowSpan, colSpan;
+-        for (int i = 0; i < layoutOfLayers->count(); i++) {
+-            QLayoutItem* item = layoutOfLayers->itemAt(i);
++        for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
++            QLayoutItem* item = layoutOfComboBoxs->itemAt(i);
+             if (item && item->widget() == removeRow) {
+-                layoutOfLayers->getItemPosition(i, &row, &col, &rowSpan, &colSpan);
++                layoutOfComboBoxs->getItemPosition(i, &row, &col, &rowSpan, &colSpan);
+             }
+         }
+ 
+-        for (int c = 0; c < layoutOfLayers->columnCount(); c++) {
+-            QLayoutItem* item = layoutOfLayers->itemAtPosition(row, c);
++        for (int c = 0; c < layoutOfComboBoxs->columnCount(); c++) {
++            QLayoutItem* item = layoutOfComboBoxs->itemAtPosition(row, c);
+             if (item) {
+                 if (auto widget = item->widget()) {
+-                    layoutOfLayers->removeWidget(widget);
++                    layoutOfComboBoxs->removeWidget(widget);
+                     widget->deleteLater();
+                 }
+             }
+         }
+ 
+-        for (int r = row + 1; r < layoutOfLayers->rowCount(); r++) {
+-            for (int c = 0; c < layoutOfLayers->columnCount(); c++) {
+-                QLayoutItem* item = layoutOfLayers->itemAtPosition(r, c);
++        for (int r = row + 1; r < layoutOfComboBoxs->rowCount(); r++) {
++            for (int c = 0; c < layoutOfComboBoxs->columnCount(); c++) {
++                QLayoutItem* item = layoutOfComboBoxs->itemAtPosition(r, c);
+                 if (item) {
+                     if (auto widget = item->widget()) {
+-                        layoutOfLayers->removeWidget(widget);
+-                        layoutOfLayers->addWidget(widget, r - 1, c, Qt::AlignCenter);
++                        layoutOfComboBoxs->removeWidget(widget);
++                        layoutOfComboBoxs->addWidget(widget, r - 1, c);
+                     }
+                 }
+             }
+@@ -5451,31 +5470,41 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+         itemComboBoxChanged();
+     });
+ 
+-    layers->setFixedWidth(150);
+-    routers->setFixedWidth(100);
+-    ports->setFixedWidth(100);
+-    layoutOfLayers->addWidget(layers, row, 0, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(routers, row, 1, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(ports, row, 2, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(removeRow, row, 3, Qt::AlignCenter);
++    layers->setMinimumWidth(150);
++    routers->setMinimumWidth(100);
++    ports->setMinimumWidth(100);
++    layers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    routers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    ports->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    layoutOfComboBoxs->addWidget(layers, row, 0);
++    layoutOfComboBoxs->addWidget(routers, row, 1);
++    layoutOfComboBoxs->addWidget(ports, row, 2);
++    layoutOfComboBoxs->addWidget(removeRow, row, 3);
++    scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->maximum());
++
++    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(layers) + 1); });
++    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(routers)); });
++    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ }
+ 
+ void chooseArgumentDialog::itemComboBoxChanged()
+ {
+     QStringList list;
+     textRouterDest->clear();
++    valueRouterDest.clear();
+     QString destRouter;
+     int preCol;
+-    for (int row = 0; row < layoutOfLayers->rowCount(); row++) {
++    for (int row = 0; row < layoutOfComboBoxs->rowCount(); row++) {
+         preCol = 0;
+         destRouter = QString("R");
+-        for (int col = 0; col < layoutOfLayers->columnCount(); col++) {
+-            auto item = layoutOfLayers->itemAtPosition(row, col);
++        for (int col = 0; col < layoutOfComboBoxs->columnCount(); col++) {
++            auto item = layoutOfComboBoxs->itemAtPosition(row, col);
+             if (!item) break;
+             auto widget = item->widget();
+             if (!widget) break;
+             auto comboBox = dynamic_cast<QComboBox*>(widget);
+             if (!comboBox) break;
++            comboBox->setStyleSheet("");
+             auto text = comboBox->currentText();
+             if (text == "-") {
+                 destRouter = QString();
+@@ -5491,20 +5520,42 @@ void chooseArgumentDialog::itemComboBoxChanged()
+         }
+         if (!destRouter.isEmpty() && destRouter.size() > 1) {
+             if (list.contains(destRouter)) {
+-                if (auto item = layoutOfLayers->itemAtPosition(row, preCol)) {
++                if (auto item = layoutOfComboBoxs->itemAtPosition(row, preCol)) {
+                     if (auto widget = item->widget()) {
+-                        if (auto comboBox = dynamic_cast<QComboBox*>(widget)) comboBox->setCurrentIndex(0);
++                        if (auto comboBox = dynamic_cast<QComboBox*>(widget)) {
++                            comboBox->setStyleSheet("QComboBox {"
++                                                    "border: 1px solid red;"
++                                                    "background-color: #f0f0f0;"
++                                                    "}");
++                        }
+                     }
+                 }
+             } else list.append(destRouter);
+         }
+     }
+     if (!list.isEmpty()) {
++        QString currentText = QString();
++        QFontMetrics metrics(textRouterDest->font());
+         for (const auto& text : list) {
+             if (textRouterDest->text().contains(text)) continue;
+-            if (!textRouterDest->text().isEmpty()) textRouterDest->setText(textRouterDest->text() + " ");
+-            textRouterDest->setText(textRouterDest->text() + text);
++            if (text == list.first()) {
++                textRouterDest->setText(textRouterDest->text() + text + " ");
++                valueRouterDest += text + " ";
++                continue;
++            }
++            currentText = textRouterDest->text();
++            if (!currentText.contains("...")) {
++                int textWidth = metrics.horizontalAdvance(currentText);
++                int lineWidth = textRouterDest->width();
++                if (textWidth < (lineWidth - 50)) {
++                    if (text == list.last()) textRouterDest->setText(currentText + text);
++                    else textRouterDest->setText(currentText + text + " ");
++                } else textRouterDest->setText(currentText + "...");
++            }
++            if (text == list.last()) valueRouterDest += text;
++            else valueRouterDest += text + " ";
+         }
++        textRouterDest->setToolTip(valueRouterDest);
+     }
+     okButton->setEnabled(!list.isEmpty());
+     QString dst = "Router|" + textRouterDest->text();
+@@ -5519,7 +5570,7 @@ void chooseArgumentDialog::itemComboBoxChanged()
+ 
+ void chooseArgumentDialog::updatePortComboBox(int index)
+ {
+-    auto itemLayer = layoutOfLayers->itemAt(index - 1);
++    auto itemLayer = layoutOfComboBoxs->itemAt(index - 1);
+     if (!itemLayer) return;
+     auto widgetLayer = itemLayer->widget();
+     if (!widgetLayer) return;
+@@ -5532,7 +5583,7 @@ void chooseArgumentDialog::updatePortComboBox(int index)
+         itemLayerComboBox = splitLayer.last();
+     }
+ 
+-    auto itemRouter = layoutOfLayers->itemAt(index);
++    auto itemRouter = layoutOfComboBoxs->itemAt(index);
+     if (!itemRouter) return;
+     auto widgetRouter = itemRouter->widget();
+     if (!widgetRouter) return;
+@@ -5540,7 +5591,7 @@ void chooseArgumentDialog::updatePortComboBox(int index)
+     if (!comboBoxRouter) return;
+     auto textRouter = comboBoxRouter->currentText();
+ 
+-    auto itemPort = layoutOfLayers->itemAt(index + 1);
++    auto itemPort = layoutOfComboBoxs->itemAt(index + 1);
+     if (!itemPort) return;
+     auto widgetPort = itemPort->widget();
+     if (!widgetPort) return;
+@@ -5597,6 +5648,33 @@ void chooseArgumentDialog::updatePortComboBox(int index)
+     }
+ }
+ 
++void chooseArgumentDialog::resizeEvent(QResizeEvent* event)
++{
++    event->accept();
++    textRouterDest->clear();
++    auto listText       = valueRouterDest.split(" ");
++    QString currentText = QString();
++    QFontMetrics metrics(textRouterDest->font());
++    for (const auto& text : listText) {
++        if (text == listText.first()) {
++            textRouterDest->setText(textRouterDest->text() + text + " ");
++            continue;
++        }
++        currentText = textRouterDest->text();
++        if (!currentText.contains("...")) {
++            int textWidth = metrics.horizontalAdvance(currentText);
++            int lineWidth = textRouterDest->width();
++            if (textWidth < (lineWidth - 50)) {
++                if (text == listText.last()) textRouterDest->setText(currentText + text);
++                else textRouterDest->setText(currentText + text + " ");
++            } else {
++                textRouterDest->setText(currentText + "...");
++                break;
++            }
++        }
++    }
++}
++
+ chooseOptionDialog::chooseOptionDialog(const QString& title, const QStringList& listArg, QWidget* parent)
+ : QDialog(parent) {
+     QGridLayout* layout  = new QGridLayout;   
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index 96dda9824f0..e48e246b5ca 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -1175,21 +1175,26 @@ public:
+     void addComboBox(int cntLayer);
+     bool getStateComboBoxAll() { return cbAll->isChecked(); }
+     QString getArgument() const { return argument; }
+-    QString getTextRouterDest() { return textRouterDest->text(); }
++    QString getTextRouterDest() { return valueRouterDest; }
+ 
+ private:
+     int row = 0;
+     QString argument = QString();
++    QString valueRouterDest = QString();
+     QCheckBox* cbAll = nullptr;
+     QPushButton* addButton = nullptr;
+     QPushButton* okButton = nullptr;
+-    QGridLayout* layoutOfLayers = nullptr;
++    QGridLayout* layoutOfComboBoxs = nullptr;
+     QLineEdit* textRouterDest = nullptr;
++    QScrollArea* scrollArea = nullptr;
+     NetSpeed::Grid* grid;
+ 
+ public slots:
+     void itemComboBoxChanged();
+     void updatePortComboBox(int index);
++
++protected:
++    void resizeEvent(QResizeEvent*);
+ };
+ 
+ class chooseOptionDialog : public QDialog
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 2b80ed09cb1..4ac4dd6763c 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -2618,7 +2618,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                 auto bridge_src = nocScene->instrumentMediator->src;
+                 if (bridge_src) {
+                     auto listLayer = checkRegbusLayers(nocScene->getLayers().keys());
+-                    chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port);
++                    chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port, mw);
+                     if (msgBox->exec() == QDialog::Accepted) {
+                         selected_port = false;
+                         QString destRouter = m_router + m_port;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index ea300b70182..8a842b1388e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5183,24 +5183,22 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     headerRouters->setFont(font);
+     headerPorts->setFont(font);
+ 
+-    layoutOfLayers = new QGridLayout;
+-    layoutOfLayers->addWidget(headerLayers, row, 0, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(headerRouters, row, 1, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(headerPorts, row++, 2, Qt::AlignCenter);
++    layoutOfComboBoxs = new QGridLayout;
++    layoutOfComboBoxs->addWidget(headerLayers, row, 0, Qt::AlignCenter);
++    layoutOfComboBoxs->addWidget(headerRouters, row, 1, Qt::AlignCenter);
++    layoutOfComboBoxs->addWidget(headerPorts, row++, 2, Qt::AlignCenter);
+ 
+     QComboBox* layers = new QComboBox;
+     layers->addItem("-");
+     for (int i = 0; i < numberOfLayers; i++) {
+         layers->addItem("Layer " + QString::number(i));
+     }
+-    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(layers) + 1); });
+ 
+     QComboBox* routers = new QComboBox;
+     routers->addItem("-");
+     for (NetSpeed::Node_id nodeId : g->get_nodes()) {
+         routers->addItem(QString::number(nodeId));
+     }
+-    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(routers)); });
+ 
+     QComboBox* ports = new QComboBox;
+     ports->addItem("-");
+@@ -5245,14 +5243,27 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+             break;
+         }
+     }
+-    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ 
+-    layers->setFixedWidth(150);
+-    routers->setFixedWidth(100);
+-    ports->setFixedWidth(100);
+-    layoutOfLayers->addWidget(layers, row, 0, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(routers, row, 1, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(ports, row, 2, Qt::AlignCenter);
++    layers->setMinimumWidth(150);
++    routers->setMinimumWidth(100);
++    ports->setMinimumWidth(100);
++    layers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    routers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    ports->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    layoutOfComboBoxs->addWidget(layers, row, 0);
++    layoutOfComboBoxs->addWidget(routers, row, 1);
++    layoutOfComboBoxs->addWidget(ports, row, 2);
++    layoutOfComboBoxs->setAlignment(Qt::AlignTop);
++
++    QWidget* widgetLayoutOfComboBoxs = new QWidget;
++    widgetLayoutOfComboBoxs->setLayout(layoutOfComboBoxs);
++    scrollArea = new QScrollArea;
++    scrollArea->setWidget(widgetLayoutOfComboBoxs);
++    scrollArea->setWidgetResizable(true);
++    scrollArea->setMinimumHeight(300);
++    scrollArea->setMinimumWidth(widgetLayoutOfComboBoxs->width() + scrollArea->verticalScrollBar()->sizeHint().width());
++    scrollArea->verticalScrollBar()->setPageStep(1);
++    scrollArea->horizontalScrollBar()->setPageStep(1);
+ 
+     addButton = new QPushButton("ADD ROW");
+     addButton->setIcon(QIcon(ICON_ADD));
+@@ -5279,11 +5290,7 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     labelAllLayers->setStyleSheet("QLabel { color: rgba(128, 128, 128, 120); }");
+ 
+     textRouterDest = new QLineEdit;
+-    textRouterDest->setMinimumWidth(400);
+     textRouterDest->setReadOnly(true);
+-    textRouterDest->setEnabled(false);
+-    QGridLayout* layoutTextRouterDest = new QGridLayout;
+-    layoutTextRouterDest->addWidget(textRouterDest, 0, 0, Qt::AlignCenter);
+ 
+     rdBtn1->setChecked(true);
+ 
+@@ -5302,8 +5309,8 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     connect(cbAll, &QCheckBox::clicked, this, [&](bool checked) {
+         addButton->setEnabled(!checked);
+         if (checked) {
+-            for (int i = 0; i < layoutOfLayers->count(); i++) {
+-                auto item = layoutOfLayers->itemAt(i);
++            for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
++                auto item = layoutOfComboBoxs->itemAt(i);
+                 if (!item) continue;
+                 auto widget = item->widget();
+                 if (!widget) continue;
+@@ -5312,8 +5319,8 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+                 comboBox->setEnabled(false);
+             }
+         } else {
+-            for (int i = 0; i < layoutOfLayers->count(); i++) {
+-                auto item = layoutOfLayers->itemAt(i);
++            for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
++                auto item = layoutOfComboBoxs->itemAt(i);
+                 if (!item) continue;
+                 auto widget = item->widget();
+                 if (!widget) continue;
+@@ -5350,9 +5357,26 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     rdBtn2->setVisible(!compBr);
+     rdBtn3->setVisible(!compBr);
+ 
+-    QVBoxLayout* mainLayout = new QVBoxLayout;
++    if (!m_router.isEmpty()) {
++        layers->setCurrentText("Layer " + QString(itemLayerComboBox));
++        routers->setCurrentText(QString(itemRouterComboBox));
++        ports->setCurrentText(m_port);
++        textRouterDest->setText(m_router + m_port);
++        valueRouterDest = textRouterDest->text();
++        QString dst = "Router|" + textRouterDest->text();
++        auto mw = dynamic_cast<MainWindow*>(parent);
++        if (mw) {
++            auto p = mw->getPropertyPanel();
++            if (p) {
++                p->addConnectProperties(dst);
++            }
++        }
++        textRouterDest->setToolTip(valueRouterDest);
++    }
++
++    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+     if (compBr) {
+-        mainLayout->addLayout(layoutOfLayers);
++        mainLayout->addWidget(scrollArea);
+         mainLayout->addStretch(1);
+         mainLayout->addSpacing(30);
+         mainLayout->addLayout(addButtonLayout);
+@@ -5366,22 +5390,18 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     mainLayout->addLayout(layoutAllOption);
+     mainLayout->addSpacing(5);
+     if (compBr) {
+-        mainLayout->addLayout(layoutTextRouterDest);
++        mainLayout->addWidget(textRouterDest);
+         mainLayout->addSpacing(5);
+     }
+     mainLayout->addLayout(buttonLayout);
+     setLayout(mainLayout);
+-    setModal(true);
+     setWindowTitle("Arguments");
+     setWindowFlags(getFlagsDialog());
+     setWindowIcon(QIcon(ICON_NOC_M1));
+ 
+-    if (!m_router.isEmpty()) {
+-        layers->setCurrentText("Layer " + QString(itemLayerComboBox));
+-        routers->setCurrentText(QString(itemRouterComboBox));
+-        ports->setCurrentText(m_port);
+-        textRouterDest->setText(m_router + m_port);
+-    }
++    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(layers) + 1); });
++    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(routers)); });
++    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ }
+ 
+ void chooseArgumentDialog::addComboBox(int cntLayer)
+@@ -5391,14 +5411,12 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+     for (int i = 0; i < cntLayer; i++) {
+         layers->addItem("Layer " + QString::number(i));
+     }
+-    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(layers) + 1); });
+ 
+     QComboBox* routers = new QComboBox;
+     routers->addItem("-");
+     for (NetSpeed::Node_id nodeId : grid->get_nodes()) {
+         routers->addItem(QString::number(nodeId));
+     }
+-    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(routers)); });
+ 
+     QComboBox* ports = new QComboBox;
+     ports->addItem("-");
+@@ -5430,7 +5448,6 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+             break;
+         }
+     }
+-    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ 
+     auto removeRow = new QPushButton();
+     removeRow->setIcon(QIcon(ICON_DEL_CIRCLE));
+@@ -5440,30 +5457,30 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+                              "}");
+     connect(removeRow, &QPushButton::clicked, this, [=]() {
+         int row, col, rowSpan, colSpan;
+-        for (int i = 0; i < layoutOfLayers->count(); i++) {
+-            QLayoutItem* item = layoutOfLayers->itemAt(i);
++        for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
++            QLayoutItem* item = layoutOfComboBoxs->itemAt(i);
+             if (item && item->widget() == removeRow) {
+-                layoutOfLayers->getItemPosition(i, &row, &col, &rowSpan, &colSpan);
++                layoutOfComboBoxs->getItemPosition(i, &row, &col, &rowSpan, &colSpan);
+             }
+         }
+ 
+-        for (int c = 0; c < layoutOfLayers->columnCount(); c++) {
+-            QLayoutItem* item = layoutOfLayers->itemAtPosition(row, c);
++        for (int c = 0; c < layoutOfComboBoxs->columnCount(); c++) {
++            QLayoutItem* item = layoutOfComboBoxs->itemAtPosition(row, c);
+             if (item) {
+                 if (auto widget = item->widget()) {
+-                    layoutOfLayers->removeWidget(widget);
++                    layoutOfComboBoxs->removeWidget(widget);
+                     widget->deleteLater();
+                 }
+             }
+         }
+ 
+-        for (int r = row + 1; r < layoutOfLayers->rowCount(); r++) {
+-            for (int c = 0; c < layoutOfLayers->columnCount(); c++) {
+-                QLayoutItem* item = layoutOfLayers->itemAtPosition(r, c);
++        for (int r = row + 1; r < layoutOfComboBoxs->rowCount(); r++) {
++            for (int c = 0; c < layoutOfComboBoxs->columnCount(); c++) {
++                QLayoutItem* item = layoutOfComboBoxs->itemAtPosition(r, c);
+                 if (item) {
+                     if (auto widget = item->widget()) {
+-                        layoutOfLayers->removeWidget(widget);
+-                        layoutOfLayers->addWidget(widget, r - 1, c, Qt::AlignCenter);
++                        layoutOfComboBoxs->removeWidget(widget);
++                        layoutOfComboBoxs->addWidget(widget, r - 1, c);
+                     }
+                 }
+             }
+@@ -5472,31 +5489,41 @@ void chooseArgumentDialog::addComboBox(int cntLayer)
+         itemComboBoxChanged();
+     });
+ 
+-    layers->setFixedWidth(150);
+-    routers->setFixedWidth(100);
+-    ports->setFixedWidth(100);
+-    layoutOfLayers->addWidget(layers, row, 0, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(routers, row, 1, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(ports, row, 2, Qt::AlignCenter);
+-    layoutOfLayers->addWidget(removeRow, row, 3, Qt::AlignCenter);
++    layers->setMinimumWidth(150);
++    routers->setMinimumWidth(100);
++    ports->setMinimumWidth(100);
++    layers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    routers->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    ports->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
++    layoutOfComboBoxs->addWidget(layers, row, 0);
++    layoutOfComboBoxs->addWidget(routers, row, 1);
++    layoutOfComboBoxs->addWidget(ports, row, 2);
++    layoutOfComboBoxs->addWidget(removeRow, row, 3);
++    scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->maximum());
++
++    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(layers) + 1); });
++    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfComboBoxs->indexOf(routers)); });
++    connect(ports, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
+ }
+ 
+ void chooseArgumentDialog::itemComboBoxChanged()
+ {
+     QStringList list;
+     textRouterDest->clear();
++    valueRouterDest.clear();
+     QString destRouter;
+     int preCol;
+-    for (int row = 0; row < layoutOfLayers->rowCount(); row++) {
++    for (int row = 0; row < layoutOfComboBoxs->rowCount(); row++) {
+         preCol = 0;
+         destRouter = QString("R");
+-        for (int col = 0; col < layoutOfLayers->columnCount(); col++) {
+-            auto item = layoutOfLayers->itemAtPosition(row, col);
++        for (int col = 0; col < layoutOfComboBoxs->columnCount(); col++) {
++            auto item = layoutOfComboBoxs->itemAtPosition(row, col);
+             if (!item) break;
+             auto widget = item->widget();
+             if (!widget) break;
+             auto comboBox = dynamic_cast<QComboBox*>(widget);
+             if (!comboBox) break;
++            comboBox->setStyleSheet("");
+             auto text = comboBox->currentText();
+             if (text == "-") {
+                 destRouter = QString();
+@@ -5512,20 +5539,42 @@ void chooseArgumentDialog::itemComboBoxChanged()
+         }
+         if (!destRouter.isEmpty() && destRouter.size() > 1) {
+             if (list.contains(destRouter)) {
+-                if (auto item = layoutOfLayers->itemAtPosition(row, preCol)) {
++                if (auto item = layoutOfComboBoxs->itemAtPosition(row, preCol)) {
+                     if (auto widget = item->widget()) {
+-                        if (auto comboBox = dynamic_cast<QComboBox*>(widget)) comboBox->setCurrentIndex(0);
++                        if (auto comboBox = dynamic_cast<QComboBox*>(widget)) {
++                            comboBox->setStyleSheet("QComboBox {"
++                                                    "border: 1px solid red;"
++                                                    "background-color: #f0f0f0;"
++                                                    "}");
++                        }
+                     }
+                 }
+             } else list.append(destRouter);
+         }
+     }
+     if (!list.isEmpty()) {
++        QString currentText = QString();
++        QFontMetrics metrics(textRouterDest->font());
+         for (const auto& text : list) {
+             if (textRouterDest->text().contains(text)) continue;
+-            if (!textRouterDest->text().isEmpty()) textRouterDest->setText(textRouterDest->text() + " ");
+-            textRouterDest->setText(textRouterDest->text() + text);
++            if (text == list.first()) {
++                textRouterDest->setText(textRouterDest->text() + text + " ");
++                valueRouterDest += text + " ";
++                continue;
++            }
++            currentText = textRouterDest->text();
++            if (!currentText.contains("...")) {
++                int textWidth = metrics.horizontalAdvance(currentText);
++                int lineWidth = textRouterDest->width();
++                if (textWidth < (lineWidth - 50)) {
++                    if (text == list.last()) textRouterDest->setText(currentText + text);
++                    else textRouterDest->setText(currentText + text + " ");
++                } else textRouterDest->setText(currentText + "...");
++            }
++            if (text == list.last()) valueRouterDest += text;
++            else valueRouterDest += text + " ";
+         }
++        textRouterDest->setToolTip(valueRouterDest);
+     }
+     okButton->setEnabled(!list.isEmpty());
+     QString dst = "Router|" + textRouterDest->text();
+@@ -5538,8 +5587,9 @@ void chooseArgumentDialog::itemComboBoxChanged()
+     }
+ }
+ 
+-void chooseArgumentDialog::updatePortComboBox(int index) {
+-    auto itemLayer = layoutOfLayers->itemAt(index - 1);
++void chooseArgumentDialog::updatePortComboBox(int index)
++{
++    auto itemLayer = layoutOfComboBoxs->itemAt(index - 1);
+     if (!itemLayer) return;
+     auto widgetLayer = itemLayer->widget();
+     if (!widgetLayer) return;
+@@ -5552,7 +5602,7 @@ void chooseArgumentDialog::updatePortComboBox(int index) {
+         itemLayerComboBox = splitLayer.last();
+     }
+ 
+-    auto itemRouter = layoutOfLayers->itemAt(index);
++    auto itemRouter = layoutOfComboBoxs->itemAt(index);
+     if (!itemRouter) return;
+     auto widgetRouter = itemRouter->widget();
+     if (!widgetRouter) return;
+@@ -5560,7 +5610,7 @@ void chooseArgumentDialog::updatePortComboBox(int index) {
+     if (!comboBoxRouter) return;
+     auto textRouter = comboBoxRouter->currentText();
+ 
+-    auto itemPort = layoutOfLayers->itemAt(index + 1);
++    auto itemPort = layoutOfComboBoxs->itemAt(index + 1);
+     if (!itemPort) return;
+     auto widgetPort = itemPort->widget();
+     if (!widgetPort) return;
+@@ -5618,6 +5668,33 @@ void chooseArgumentDialog::updatePortComboBox(int index) {
+     }
+ }
+ 
++void chooseArgumentDialog::resizeEvent(QResizeEvent* event)
++{
++    event->accept();
++    textRouterDest->clear();
++    auto listText       = valueRouterDest.split(" ");
++    QString currentText = QString();
++    QFontMetrics metrics(textRouterDest->font());
++    for (const auto& text : listText) {
++        if (text == listText.first()) {
++            textRouterDest->setText(textRouterDest->text() + text + " ");
++            continue;
++        }
++        currentText = textRouterDest->text();
++        if (!currentText.contains("...")) {
++            int textWidth = metrics.horizontalAdvance(currentText);
++            int lineWidth = textRouterDest->width();
++            if (textWidth < (lineWidth - 50)) {
++                if (text == listText.last()) textRouterDest->setText(currentText + text);
++                else textRouterDest->setText(currentText + text + " ");
++            } else {
++                textRouterDest->setText(currentText + "...");
++                break;
++            }
++        }
++    }
++}
++
+ chooseOptionDialog::chooseOptionDialog(const QString& title, const QStringList& listArg, QWidget* parent)
+ : QDialog(parent) {
+     QGridLayout* layout  = new QGridLayout;   
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+index 71d6979a10f..8822af50409 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+@@ -1175,21 +1175,26 @@ public:
+     void addComboBox(int cntLayer);
+     bool getStateComboBoxAll() { return cbAll->isChecked(); }
+     QString getArgument() const { return argument; }
+-    QString getTextRouterDest() { return textRouterDest->text(); }
++    QString getTextRouterDest() { return valueRouterDest; }
+ 
+ private:
+     int row = 0;
+     QString argument = QString();
++    QString valueRouterDest = QString();
+     QCheckBox* cbAll = nullptr;
+     QPushButton* addButton = nullptr;
+     QPushButton* okButton = nullptr;
+-    QGridLayout* layoutOfLayers = nullptr;
++    QGridLayout* layoutOfComboBoxs = nullptr;
+     QLineEdit* textRouterDest = nullptr;
++    QScrollArea* scrollArea = nullptr;
+     NetSpeed::Grid* grid;
+ 
+ public slots:
+     void itemComboBoxChanged();
+     void updatePortComboBox(int index);
++
++protected:
++    void resizeEvent(QResizeEvent*);
+ };
+ 
+ class chooseOptionDialog : public QDialog

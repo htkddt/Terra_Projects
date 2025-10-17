@@ -1,0 +1,28 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     | 1 +
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 2a4d8059003..515b2a6846a 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -453,6 +453,7 @@ bool NsNocViewScene::zoomOn(QString compName, QString color)
+                 mw->appendListDiagrams(normalDiagram);             
+                 if (vc) {
+                     if (!color.isEmpty()) routerLink->highlight_color = color.toStdString();
++                    normalDiagram->setPos(normalDiagram->pos() + (layerBoundingRect(routerItem->getLayerID()).center() - normalDiagram->sceneBoundingRect().center()));
+                     nsWorkArea->setZoomFactor(nsWorkArea->getZoomFitValue(normalDiagram->boundingRect().width(), normalDiagram->boundingRect().height()) - 0.1);
+                     nsWorkArea->centerOn(normalDiagram);
+                     normalDiagram->showFlowData(vc);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 600dca0416e..45296881f4b 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -454,6 +454,7 @@ bool NsNocViewScene::zoomOn(QString compName, QString color)
+                 mw->appendListDiagrams(normalDiagram);
+                 if (vc) {
+                     if (!color.isEmpty()) routerLink->highlight_color = color.toStdString();
++                    normalDiagram->setPos(normalDiagram->pos() + (layerBoundingRect(routerItem->getLayerID()).center() - normalDiagram->sceneBoundingRect().center()));
+                     nsWorkArea->setZoomFactor(nsWorkArea->getZoomFitValue(normalDiagram->boundingRect().width(), normalDiagram->boundingRect().height()) - 0.1);
+                     nsWorkArea->centerOn(normalDiagram);
+                     normalDiagram->showFlowData(vc);

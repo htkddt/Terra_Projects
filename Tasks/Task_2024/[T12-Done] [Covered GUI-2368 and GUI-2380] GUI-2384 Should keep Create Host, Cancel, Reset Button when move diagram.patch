@@ -1,0 +1,117 @@
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp  | 44 +++++++++++++++++++++-----
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 26 +++++++++++++--
+ 2 files changed, 59 insertions(+), 11 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index 71c26a49df3..d23c39b9498 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -2431,10 +2431,24 @@ void NsMeshViewScene::assignDomainSlot()
+ 
+ void NsMeshViewScene::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+-    if (event->button() == Qt::LeftButton && isAddAgentMeshView(insType)
+-        && isNocOrBlockageView()) {
+-        auto pos = event->scenePos();
+-        setVirtualHostRect(pos);
++    QList<QGraphicsItem*> itemList = items(event->scenePos());
++    auto is_diagram = [&]() -> bool {
++        for (const auto& it : itemList) {
++            if ((NetSpeed::is_member(it->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION, LINK_DIAGRAM,
++                MULTIPLE_BRIDGE, STORAGE_DIAGRAM, PLUS}))) {
++                return true;
++            }
++        }
++        return false;
++    };
++
++    if (event->button() == Qt::LeftButton && isAddAgentMeshView(insType) && isNocOrBlockageView()) {
++        if (is_diagram()) {
++            event->ignore();
++        } else {
++            auto pos = event->scenePos();
++            setVirtualHostRect(pos);
++        }
+     }
+ 
+     if (event->button() == Qt::LeftButton) {
+@@ -2476,10 +2490,24 @@ void NsMeshViewScene::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ 
+ void NsMeshViewScene::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+ {
+-    if (event->button() == Qt::LeftButton && isAddAgentMeshView(insType)
+-        && isNocOrBlockageView()) {
+-        auto pos = event->scenePos();
+-        createVirtualHost(pos);
++    QList<QGraphicsItem*> itemList = items(event->scenePos());
++    auto is_diagram = [&]() -> bool {
++        for (const auto& it : itemList) {
++            if ((NetSpeed::is_member(it->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION, LINK_DIAGRAM,
++                MULTIPLE_BRIDGE, STORAGE_DIAGRAM, PLUS}))) {
++                return true;
++            }
++        }
++        return false;
++    };
++
++    if (event->button() == Qt::LeftButton && isAddAgentMeshView(insType) && isNocOrBlockageView()) {
++        if (is_diagram()) {
++            event->ignore();
++        } else {
++            auto pos = event->scenePos();
++            createVirtualHost(pos);
++        }
+     }
+     auto handleHighlight = [&]() {
+         draggedRect.setBottomRight(event->scenePos());
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 81443606834..3dc67f3af22 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -6231,7 +6231,14 @@ void PropertyPanel::updateBridgeProperties(const NetSpeed::Bridge * b, bool clic
+     QtPropertyEditorView* selectionEditorView = selectionTreeProperty->treeWidget();
+     selectionEditorView->setProperty(TYPE_PROP, QString(BRIDGE_PROP));
+ 
+-    setShowButtonProperty(PropertyButton::HideAll);
++    if (auto nsWorkArea = mw->getNsWorkArea()) {
++        if (auto meshScene = nsWorkArea->getMeshViewScene()) {
++            if (meshScene->getInsType() == NONE_INSTRUMENT) {
++                setShowButtonProperty(PropertyButton::HideAll);
++            }
++        }
++    }
++
+     raiseSelectionTab();
+     currentBridge = b;
+     isUsrRegbusBridge = NetSpeed::is_userrb(b->get_type());
+@@ -6261,7 +6268,14 @@ void PropertyPanel::updateSwitchProperties(const NetSpeed::Switch* sw, bool clic
+     QtPropertyEditorView* selectionEditorView = selectionTreeProperty->treeWidget();
+     selectionEditorView->setProperty(TYPE_PROP, QString(SWITCH_PROP));
+ 
+-    setShowButtonProperty(PropertyButton::HideAll);
++    if (auto nsWorkArea = mw->getNsWorkArea()) {
++        if (auto meshScene = nsWorkArea->getMeshViewScene()) {
++            if (meshScene->getInsType() == NONE_INSTRUMENT) {
++                setShowButtonProperty(PropertyButton::HideAll);
++            }
++        }
++    }
++
+     raiseSelectionTab();
+     currentSwitch = sw;
+ 
+@@ -7103,7 +7117,13 @@ void PropertyPanel::clearPropPanel()
+ /* clear all things on Selection tab */
+ void PropertyPanel::clearSelection()
+ {
+-    setShowButtonProperty(PropertyButton::HideAll);
++    if (auto nsWorkArea = mw->getNsWorkArea()) {
++        if (auto meshScene = nsWorkArea->getMeshViewScene()) {
++            if (meshScene->getInsType() == NONE_INSTRUMENT) {
++                setShowButtonProperty(PropertyButton::HideAll);
++            }
++        }
++    }
+     currentVc = nullptr;
+ 
+     selectionPropertyEditor->clearData();

@@ -1,0 +1,15 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 76dc037083f..10c205e3e02 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -4516,6 +4516,7 @@ void PropertyPanel::showAllLatencyHistogram()
+                                     if (g.name == gname.toStdString()) {
+                                         g.showLatencyHistogram = true;
+                                         auto histogram = createLatencyHistogram(g, statTab);
++                                        histogram->setMinimumWidth(270);
+                                         horizontalSplitter->insertWidget(1, histogram);
+                                         updateLatencyHistogramStatus(customPlot, true);
+                                         break;

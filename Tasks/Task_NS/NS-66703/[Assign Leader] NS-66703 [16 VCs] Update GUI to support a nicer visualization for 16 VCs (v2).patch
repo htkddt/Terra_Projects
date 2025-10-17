@@ -1,0 +1,327 @@
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 130 ++++++++++++++-------
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.h   |   2 +-
+ 2 files changed, 91 insertions(+), 41 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 11d2d302749..5856d61f915 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -13,7 +13,7 @@ using namespace std;
+ NsRouterDiagramManager* NsRouterDiagramManager::m_manager = nullptr;
+ 
+ int getRouterPolygonSize(NetSpeed::Router* router){
+-    const int mininum_size = 230;
++    const int mininum_size = 240;
+     const int offset = 60;
+     int count = 0, maxVcOnPort = 0;
+     vector<NetSpeed::Rx_Port*> rx_ports = router->get_rx_noc_ports(true);
+@@ -631,10 +631,12 @@ void NsCloseSymbol::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
+     }
+     painter->drawPath(p);
+ }
+-void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath & path)
++void NsRouterDiagram::drawVcLabel(QLineF& line, QString vcName, QPainterPath& path, QRectF octagon)
+ {
++    auto octagonCenterPoint = octagon.center();
+     QFont font;
+-    const int fontSize = 10;
++    int fontSize = 11;
++    if (octagon.width() > 240) fontSize = (octagon.width() * fontSize) / (2 * 240);
+     font.setPixelSize(fontSize);
+     font.setWeight(QFont::Thin);
+     auto fontMetric = QFontMetrics(font).boundingRect(vcName);
+@@ -644,32 +646,65 @@ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath &
+     bool reverse = false;
+     int xMargin = 0;
+     int yMargin = 0;
+-    const int adjustFactor = fontMetric.height() / 3;
++    double alpha = 0;
++    double offsetText = 0;
++    int offsetHeightText = fontMetric.height() / 3;
++    int adjustFactor = fontMetric.height() / 8;
+     QPoint adjustPoint = QPoint(0, adjustFactor);
+     if (end.x() > start.x()) {
+-        if (end.y() > start.y()) rotationAngle = 45;
+-        else if (end.y() < start.y()) rotationAngle = -45;
+-        else rotationAngle = 0;
+-        xMargin = 6;
+-    }
+-    else if (end.x() < start.x()) {
+-        if (end.y() > start.y()) rotationAngle = 135;
+-        else if (end.y() < start.y()) rotationAngle = -135;
+-        else rotationAngle = 180;
++        xMargin = line.length();
++        if (octagon.width() > 240) xMargin = (octagon.width() * xMargin) / (2 * 240);
++        alpha = atan((end.y() - octagonCenterPoint.y()) / (end.x() - octagonCenterPoint.x()));
++        if (end.y() > start.y()) {
++            rotationAngle = 45;
++            auto a = (xMargin / 9) * tan(rotationAngle * PI / 180);
++            auto b = (xMargin / 9) * tan(alpha);
++            offsetText = (b - a) * offsetHeightText;
++        } else if (end.y() < start.y()) {
++            rotationAngle = -45;
++            auto a = (xMargin / 15) * tan(rotationAngle * PI / 180);
++            auto b = (xMargin / 15) * tan(alpha);
++            offsetText = (b - a) * offsetHeightText;
++        }
++        else {
++            rotationAngle = 0;
++            offsetText = tan(alpha) * (xMargin / 6) * offsetHeightText;
++        }
++    } else if (end.x() < start.x()) {
+         reverse = true;
+-        xMargin = -6;
++        xMargin = -line.length();
++        if (octagon.width() > 240) xMargin = (octagon.width() * xMargin) / (2 * 240);
++        alpha = atan((end.y() - octagonCenterPoint.y()) / (end.x() - octagonCenterPoint.x()));
++        if (end.y() > start.y()) {
++            rotationAngle = 135;
++            auto a = (xMargin / 15) * tan(rotationAngle * PI / 180);
++            auto b = (xMargin / 15) * tan(alpha);
++            offsetText = (b - a) * offsetHeightText;
++        } else if (end.y() < start.y()) {
++            rotationAngle = -135;
++            auto a = (xMargin / 9) * tan(rotationAngle * PI / 180);
++            auto b = (xMargin / 9) * tan(alpha);
++            offsetText = (b - a) * offsetHeightText;
++        } else {
++            rotationAngle = 180;
++            offsetText = tan(alpha) * (xMargin / 6) * offsetHeightText;
++        }
+     }
+     else {   //end.x() = start.x()
++        xMargin = line.length();
++        if (octagon.width() > 240) xMargin = (octagon.width() * xMargin) / (2 * 240);
++        alpha = -atan((end.x() - octagonCenterPoint.x()) / (end.y() - octagonCenterPoint.y()));
++        offsetText = tan(alpha) * (xMargin / 6) * offsetHeightText;
+         if (end.y() > start.y()) {
+             rotationAngle = 90;
+             adjustPoint = QPoint(-adjustFactor, 0);
++        } else {
++            rotationAngle = -90;
++            yMargin = adjustFactor;
+         }
+-        else { rotationAngle = -90; yMargin = adjustFactor; }
+-        xMargin = 6;
+     }
+-
+     QPainterPath p;
+-    p.addText(xMargin, yMargin, font, vcName);
++    p.addText(xMargin, yMargin + offsetText, font, vcName);
+     QMatrix matrix;
+     auto transPoint = end + adjustPoint;
+     matrix.translate(transPoint.x(), transPoint.y());
+@@ -679,6 +714,11 @@ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath &
+         offset.setX(fontMetric.width());
+         matrix.translate(offset.x(), offset.y());
+         matrix.rotate(180);
++        p.moveTo(QPointF(xMargin + fontMetric.width(), yMargin + offsetText));
++        p.lineTo(QPointF(fontMetric.width(), yMargin - adjustFactor));
++    } else {
++        p.moveTo(QPointF(xMargin, yMargin + offsetText));
++        p.lineTo(QPointF(0, yMargin - adjustFactor));
+     }
+     p = matrix.map(p);
+     path.addPath(p);
+@@ -1048,6 +1088,8 @@ void NsRouterDiagram::initData()
+     layer_id = router->get_layer();
+     router_polygon rp = {getRouterPolygonSize(router)};
+     const int newSchematicVCPosition = startMargin + rp.north_port_length / 4;
++    int deltaVcLength = 0;
++    if (rp.size > 240) deltaVcLength = (rp.size * vcLength) / (2 * 240);
+     //Calculate router diagram boundary path
+     vector<NetSpeed::Rx_Port*> rx_ports = router->get_rx_noc_ports(true);
+     vector<NetSpeed::Tx_Port*> tx_ports = router->get_tx_noc_ports(true);
+@@ -1079,7 +1121,7 @@ void NsRouterDiagram::initData()
+                 if (router->use_new_schematic())
+                     endL = startL = QPoint(rp.north_port_length + newSchematicVCPosition * (out ? 1 : -1), 0) + rp.NStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x(), startL.y() - vcLength);
++                    endL = QPoint(startL.x(), startL.y() - vcLength - deltaVcLength);
+                 break;
+             case NetSpeed::EAST_:
+                 eastLen = std::max(eastLen, width);
+@@ -1088,7 +1130,7 @@ void NsRouterDiagram::initData()
+                 if (router->use_new_schematic())
+                     endL = startL = QPoint(0, rp.north_port_length + newSchematicVCPosition * (out ? 1 : -1)) + rp.EStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x() + vcLength, startL.y());
++                    endL = QPoint(startL.x() + vcLength + deltaVcLength, startL.y());
+                 break;
+             case NetSpeed::SOUTH_:
+                 southLen = std::max(southLen, width);
+@@ -1097,7 +1139,7 @@ void NsRouterDiagram::initData()
+                 if (router->use_new_schematic())
+                     endL = startL = -QPoint(rp.north_port_length - newSchematicVCPosition * (out ? 1 : -1), 0) + rp.SStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x(), startL.y() + vcLength);
++                    endL = QPoint(startL.x(), startL.y() + vcLength + deltaVcLength);
+                 else endL = startL = QPoint(-2 * rp.north_port_length + (transition + rp.north_port_length), 0) + rp.SStart;
+                 break;
+             case NetSpeed::WEST_:
+@@ -1107,7 +1149,7 @@ void NsRouterDiagram::initData()
+                 if (router->use_new_schematic())
+                     endL = startL = -QPoint(0, rp.north_port_length - newSchematicVCPosition * (out ? 1 : -1)) + rp.WStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x() - vcLength, startL.y());
++                    endL = QPoint(startL.x() - vcLength - deltaVcLength, startL.y());
+                 else endL = startL = QPoint(0, -2 * rp.north_port_length + (transition + rp.north_port_length)) + rp.WStart;
+                 break;
+             case NetSpeed::H_PORT_SW_:
+@@ -1121,8 +1163,8 @@ void NsRouterDiagram::initData()
+                         rp.north_port_x / 2 - (out ? 1 : -1) * newSchematicVCPosition / sqrt(2))
+                     + rp.SWStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x() - vcLength / sqrt(2), startL.y() +
+-                        vcLength / sqrt(2));
++                    endL = QPoint(startL.x() - (vcLength + deltaVcLength) / sqrt(2), startL.y() +
++                        (vcLength + deltaVcLength) / sqrt(2));
+                 break;
+             case NetSpeed::H_PORT_NW_:
+                 width /= sqrt(2);
+@@ -1136,10 +1178,11 @@ void NsRouterDiagram::initData()
+                         -rp.north_port_x / 2 + (out ? 1 : -1) * newSchematicVCPosition / sqrt(2))
+                     + rp.NWStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x() - vcLength / sqrt(2), startL.y() -
+-                        vcLength / sqrt(2));
++                    endL = QPoint(startL.x() - (vcLength + deltaVcLength) / sqrt(2), startL.y() -
++                        (vcLength + deltaVcLength) / sqrt(2));
+                 break;
+-            case NetSpeed::H_PORT_NE_:                width /= sqrt(2);
++            case NetSpeed::H_PORT_NE_:
++                width /= sqrt(2);
+                 northLen = std::max(northLen, width);
+                 eastLen = std::max(eastLen, width);
+                 endL = startL = rp.NEStart + QPoint(transition / sqrt(2), transition / sqrt(2));
+@@ -1148,8 +1191,8 @@ void NsRouterDiagram::initData()
+                         rp.north_port_x / 2 + (out ? 1 : -1) * newSchematicVCPosition / sqrt(2))
+                     + rp.NEStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x() + vcLength / sqrt(2), startL.y()
+-                        - vcLength / sqrt(2));
++                    endL = QPoint(startL.x() + (vcLength + deltaVcLength) / sqrt(2), startL.y()
++                        - (vcLength + deltaVcLength) / sqrt(2));
+                 break;
+             case NetSpeed::H_PORT_SE_:
+                 width /= sqrt(2);
+@@ -1162,8 +1205,8 @@ void NsRouterDiagram::initData()
+                         rp.north_port_x / 2 + (out ? 1 : -1) * newSchematicVCPosition / sqrt(2))
+                     + rp.SEStart;
+                 if (port->get_parent() != port->get_adj_tx_port()->get_parent())
+-                    endL = QPoint(startL.x() + vcLength / sqrt(2), startL.y()
+-                        + vcLength / sqrt(2));
++                    endL = QPoint(startL.x() + (vcLength + deltaVcLength) / sqrt(2), startL.y()
++                        + (vcLength + deltaVcLength) / sqrt(2));
+                 break;
+             default:
+                 break;
+@@ -1174,7 +1217,8 @@ void NsRouterDiagram::initData()
+         }
+     }
+ 
+-    const int margin = 12;
++    int margin = 80;
++    if (rp.size > 240) margin = margin * rp.size / 240;
+     int maxWidth = rp.size + westLen + eastLen + 2 * margin;
+     int maxHeight = rp.size + southLen + northLen + 2 * margin;
+     auto guiRouterSceneRect = guiRouter->boundingRect().toRect();
+@@ -1198,7 +1242,7 @@ void NsRouterDiagram::initData()
+     m_routerPolyGon = new NsRouterPolyGon(router, polyGonStartPoint, polygonPath, this);
+ 
+     //Add vc
+-    auto addVCtoDiagram = [this](QLineF & line, const NetSpeed::VC * vc, bool isOutPut, QPointF startPoint) {
++    auto addVCtoDiagram = [&](QLineF & line, const NetSpeed::VC * vc, bool isOutPut, QPointF startPoint) {
+         line.setP1(line.p1() + QPointF(startPoint.x(), startPoint.y()));
+         line.setP2(line.p2() + QPointF(startPoint.x(), startPoint.y()));
+         QPainterPath path;
+@@ -1206,7 +1250,7 @@ void NsRouterDiagram::initData()
+             if(auto p = vc->get_parent()) drawFeedBackArrow(p->get_rp_id(), line, vc, this);
+         }
+         else path = drawNormalArrow(line, !isOutPut, false);
+-        drawVcLabel(line, QString::fromStdString(vc->name()), path);
++        drawVcLabel(line, QString::fromStdString(vc->name()), path, polygonPath.boundingRect());
+         new NsRouterDiagramVC(path, convertVCColor(vc->get_color()), vc, this);
+     };
+ 
+@@ -1393,13 +1437,15 @@ void NsRouterPolyGon::mousePressEvent(QGraphicsSceneMouseEvent * event) {
+ 
+ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_id it)
+ {
++    auto offset = 0;
++    if (painter.font().pixelSize() > diagramTextSize) offset = painter.font().pixelSize() * 4 / diagramTextSize;
+     //Draw Text of router Polygon
+     switch (it) {
+     case NetSpeed::NORTH_:
+         painter.save();
+         painter.translate(QPointF(startPoint.x() + rp.size / 2 -
+             xOffsetMargin, startPoint.y() +
+-            yOffsetMargin));
++            yOffsetMargin + offset));
+         painter.drawText(0, 0, QString("North (N)"));
+         painter.restore();
+         break;
+@@ -1427,7 +1473,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+ 
+     case NetSpeed::WEST_:
+         painter.save();
+-        painter.translate(QPointF(startPoint.x() + yOffsetMargin,
++        painter.translate(QPointF(startPoint.x() + yOffsetMargin + offset,
+             startPoint.y() + rp.size / 2 +
+             xOffsetMargin));
+         painter.rotate(-90);
+@@ -1437,7 +1483,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+ 
+     case NetSpeed::H_PORT_NW_:
+         painter.save();
+-        painter.translate(QPointF(startPoint.x() +
++        painter.translate(QPointF(startPoint.x() + offset +
+             (rp.size / 2 - rp.north_port_length) *
+             diagramTextFactor, startPoint.y() +
+             (rp.size / 2 - rp.north_port_length) *
+@@ -1451,7 +1497,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+ 
+     case NetSpeed::H_PORT_NE_:
+         painter.save();
+-        painter.translate(QPointF(startPoint.x() + rp.size -
++        painter.translate(QPointF(startPoint.x() + rp.size - offset -
+             (rp.size / 2 - rp.north_port_length) *
+             diagramTextFactor, startPoint.y() +
+             (rp.size / 2 - rp.north_port_length) *
+@@ -1607,8 +1653,10 @@ void NsRouterPolyGon::paint(QPainter * painter, const QStyleOptionGraphicsItem *
+     painter->restore();
+     painter->save();
+     //Draw router direction text and add drop
++    int size = boundingRec.size().width() * diagramTextSize / 240;
+     QFont font;
+-    font.setPixelSize(diagramTextSize);
++    if (boundingRec.size().width() > 240) font.setPixelSize(size / 2);
++    else font.setPixelSize(diagramTextSize);
+     painter->setFont(font);
+     for (auto const& it : ports) {
+         NetSpeed::Port_id p = std::get<0>(it);
+@@ -1621,8 +1669,10 @@ void NsRouterPolyGon::paint(QPainter * painter, const QStyleOptionGraphicsItem *
+         }
+     }
+     //Draw router name
++    size = boundingRec.size().width() * diagramNameSize / 240;
+     font.setBold(true);
+-    font.setPixelSize(diagramNameSize);
++    if (boundingRec.size().width() > 240) font.setPixelSize(size / 2);
++    else font.setPixelSize(diagramNameSize);
+     painter->setFont(font);
+     painter->drawText(boundingRec, Qt::TextSingleLine | Qt::AlignCenter, routerName);
+     //Draw TG Box
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index ca4cfabe764..50e7a253c8d 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -162,7 +162,7 @@ public:
+     NsRouterDiagram(NetSpeed::Router*, QGraphicsItem*);
+     ~NsRouterDiagram();
+     void initData();
+-    void drawVcLabel(QLineF&, QString, QPainterPath&);
++    void drawVcLabel(QLineF&, QString, QPainterPath&, QRectF);
+     void drawFeedBackArrow(int dir, QLineF & line, const NetSpeed::VC * vc, QGraphicsItem * parent);
+     QGraphicsItem* getGuiRouter() { return guiRouter; }
+     int getNodeId() const { return node_id; }

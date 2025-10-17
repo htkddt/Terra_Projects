@@ -1,0 +1,15 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index cf666c04975..a4265c9dcc8 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -8837,6 +8837,7 @@ void MainWindow::createToolbars()
+     popupShorCut->addAction(instrumentsActMap[TOGGLE_LAYER_BLOCKAGE_VIEW]);
+     popupShorCut->addAction(instrumentsActMap[TOGGLE_RTL_GROUP_VIEW]);
+     popupShorCut->addAction(new QAction("Switch to the NOC view \tAlt+N"));
++    popupShorCut->addAction(instrumentsActMap[ADD_CONNECT]);
+     popupShorCut->addSeparator();
+     QMenu* layer_menu = new QMenu("Show/Hide layers", this);
+     layer_menu->setIcon(QIcon(ICON_LAYER));

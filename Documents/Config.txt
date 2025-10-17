@@ -1,0 +1,1322 @@
+NocStudio.pro
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+win32:RC_FILE = netspeed.rc
+
+# CONFIG += static release
+CONFIG += console
+CONFIG += silent
+greaterThan(QT_MAJOR_VERSION, 4): {QT += widgets printsupport}
+include(../GUICore/Qtproperty/qtpropertybrowser.pri)
+TARGET = NocStudio
+TEMPLATE = app
+QMAKE_CXXFLAGS = $$(QTCFLAGS) -I. $$QMAKE_CXXFLAGS
+QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO
+QMAKE_LFLAGS_RELEASE = $$QMAKE_LFLAGS_RELEASE_WITH_DEBUGINFO
+
+!win32 {
+  QMAKE_LINK = $${QMAKE_CXX}
+}
+
+DEFINES += ENABLE_VSTAT
+DEFINES += QT_USE_QSTRINGBUILDER
+
+unix {
+    INCLUDEPATH += ../prototype \
+        ../include  \
+        ../NocCore/include  \
+        ../Infra/include  \
+        ../Isabelle/include  \
+        ../prototype/Gui \
+        ../prototype/Gui/Item \
+        ../prototype/Gui/View \
+        ../GUICore \
+        ../GUICore/Utils \
+        ../../lib/cpptcl-2.2.5
+    LIBS += -L.
+    LIBS += -lnocstudio
+    LIBS += -L/opt/tcl8.6.4/lib/
+    LIBS += -ltcl8.6
+    LIBS += $$EXTOBJS
+    LIBS += $(QTLDFLAGS)
+    LIBS += -ldl
+    QMAKE_LFLAGS += -fuse-ld=gold
+    CONFIG += c++1z
+    QMAKE_DISABLE_RPATH = $(QMAKE_DISABLE_RPATH)
+    !isEmpty(QMAKE_DISABLE_RPATH): unset(QMAKE_RPATH)
+    PRECOMPILED_HEADER = ../include/stdafx.h
+    CONFIG(debug, release | debug):QMAKE_CXXFLAGS += -O0
+}
+unix:!macx {
+    #no gcov on mac platform
+    LIBS += -lgcov 
+}
+win32 {
+    INCLUDEPATH += ..\prototype \
+        ..\include  \
+        ..\Isabelle\include  \
+        ..\prototype\Gui    \
+        ..\prototype\Gui\Item \
+        ..\prototype\Gui\View
+
+    CONFIG(debug, debug | release):LIBS += -L..\NocCore\debugLib
+    CONFIG(release, debug | release):LIBS += -L..\NocCore\releaseLib
+
+    LIBS += -lNocCore \
+        -lShell32
+    LIBS += advapi32.lib
+    PRECOMPILED_HEADER = ..\include\stdafx.h
+
+    CONFIG(debug, debug | release): ML_CHECK {
+        DEFINES += ML_CHECK
+        INCLUDEPATH += "C:\Program Files (x86)\Visual Leak Detector\include"
+        LIBS += -l"C:\Program Files (x86)\Visual Leak Detector\lib\Win32\vld"
+    }
+}
+
+# FlexLM
+FLEXLM {
+    DEFINES += FLEXLM
+    unix {
+        AALIBDIR = -L../FlexLM/x64_lsb/activation/lib
+        AALIB = $$AALIBDIR \
+            -lact
+        DONGLE {
+            DONGLELIB = -L../FlexLM/x64_lsb/ \
+                -llmgr_dongle
+            DONGLEPICLIB = -L../FlexLM/x64_lsb/ \
+                -llmgr_dongle_pic
+        }
+        else {
+            DONGLELIB = -L../FlexLM/x64_lsb/ \
+                -llmgr_dongle_stub
+            DONGLEPICLIB = -L../FlexLM/x64_lsb/ \
+                -llmgr_dongle_stub_pic
+        }
+        BORROWOBJ =
+        CLIENTLIB = -L../FlexLM/x64_lsb/ \
+            -llmgr_nomt_trl \
+            -lcrvs \
+            -lsb \
+            $$BORROWOBJ \
+            $$DONGLELIB
+        XTRALIB = -ldl
+        THREADLIB = -lpthread
+        ACT_LIBRARY = -L../FlexLM/x64_lsb/ \
+            -lFNPload
+        LIBS += $$AALIB \
+            $$CLIENTLIB \
+            $$XTRALIB \
+            $$THREADLIB \
+            $$ACT_LIBRARY
+        LIBS = ../FlexLM/x64_lsb/lm_new.o \
+            $$LIBS
+    }
+    win32 {
+        LIBS += ..\FlexLM\i86_n3\lm_new.obj
+        LIBS += -L..\FlexLM\i86_n3 \
+            -llmgr \
+            -llibsb \
+            -llibcrvs \
+            -loldnames \
+            -lkernel32 \
+            -luser32 \
+            -lnetapi32 \
+            -ladvapi32 \
+            -lgdi32 \
+            -lcomdlg32 \
+            -lcomctl32 \
+            -lwsock32 \
+            -lRpcrt4 \
+            -loleaut32 \
+            -lOle32 \
+            -lWbemuuid \
+            -lwintrust \
+            -lcrypt32 \
+            -llmgr_dongle_stub \
+            -llibFNPload
+        LIBS += -L..\FlexLM\i86_n3\activation\lib\libnoact
+    }
+}
+
+SOURCES += main.cpp \
+    Gui/mainwindow.cpp
+
+
+HEADERS += \
+    Gui/mainwindow.h
+
+RESOURCES = ../GUICore/dockresource.qrc
+FORMS +=
+OTHER_FILES +=
+DEPENDPATH += ../include/
+
+DISTFILES += \
+    images/icons/bottom_half_router_tooltip.png \
+    images/icons/left_half_router_tooltip.png \
+    images/icons/right_half_router_tooltip.png \
+    images/icons/top_half_router_tooltip.png
+#####################################################################################################################################################################################################################################
+NocStudio.vcxproj
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CFDE68C6-5527-3AFF-B82E-FAFB881A2628}</ProjectGuid>
+    <RootNamespace>NocStudio</RootNamespace>
+    <Keyword>QtVS_v303</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <PlatformToolSet>v142</PlatformToolSet>
+    <OutputDirectory>release\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>Unicode</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>release\</IntermediateDirectory>
+    <PrimaryOutput>NocStudio</PrimaryOutput>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <PlatformToolSet>v142</PlatformToolSet>
+    <OutputDirectory>debug\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>debug\</IntermediateDirectory>
+    <PrimaryOutput>NocStudio</PrimaryOutput>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)</OutDir>
+    <TargetName>NocStudio-dbg64</TargetName>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)</OutDir>
+    <TargetName>NocStudio</TargetName>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>Qt5.11.1</QtInstall>
+    <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>Qt5.11.1</QtInstall>
+    <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;release;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>release\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ForcedIncludeFiles>..\NocCore\include\stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ObjectFileName>release\</ObjectFileName>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\NocCore\include\stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)\NocStudio.pch</PrecompiledHeaderOutputFile>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Shell32.lib;libEGL.lib;libGLESv2.lib;gdi32.lib;user32.lib;libcrvs.lib;libsb.lib;lmgr_dongle_stub.lib;libFNPload.lib;lmgr.lib;lmgr_trl.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;libredir_std.lib;lm_new.obj;Dhcpcsvc.lib;Shlwapi.lib;%(AdditionalDependencies);tcl86tsx.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\NocCore\releaseLib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(SolutionDir)$(Platform)\$(Configuration)\NocCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <LinkIncremental>false</LinkIncremental>
+      <OptimizeReferences>false</OptimizeReferences>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <ProjectReference />
+    <QtMoc>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <DynamicSource>output</DynamicSource>
+      <QtMocDir>$(Configuration)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../Infra/include;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;debug;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5/;../../lib/tcl/;../Isabelle/include;..\IPCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>debug\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ForcedIncludeFiles>..\NocCore\include\stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ObjectFileName>debug\</ObjectFileName>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\NocCore\include\stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)\NocStudio.pch</PrecompiledHeaderOutputFile>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Shell32.lib;libEGLd.lib;libGLESv2d.lib;gdi32.lib;user32.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;Dhcpcsvc.lib;Shlwapi.lib;tcl86tsgx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\IPCore\releaseLib;$(Platform)\$(Configuration)\IPCore.lib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <StackReserveSize>4194304</StackReserveSize>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <QtMoc>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <DynamicSource>output</DynamicSource>
+      <QtMocDir>$(Configuration)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Gui\Dialogs\CustomHighLightDialog.cpp" />
+    <ClCompile Include="Gui\IniTxnItemModel.cpp" />
+    <ClCompile Include="Gui\LintDashboard.cpp" />
+    <ClCompile Include="Gui\View\AddressrangeTable.cpp" />
+    <ClCompile Include="Modeling\NsAbstractInstrument.cpp" />
+    <ClCompile Include="Gui\Item\NsArrowItem.cpp" />
+    <ClCompile Include="Gui\View\NsChipView.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewBoundingBox.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewData.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewRect.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewScene.cpp" />
+    <ClCompile Include="..\GUICore\Utils\NsFilterWidget.cpp" />
+    <ClCompile Include="Gui\Item\NsGraphicsItem.cpp" />
+    <ClCompile Include="Gui\Item\NsHost.cpp" />
+    <ClCompile Include="Gui\Item\NsBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsBridgeDiagram.cpp" />
+    <ClCompile Include="Gui\Item\NsVC.cpp" />
+    <ClCompile Include="Gui\Item\NsMultipleBridges.cpp" />
+    <ClCompile Include="Gui\Item\NsPlusItem.cpp" />
+    <ClCompile Include="Gui\View\NsScene.cpp" />
+    <ClCompile Include="Gui\Item\NsRegbusBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsMesh.cpp" />
+    <ClCompile Include="Gui\Item\NsRouter.cpp" />
+    <ClCompile Include="Gui\View\NsSocView.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewBoundingBox.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewHost.cpp" />
+    <ClCompile Include="Modeling\NsSocViewInstrument.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewRegion.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewRouter.cpp" />
+    <ClCompile Include="Gui\View\NsNocViewScene.cpp" />
+    <ClCompile Include="Gui\View\NsSocViewScene.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewVirBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewVirHost.cpp" />
+    <ClCompile Include="Gui\NsSortFilterProxyModel.cpp" />
+    <ClCompile Include="Gui\View\NsView.cpp" />
+    <ClCompile Include="Gui\View\NsWorkArea.cpp" />
+    <ClCompile Include="NsWaiveTab.cpp" />
+    <ClCompile Include="Utils\datasingleton.cpp" />
+    <ClCompile Include="Gui\dialogs.cpp" />
+    <ClCompile Include="Utils\infhost.cpp" />
+    <ClCompile Include="Gui\inicombobox.cpp" />
+    <ClCompile Include="Utils\initabbar.cpp" />
+    <ClCompile Include="Utils\initabwidget.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Gui\mainwindow.cpp" />
+    <ClCompile Include="Gui\myconsole.cpp" />
+    <ClCompile Include="Gui\ncf2dsconverter.cpp" />
+    <ClCompile Include="Gui\propertypanel.cpp" />
+    <ClCompile Include="Gui\Delegates\propertytableitemdelegate.cpp" />
+    <ClCompile Include="Gui\Models\propertytablemodel.cpp" />
+    <ClCompile Include="Gui\statdashboard.cpp" />
+    <ClCompile Include="Gui\statsview.cpp" />
+    <ClCompile Include="Utils\stattab.cpp" />
+    <ClCompile Include="Gui\Customized\tablecellvalidator.cpp" />
+    <ClCompile Include="Gui\Customized\tableview.cpp" />
+    <ClCompile Include="Gui\treeitem.cpp" />
+    <ClCompile Include="Gui\treemodel.cpp" />
+    <ClCompile Include="Utils\worker.cpp" />
+    <ClCompile Include="Gui\View\NsChopView.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Gui\Dialogs\CustomHighLightDialog.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="..\include\SysVerilogPEG.h" />
+    <QtMoc Include="Gui\Item\NsBridge.h">
+	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\View\AddressrangeTable.h" />
+    <ClInclude Include="INICommandHelp.h" />
+    <ClInclude Include="Gui\IniTxnItemModel.h" />
+    <QtMoc Include="Gui\LintDashboard.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Modeling\NsAbstractInstrument.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\Item\NsArrowItem.h" />
+    <QtMoc Include="Gui\View\NsChipView.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\View\NsChipViewBoundingBox.h" />
+    <ClInclude Include="Gui\View\NsChipViewData.h" />
+    <ClInclude Include="Gui\View\NsChipViewRect.h" />
+    <ClInclude Include="Gui\View\NsChipViewScene.h" />
+    <QtMoc Include="..\GUICore\Utils\NsFilterWidget.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsGraphicsItem.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\Item\NsHost.h" />
+    <QtMoc Include="Gui\Item\NsBridgeDiagram.h">
+	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsVC.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsMultipleBridges.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsPlusItem.h">
+	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\View\NsScene.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsRegbusBridge.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsMesh.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Item\NsRouter.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\View\NsSocView.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\View\NsLynxView.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </ClInclude>
+    <QtMoc Include="Gui\Item\NsSocViewBoundingBox.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\Item\NsSocViewBridge.h" />
+    <QtMoc Include="Gui\Item\NsSocViewHost.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Modeling\NsSocViewInstrument.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\Item\NsSocViewRegion.h" />
+    <ClInclude Include="Gui\Item\NsSocViewRouter.h" />
+    <QtMoc Include="Gui\View\NsNocViewScene.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\View\NsSocViewScene.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\Item\NsSocViewVirBridge.h" />
+    <ClInclude Include="Gui\Item\NsSocViewVirHost.h" />
+    <QtMoc Include="Gui\NsSortFilterProxyModel.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\View\NsWorkArea.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\View\NsChopView.h">
+	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\View\NsView.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="NsWaiveTab.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\dialogs.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Utils\infhost.h" />
+    <QtMoc Include="Gui\inicombobox.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Utils\initabbar.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Utils\initabwidget.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\mainwindow.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="mvcglobal.h" />
+    <QtMoc Include="Gui\myconsole.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\ncf2dsconverter.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Utils\nocstudioenums.h" />
+    <ClInclude Include="Utils\ofunctionstream.h" />
+    <QtMoc Include="Gui\propertypanel.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Delegates\propertytableitemdelegate.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\Models\propertytablemodel.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\statdashboard.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Gui\statsview.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Utils\stattab.h" />
+    <CustomBuild Include="..\NocCore\include\stdafx.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">echo /*-------------------------------------------------------------------- &gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * Precompiled header source file used by Visual Studio.NET to generate&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * the .pch file.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo *&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * Due to issues with the dependencies checker within the IDE, it&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * sometimes fails to recompile the PCH file, if we force the IDE to&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * create the PCH file directly from the header file.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo *&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * This file is auto-generated by qmake since no PRECOMPILED_SOURCE was&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * specified, and is used as the common stdafx.cpp. The file is only&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * generated when creating .vcxproj project files, and is not used for&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * command line compilations by nmake.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo *&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * WARNING: All changes made in this file will be lost.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo --------------------------------------------------------------------*/&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating precompiled header source file '..\NocCore\include\stdafx.h.cpp' ...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\NocCore\include\stdafx.h.cpp;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">echo /*-------------------------------------------------------------------- &gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * Precompiled header source file used by Visual Studio.NET to generate&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * the .pch file.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo *&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * Due to issues with the dependencies checker within the IDE, it&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * sometimes fails to recompile the PCH file, if we force the IDE to&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * create the PCH file directly from the header file.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo *&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * This file is auto-generated by qmake since no PRECOMPILED_SOURCE was&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * specified, and is used as the common stdafx.cpp. The file is only&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * generated when creating .vcxproj project files, and is not used for&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * command line compilations by nmake.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo *&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo * WARNING: All changes made in this file will be lost.&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo --------------------------------------------------------------------*/&gt;&gt;..\NocCore\include\stdafx.h.cpp
+if errorlevel 1 goto VCEnd
+echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating precompiled header source file '..\NocCore\include\stdafx.h.cpp' ...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\NocCore\include\stdafx.h.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClInclude Include="Gui\Customized\tablecellvalidator.h" />
+    <QtMoc Include="Gui\Customized\tableview.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <ClInclude Include="Gui\treeitem.h" />
+    <QtMoc Include="Gui\treemodel.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+    <QtMoc Include="Utils\worker.h">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="debug\moc_NsBridgeDiagram.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+	<ClCompile Include="debug\moc_NsBridge.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+	<ClCompile Include="debug\moc_NsChopView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+	<ClCompile Include="debug\moc_NsPlusItem.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_CustomHighLightDialog.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_LintDashboard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsAbstractInstrument.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsChipView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsFilterWidget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsGraphicsItem.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsVC.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsMultipleBridges.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsScene.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsRegbusBridge.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsRouter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsMesh.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsSocView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsSocViewBoundingBox.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsSocViewHost.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsSocViewInstrument.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsNocViewScene.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsSocViewScene.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsSortFilterProxyModel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsWorkArea.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_NsWaiveTab.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_dialogs.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_inicombobox.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_initabbar.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_initabwidget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_mainwindow.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_myconsole.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_ncf2dsconverter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_propertypanel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_propertytableitemdelegate.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_propertytablemodel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_statdashboard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_statsview.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_tableview.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_treemodel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="debug\moc_worker.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+   </ClCompile>
+	<ClCompile Include="release\moc_NsBridgeDiagram.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+   </ClCompile>
+	<ClCompile Include="release\moc_NsBridge.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+	<ClCompile Include="release\moc_NsChopView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+   </ClCompile>
+	<ClCompile Include="release\moc_NsPlusItem.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_CustomHighLightDialog.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_LintDashboard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsAbstractInstrument.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsChipView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsFilterWidget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsGraphicsItem.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsVC.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsMultipleBridges.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsScene.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsRegbusBridge.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsRouter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsMesh.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewBoundingBox.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewHost.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewInstrument.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsNocViewScene.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewScene.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSortFilterProxyModel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsWorkArea.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsWaiveTab.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_dialogs.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_inicombobox.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_initabbar.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_initabwidget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_mainwindow.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_myconsole.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_ncf2dsconverter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_propertypanel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_propertytableitemdelegate.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_propertytablemodel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_statdashboard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_statsview.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_tableview.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_treemodel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="release\moc_worker.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\NocCore\include\stdafx.h.cpp">
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(NOINHERIT)</ForcedIncludeFiles>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(NOINHERIT)</ForcedIncludeFiles>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="netspeed.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\qt5.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GUICore\GUICore.vcxproj">
+      <Project>{f9e95b73-4108-4249-ba4f-55d3b21728d9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Infra\Infra.vcxproj">
+      <Project>{8bbf89ce-34cb-4f56-b3f7-083f87c455b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\IPCore\IPCore.vcxproj">
+      <Project>{52cfd572-60d7-47e9-8cb1-507e10badc70}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\NocCore\NocCore.vcxproj">
+      <Project>{afadccb2-c2b8-4d3a-904e-0b470d9f0902}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
+#####################################################################################################################################################################################################################################
+NocStudio.vcxproj.filter
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Natvis Include="..\qt5.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Gui\Dialogs\CustomHighLightDialog.cpp" />
+    <ClCompile Include="Gui\IniTxnItemModel.cpp" />
+    <ClCompile Include="Gui\LintDashboard.cpp" />
+    <ClCompile Include="Gui\View\AddressrangeTable.cpp" />
+    <ClCompile Include="Modeling\NsAbstractInstrument.cpp" />
+    <ClCompile Include="Gui\Item\NsArrowItem.cpp" />
+    <ClCompile Include="Gui\View\NsChipView.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewBoundingBox.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewData.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewRect.cpp" />
+    <ClCompile Include="Gui\View\NsChipViewScene.cpp" />
+    <ClCompile Include="..\GUICore\Utils\NsFilterWidget.cpp" />
+    <ClCompile Include="Gui\Item\NsGraphicsItem.cpp" />
+    <ClCompile Include="Gui\Item\NsHost.cpp" />
+    <ClCompile Include="Gui\Item\NsBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsBridgeDiagram.cpp" />
+    <ClCompile Include="Gui\Item\NsVC.cpp" />
+    <ClCompile Include="Gui\Item\NsMultipleBridges.cpp" />
+    <ClCompile Include="Gui\Item\NsPlusItem.cpp" />
+    <ClCompile Include="Gui\View\NsScene.cpp" />
+    <ClCompile Include="Gui\Item\NsRegbusBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsMesh.cpp" />
+    <ClCompile Include="Gui\Item\NsRouter.cpp" />
+    <ClCompile Include="Gui\View\NsSocView.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewBoundingBox.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewHost.cpp" />
+    <ClCompile Include="Modeling\NsSocViewInstrument.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewRegion.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewRouter.cpp" />
+    <ClCompile Include="Gui\View\NsNocViewScene.cpp" />
+    <ClCompile Include="Gui\View\NsSocViewScene.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewVirBridge.cpp" />
+    <ClCompile Include="Gui\Item\NsSocViewVirHost.cpp" />
+    <ClCompile Include="Gui\NsSortFilterProxyModel.cpp" />
+    <ClCompile Include="Gui\View\NsView.cpp" />
+    <ClCompile Include="Gui\View\NsWorkArea.cpp" />
+    <ClCompile Include="NsWaiveTab.cpp" />
+    <ClCompile Include="Utils\datasingleton.cpp" />
+    <ClCompile Include="Gui\dialogs.cpp" />
+    <ClCompile Include="Utils\infhost.cpp" />
+    <ClCompile Include="Gui\inicombobox.cpp" />
+    <ClCompile Include="Utils\initabbar.cpp" />
+    <ClCompile Include="Utils\initabwidget.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Gui\mainwindow.cpp" />
+    <ClCompile Include="Gui\myconsole.cpp" />
+    <ClCompile Include="Gui\ncf2dsconverter.cpp" />
+    <ClCompile Include="Gui\propertypanel.cpp" />
+    <ClCompile Include="Gui\Delegates\propertytableitemdelegate.cpp" />
+    <ClCompile Include="Gui\Models\propertytablemodel.cpp" />
+    <ClCompile Include="Gui\statdashboard.cpp" />
+    <ClCompile Include="Gui\statsview.cpp" />
+    <ClCompile Include="Utils\stattab.cpp" />
+    <ClCompile Include="Gui\Customized\tablecellvalidator.cpp" />
+    <ClCompile Include="Gui\Customized\tableview.cpp" />
+    <ClCompile Include="Gui\treeitem.cpp" />
+    <ClCompile Include="Gui\treemodel.cpp" />
+    <ClCompile Include="Utils\worker.cpp" />
+    <ClCompile Include="debug\moc_CustomHighLightDialog.cpp" />
+    <ClCompile Include="debug\moc_LintDashboard.cpp" />
+    <ClCompile Include="debug\moc_NsAbstractInstrument.cpp" />
+    <ClCompile Include="debug\moc_NsChipView.cpp" />
+    <ClCompile Include="debug\moc_NsFilterWidget.cpp" />
+    <ClCompile Include="debug\moc_NsGraphicsItem.cpp" />
+    <ClCompile Include="debug\moc_NsVC.cpp" />
+    <ClCompile Include="debug\moc_NsMultipleBridges.cpp" />
+    <ClCompile Include="debug\moc_NsScene.cpp" />
+    <ClCompile Include="debug\moc_NsRegbusBridge.cpp" />
+    <ClCompile Include="debug\moc_NsRouter.cpp" />
+    <ClCompile Include="debug\moc_NsMesh.cpp" />
+    <ClCompile Include="debug\moc_NsSocView.cpp" />
+    <ClCompile Include="debug\moc_NsSocViewBoundingBox.cpp" />
+    <ClCompile Include="debug\moc_NsSocViewHost.cpp" />
+    <ClCompile Include="debug\moc_NsSocViewInstrument.cpp" />
+    <ClCompile Include="debug\moc_NsNocViewScene.cpp" />
+    <ClCompile Include="debug\moc_NsSocViewScene.cpp" />
+    <ClCompile Include="debug\moc_NsSortFilterProxyModel.cpp" />
+    <ClCompile Include="debug\moc_NsWorkArea.cpp" />
+    <ClCompile Include="debug\moc_NsView.cpp" />
+    <ClCompile Include="debug\moc_NsWaiveTab.cpp" />
+    <ClCompile Include="debug\moc_dialogs.cpp" />
+    <ClCompile Include="debug\moc_inicombobox.cpp" />
+    <ClCompile Include="debug\moc_initabbar.cpp" />
+    <ClCompile Include="debug\moc_initabwidget.cpp" />
+    <ClCompile Include="debug\moc_mainwindow.cpp" />
+    <ClCompile Include="debug\moc_myconsole.cpp" />
+    <ClCompile Include="debug\moc_ncf2dsconverter.cpp" />
+    <ClCompile Include="debug\moc_propertypanel.cpp" />
+    <ClCompile Include="debug\moc_propertytableitemdelegate.cpp" />
+    <ClCompile Include="debug\moc_propertytablemodel.cpp" />
+    <ClCompile Include="debug\moc_statdashboard.cpp" />
+    <ClCompile Include="debug\moc_statsview.cpp" />
+    <ClCompile Include="debug\moc_tableview.cpp" />
+    <ClCompile Include="debug\moc_treemodel.cpp" />
+    <ClCompile Include="debug\moc_worker.cpp" />
+    <ClCompile Include="..\NocCore\include\stdafx.h.cpp" />
+    <ClCompile Include="Gui\View\NsChopView.cpp" />
+    <ClCompile Include="release\moc_CustomHighLightDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_LintDashboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsAbstractInstrument.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsChipView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsFilterWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsGraphicsItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsVC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsMultipleBridges.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsRegbusBridge.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsRouter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewBoundingBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewHost.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewInstrument.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsNocViewScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSocViewScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsSortFilterProxyModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsWorkArea.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_NsWaiveTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_dialogs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_inicombobox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_initabbar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_initabwidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_mainwindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_myconsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_ncf2dsconverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_propertypanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_propertytableitemdelegate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_propertytablemodel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_statdashboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_statsview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_tableview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_treemodel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="release\moc_worker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\SysVerilogPEG.h" />
+    <ClInclude Include="Gui\View\AddressrangeTable.h" />
+    <ClInclude Include="INICommandHelp.h" />
+    <ClInclude Include="Gui\IniTxnItemModel.h" />
+    <ClInclude Include="Gui\Item\NsArrowItem.h" />
+    <ClInclude Include="Gui\View\NsChipViewBoundingBox.h" />
+    <ClInclude Include="Gui\View\NsChipViewData.h" />
+    <ClInclude Include="Gui\View\NsChipViewRect.h" />
+    <ClInclude Include="Gui\View\NsChipViewScene.h" />
+    <ClInclude Include="Gui\Item\NsHost.h" />
+    <ClInclude Include="Gui\Item\NsSocViewBridge.h" />
+    <ClInclude Include="Gui\Item\NsSocViewRegion.h" />
+    <ClInclude Include="Gui\Item\NsSocViewRouter.h" />
+    <ClInclude Include="Gui\Item\NsSocViewVirBridge.h" />
+    <ClInclude Include="Gui\Item\NsSocViewVirHost.h" />
+    <ClInclude Include="Utils\infhost.h" />
+    <ClInclude Include="mvcglobal.h" />
+    <ClInclude Include="Utils\nocstudioenums.h" />
+    <ClInclude Include="Utils\ofunctionstream.h" />
+    <ClInclude Include="Utils\stattab.h" />
+    <ClInclude Include="Gui\Customized\tablecellvalidator.h" />
+    <ClInclude Include="Gui\treeitem.h" />
+    <ClInclude Include="Gui\View\NsLynxView.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Gui\Dialogs\CustomHighLightDialog.h" />
+    <QtMoc Include="Gui\LintDashboard.h" />
+    <QtMoc Include="Modeling\NsAbstractInstrument.h" />
+    <QtMoc Include="Gui\View\NsChipView.h" />
+    <QtMoc Include="..\GUICore\Utils\NsFilterWidget.h" />
+    <QtMoc Include="Gui\Item\NsGraphicsItem.h" />
+    <QtMoc Include="Gui\Item\NsVC.h" />
+    <QtMoc Include="Gui\Item\NsMultipleBridges.h" />
+    <QtMoc Include="Gui\View\NsScene.h" />
+    <QtMoc Include="Gui\View\NsSocView.h" />
+    <QtMoc Include="Gui\Item\NsSocViewBoundingBox.h" />
+    <QtMoc Include="Gui\Item\NsSocViewHost.h" />
+    <QtMoc Include="Modeling\NsSocViewInstrument.h" />
+    <QtMoc Include="Gui\View\NsNocViewScene.h" />
+    <QtMoc Include="Gui\View\NsSocViewScene.h" />
+    <QtMoc Include="Gui\NsSortFilterProxyModel.h" />
+    <QtMoc Include="Gui\View\NsWorkArea.h" />
+    <QtMoc Include="Gui\View\NsView.h" />
+    <QtMoc Include="NsWaiveTab.h" />
+    <QtMoc Include="Gui\dialogs.h" />
+    <QtMoc Include="Gui\inicombobox.h" />
+    <QtMoc Include="Utils\initabbar.h" />
+    <QtMoc Include="Utils\initabwidget.h" />
+    <QtMoc Include="Gui\mainwindow.h" />
+    <QtMoc Include="Gui\myconsole.h" />
+    <QtMoc Include="Gui\ncf2dsconverter.h" />
+    <QtMoc Include="Gui\propertypanel.h" />
+    <QtMoc Include="Gui\Delegates\propertytableitemdelegate.h" />
+    <QtMoc Include="Gui\Models\propertytablemodel.h" />
+    <QtMoc Include="Gui\statdashboard.h" />
+    <QtMoc Include="Gui\statsview.h" />
+    <CustomBuild Include="..\NocCore\include\stdafx.h" />
+    <QtMoc Include="Gui\Customized\tableview.h" />
+    <QtMoc Include="Gui\treemodel.h" />
+    <QtMoc Include="Utils\worker.h" />
+    <QtMoc Include="Gui\Item\NsBridge.h" />
+    <QtMoc Include="Gui\Item\NsBridgeDiagram.h" />
+    <QtMoc Include="Gui\View\NsChopView.h" />
+    <QtMoc Include="Gui\Item\NsRegbusBridge.h" />
+    <QtMoc Include="Gui\Item\NsRouter.h" />
+    <QtMoc Include="Gui\Item\NsMesh.h" />
+    <QtMoc Include="Gui\Item\NsPlusItem.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="netspeed.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+  </ItemGroup>
+</Project>
+#####################################################################################################################################################################################################################################
+NocStudio.vcxproj.user
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtTouchProperty>
+    </QtTouchProperty>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtTouchProperty>
+    </QtTouchProperty>
+  </PropertyGroup>
+</Project>
+#####################################################################################################################################################################################################################################
+netspeed.rc
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IDI_ICON1 ICON DISCARDABLE "nsicon.ico"
+#####################################################################################################################################################################################################################################
+CMakeLists.txt
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_PREFIX_PATH /usr/intel/pkgs/libqt/5.11.2/)
+
+find_package(Qt5 COMPONENTS Core Gui Widgets PrintSupport REQUIRED)
+find_package(OpenMP)
+
+# prototype/
+file(GLOB gui_sources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    [^.]*.cpp [^.]*.h
+    Gui/[^.]*.cpp Gui/[^.]*.h
+    Gui/*/[^.]*.cpp Gui/*/[^.]*.h
+    Modeling/[^.]*.cpp Modeling[^.]h
+    Utils/[^.]*.cpp Utils/[^.]*.h)
+set(gui_includes . Gui/ Gui/Customized/ Gui/Delegates/ Gui/Dialogs/ Gui/Item/ Gui/Models/ Gui/View/ Modeling/ Utils/)
+
+# don't include any moc_/qrc_ files left lying around from Makefile build
+list(FILTER gui_sources EXCLUDE REGEX "^moc_.*[.]cpp")
+list(FILTER gui_sources EXCLUDE REGEX "^qrc_.*[.]cpp")
+
+# setup executable target for NS-GUI
+add_executable(NocStudio-GUI ${gui_sources})
+target_include_directories(NocStudio-GUI PRIVATE ${gui_includes} ${CMAKE_BINARY_DIR})
+target_link_libraries(NocStudio-GUI PUBLIC noc_infra noc_core noc_config_ns ipcore tclvfs Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport pthread dl GUICore OpenMP::OpenMP_CXX)

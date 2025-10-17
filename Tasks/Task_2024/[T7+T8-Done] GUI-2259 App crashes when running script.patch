@@ -1,0 +1,25 @@
+ src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp b/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
+index aab6c6e2628..964b7326020 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
+@@ -875,7 +875,7 @@ void NsChopViewBoundingBox::paint(QPainter* painter, const QStyleOptionGraphicsI
+ void NsChopViewBoundingBox::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+ {
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+-    if (mw && mw->isShowSectorName() && (mw->currentActiveTabName == QString(TAB_GRID_VIEW))) {
++    if (mw && mw->isShowSectorName() && (mw->currentActiveTabName == QString(TAB_GRID_VIEW)) && (mw->getConsole()->isRunTillFinished())) {
+         setRect(boundingRect());
+         chopName->show();
+         update();
+@@ -887,7 +887,7 @@ void NsChopViewBoundingBox::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+ void NsChopViewBoundingBox::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+ {
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+-    if (mw && mw->isShowSectorName() && (mw->currentActiveTabName == QString(TAB_GRID_VIEW))) {
++    if (mw && mw->isShowSectorName() && (mw->currentActiveTabName == QString(TAB_GRID_VIEW)) && (mw->getConsole()->isRunTillFinished())) {
+         chopName->hide();
+         setRect(QRectF());
+         update();

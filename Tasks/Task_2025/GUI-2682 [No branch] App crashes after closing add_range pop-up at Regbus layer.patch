@@ -1,0 +1,25 @@
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+index aaae88651c3..ca87045dd46 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+@@ -369,16 +369,7 @@ void bridgeContextMenu(QGraphicsItem* guiBridge, NetSpeed::Bridge* b, Qt::Layout
+         contextMenu.move(QCursor::pos() - offset);
+     }
+ 
+-    if (contextMenu.exec()) {
+-        std::vector<QGraphicsItem*> to_be_deleted;
+-        for (auto const& item : mw->getNsWorkArea()->scene()->items()) {
+-            if (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION,
+-                                                   LINK_DIAGRAM, STORAGE_DIAGRAM})) {
+-                to_be_deleted.push_back(item);
+-            }
+-        }
+-        qDeleteAll(to_be_deleted);
+-    }
++    contextMenu.exec();
+ }
+ 
+ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)

@@ -1,0 +1,28 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     | 1 +
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 15b2aad010f..6045cfad840 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1170,6 +1170,7 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ 
+             case ADD_CONNECT:
+             {
++                if (!(event->button() == Qt::LeftButton)) break;
+                 auto propPanel = mw->getPropertyPanel();
+                 /* Get first point of agent */
+                 auto clicked_item = itemAt(event->scenePos());
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index be83acb575a..1f1defac866 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -1175,6 +1175,7 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ 
+             case ADD_CONNECT:
+             {
++                if (!(event->button() == Qt::LeftButton)) break;
+                 auto propPanel = mw->getPropertyPanel();
+                 /* Get first point of agent */
+                 auto clicked_item = itemAt(event->scenePos(), QTransform());

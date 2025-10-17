@@ -1,0 +1,26 @@
+diff --git i/src/sw/noc_dev/NocCore/include/Constants.h w/src/sw/noc_dev/NocCore/include/Constants.h
+index e79280f74ae..1136e937223 100644
+--- i/src/sw/noc_dev/NocCore/include/Constants.h
++++ w/src/sw/noc_dev/NocCore/include/Constants.h
+@@ -201,7 +201,7 @@ const int DEFAULT_EXTRA_VC_FIFO_DEPTH = 0;
+ const int DEFAULT_EXTRA_IFCE_FIFO_DEPTH = 0;
+ 
+ const int DEFAULT_MAX_NUM_VCS = 4;
+-const int MAX_SUPPORTED_NUM_VCS = 8;
++const int MAX_SUPPORTED_NUM_VCS = 16; //NS-65626
+ //const int MAX_NUM_VCS_RBM = 4;
+ 
+ const int MIN_VC_DEPTH = 1;  //!< VCs have min depth 2 for width conversion (need not be 4 flits to upsize x4 as upsizing fifo is present).
+diff --git i/src/sw/noc_dev/NocCore/include/Types.scalar.h w/src/sw/noc_dev/NocCore/include/Types.scalar.h
+index 88a8856cccd..21edd743c8e 100644
+--- i/src/sw/noc_dev/NocCore/include/Types.scalar.h
++++ w/src/sw/noc_dev/NocCore/include/Types.scalar.h
+@@ -730,7 +730,7 @@ IDTYPE(Bridge_id, 1 << (MAX_AGN_ID_WIDTH + EXTRA_BRIDGE_ID_BITS)) //! unique id
+ IDTYPE(Port_id, DIRECTION_PORTS + MAX_HOST_PORTS) //! 4 direction ports + MAX_HOST_PORTS ports for host bridges; per-router
+ IDTYPE(VPort_id, DIRECTION_PORTS + 1); //! 4 direction ports + 1 port for host direction; per-router, used in Dijkstra_route
+ //IDTYPE(VC_id, 4)  //! maximum of 4 virtual channels (VCs) per port; per-port
+-IDTYPE(VC_id, 8) //! VCs
++IDTYPE(VC_id, 16) //! VCs. MAx 16 (NS-65626)
+ IDTYPEVAR(NocVC_id) //! VCs
+ IDTYPE(BrPort_id, 9) //! 9 switch side ports for the bridge
+ IDTYPE(SwNocPort_id, 16) //! 16 NoC ports for the switch

@@ -1,0 +1,16 @@
+ src/sw/noc_dev/GUICore/global.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/GUICore/global.h b/src/sw/noc_dev/GUICore/global.h
+index bd5e8455f9b..28602c9f5de 100644
+--- a/src/sw/noc_dev/GUICore/global.h
++++ b/src/sw/noc_dev/GUICore/global.h
+@@ -365,7 +365,7 @@ const char* const TEXT_HELP                           = "Help";
+ const char* const TEXT_CREATE_TRACE_FILES             = "create_trace_files";
+ const char* const TEXT_RUN_EXTERNAL_TRACE             = "run external trace";
+ const char* const TEXT_STEP                           = "step";
+-const char* const TEXT_CONTINUE                       = "continue ";
++const char* const TEXT_CONTINUE                       = "continue";
+ const char* const TEXT_FINALIZE_SIMULATION            = "Finalize Simulation";
+ const char* const TEXT_ANALYZE_POWER                  = "analyze_power";
+ const char* const TEXT_RUN                            = "run";

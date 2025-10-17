@@ -1,0 +1,3757 @@
+diff --git i/src/sw/lib/cpptcl-2.2.5/cpptcl/details/callbacks.h w/src/sw/lib/cpptcl-2.2.5/cpptcl/details/callbacks.h
+index f674dd88910..b9759a50d45 100644
+--- i/src/sw/lib/cpptcl-2.2.5/cpptcl/details/callbacks.h
++++ w/src/sw/lib/cpptcl-2.2.5/cpptcl/details/callbacks.h
+@@ -11,7 +11,7 @@
+ // Note: this file is not supposed to be a stand-alone header
+ 
+ #include <tuple>
+-#include <utility>
++//#include <utility>
+ 
+ template <typename R>
+ class callbackn : public callback_base
+diff --git i/src/sw/noc_dev/GUICore/GUICore.vcxproj w/src/sw/noc_dev/GUICore/GUICore.vcxproj
+index a244d2a233b..453be20f0f4 100644
+--- i/src/sw/noc_dev/GUICore/GUICore.vcxproj
++++ w/src/sw/noc_dev/GUICore/GUICore.vcxproj
+@@ -90,11 +90,11 @@
+     <LinkIncremental>false</LinkIncremental>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.2_msvc2022_64</QtInstall>
+     <QtModules>core;gui;printsupport;widgets</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.2_msvc2019_64</QtInstall>
+     <QtModules>core;gui;printsupport;widgets</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -176,7 +176,7 @@
+       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>false</ConformanceMode>
+       <LanguageStandard>stdcpp17</LanguageStandard>
+-      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt6\6.7.2\msvc2022_64\include;C:\Qt6\6.7.2\msvc2022_64\include\QtPrintSupport;C:\Qt6\6.7.2\msvc2022_64\include\QtSvg;C:\Qt6\6.7.2\msvc2022_64\include\QtWidgets;C:\Qt6\6.7.2\msvc2022_64\include\QtGui;C:\Qt6\6.7.2\msvc2022_64\include\QtANGLE;C:\Qt6\6.7.2\msvc2022_64\include\QtCore;C:\Qt6\6.7.2\msvc2022_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+@@ -215,7 +215,7 @@
+       <PreprocessorDefinitions>_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>true</ConformanceMode>
+       <LanguageStandard>stdcpp17</LanguageStandard>
+-      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt6\6.7.2\msvc2019_64\include;C:\Qt6\6.7.2\msvc2019_64\include\QtPrintSupport;C:\Qt6\6.7.2\msvc2019_64\include\QtSvg;C:\Qt6\6.7.2\msvc2019_64\include\QtWidgets;C:\Qt6\6.7.2\msvc2019_64\include\QtGui;C:\Qt6\6.7.2\msvc2019_64\include\QtANGLE;C:\Qt6\6.7.2\msvc2019_64\include\QtCore;C:\Qt6\6.7.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+     </ClCompile>
+     <Link>
+       <SubSystem>Console</SubSystem>
+diff --git i/src/sw/noc_dev/GUICore/NsTypes.cpp w/src/sw/noc_dev/GUICore/NsTypes.cpp
+index 238a4826607..649f4a02f5e 100644
+--- i/src/sw/noc_dev/GUICore/NsTypes.cpp
++++ w/src/sw/noc_dev/GUICore/NsTypes.cpp
+@@ -454,14 +454,16 @@ double fontSizeCheck(double size)
+     else return size;
+ }
+ 
+-QStringList extractNumberFromString(QString str) {
++QStringList extractNumberFromString(QString str)
++{
+     QStringList result;
+-    QRegExp rx("(\\d+)");
+-    int pos = 0;
+-    while ((pos = rx.indexIn(str, pos)) != -1) {
+-        result << rx.cap(1);
+-        pos += rx.matchedLength();
++    QRegularExpression rx("(\\d+)");
++    QRegularExpressionMatchIterator matchedIterator = rx.globalMatch(str);
++    while (matchedIterator.hasNext()) {
++        QRegularExpressionMatch match = matchedIterator.next();
++        result << match.captured(1);
+     }
++
+     return result;
+ }
+ 
+diff --git i/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp w/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp
+index 1aa9fab4b2d..b177f91b07f 100644
+--- i/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp
++++ w/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp
+@@ -982,7 +982,7 @@ class QtLineEditFactoryPrivate : public EditorFactoryPrivate<LineEdit> {
+ public:
+ 
+     void slotPropertyChanged(QtProperty* property, const QString& value);
+-    void slotRegExpChanged(QtProperty* property, const QRegExp& regExp);
++    void slotRegExpChanged(QtProperty* property, const QRegularExpression& regExp);
+     void slotSetValue(const QString& value);
+     void slotEchoModeChanged(QtProperty*, int);
+     void slotReadOnlyChanged(QtProperty*, bool);
+@@ -1004,7 +1004,7 @@ void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty * property, const
+     }
+ }
+ 
+-void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty * property, const QRegExp & regExp)
++void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty* property, const QRegularExpression& regExp)
+ {
+     if (!m_createdEditors.contains(property))
+         return;
+@@ -1118,8 +1118,8 @@ void QtLineEditFactory::connectPropertyManager(QtStringPropertyManager * manager
+ {
+     connect(manager, SIGNAL(valueChanged(QtProperty*, const QString&)),
+         this, SLOT(slotPropertyChanged(QtProperty*, const QString&)));
+-    connect(manager, SIGNAL(regExpChanged(QtProperty*, const QRegExp&)),
+-        this, SLOT(slotRegExpChanged(QtProperty*, const QRegExp&)));
++    connect(manager, SIGNAL(regExpChanged(QtProperty*, const QRegularExpression&)),
++        this, SLOT(slotRegExpChanged(QtProperty*, const QRegularExpression&)));
+     connect(manager, SIGNAL(echoModeChanged(QtProperty*, int)),
+         this, SLOT(slotEchoModeChanged(QtProperty*, int)));
+     connect(manager, SIGNAL(readOnlyChanged(QtProperty*, bool)),
+@@ -1137,7 +1137,7 @@ QWidget* QtLineEditFactory::createEditor(QtStringPropertyManager * manager, QtPr
+     LineEdit* editor = d_ptr->createEditor(property, parent);
+     editor->setEchoMode((EchoMode)manager->echoMode(property));
+     editor->setReadOnly(manager->isReadOnly(property));
+-    QRegExp regExp = manager->regExp(property);
++    QRegularExpression regExp = manager->regExp(property);
+     if (regExp.isValid()) {
+         QValidator* validator = new QRegularExpressionValidator(QRegularExpression(regExp.pattern()), editor);
+         editor->setValidator(validator);
+@@ -1160,8 +1160,8 @@ void QtLineEditFactory::disconnectPropertyManager(QtStringPropertyManager * mana
+ {
+     disconnect(manager, SIGNAL(valueChanged(QtProperty*, const QString&)),
+         this, SLOT(slotPropertyChanged(QtProperty*, const QString&)));
+-    disconnect(manager, SIGNAL(regExpChanged(QtProperty*, const QRegExp&)),
+-        this, SLOT(slotRegExpChanged(QtProperty*, const QRegExp&)));
++    disconnect(manager, SIGNAL(regExpChanged(QtProperty*, const QRegularExpression&)),
++        this, SLOT(slotRegExpChanged(QtProperty*, const QRegularExpression&)));
+     disconnect(manager, SIGNAL(echoModeChanged(QtProperty*, int)),
+         this, SLOT(slotEchoModeChanged(QtProperty*, int)));
+     disconnect(manager, SIGNAL(readOnlyChanged(QtProperty*, bool)),
+@@ -1727,7 +1727,7 @@ void QtCharEdit::handleKeyEvent(QKeyEvent * e)
+     }
+ 
+     const QString text = e->text();
+-    if (text.count() != 1)
++    if (text.length() != 1)
+         return;
+ 
+     const QChar c = text.at(0);
+@@ -1982,7 +1982,7 @@ void MultiSelectComboBox::stateChanged(int aState) {
+         }
+     }
+     if (selectedItem.endsWith(" ")) {
+-        selectedItem.remove(selectedItem.count() - 1, 1);
++        selectedItem.remove(selectedItem.length() - 1, 1);
+     }
+ 
+     setSelectedItems(selectedItem);
+diff --git i/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h w/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h
+index 2f0daf20c7e..f5ead83a14a 100644
+--- i/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h
++++ w/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h
+@@ -172,7 +172,7 @@ protected:
+ private:
+     QtLineEditFactoryPrivate* d_ptr;
+     Q_DECLARE_PRIVATE(QtLineEditFactory)Q_DISABLE_COPY(QtLineEditFactory)Q_PRIVATE_SLOT(d_func(), void slotPropertyChanged(QtProperty*, const QString&))
+-        Q_PRIVATE_SLOT(d_func(), void slotRegExpChanged(QtProperty*, const QRegExp&))
++            Q_PRIVATE_SLOT(d_func(), void slotRegExpChanged(QtProperty*, const QRegularExpression&))
+         Q_PRIVATE_SLOT(d_func(), void slotEchoModeChanged(QtProperty*, int))
+         Q_PRIVATE_SLOT(d_func(), void slotReadOnlyChanged(QtProperty*, bool))
+         Q_PRIVATE_SLOT(d_func(), void slotSetValue(const QString&))
+diff --git i/src/sw/noc_dev/GUICore/Qtproperty/qtpropertybrowserutils.cpp w/src/sw/noc_dev/GUICore/Qtproperty/qtpropertybrowserutils.cpp
+index 912bbc25c1a..6431a08a0b1 100644
+--- i/src/sw/noc_dev/GUICore/Qtproperty/qtpropertybrowserutils.cpp
++++ w/src/sw/noc_dev/GUICore/Qtproperty/qtpropertybrowserutils.cpp
+@@ -361,10 +361,10 @@ void QtKeySequenceEdit::handleKeyEvent(QKeyEvent * e)
+         return;
+ 
+     nextKey |= translateModifiers(e->modifiers(), e->text());
+-    int k0 = m_keySequence[0];
+-    int k1 = m_keySequence[1];
+-    int k2 = m_keySequence[2];
+-    int k3 = m_keySequence[3];
++    int k0 = m_keySequence[0].toCombined();
++    int k1 = m_keySequence[1].toCombined();
++    int k2 = m_keySequence[2].toCombined();
++    int k3 = m_keySequence[3].toCombined();
+     switch (m_num) {
+     case 0:
+         k0 = nextKey;
+diff --git i/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.cpp w/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.cpp
+index 8b4f7c25617..8961659252a 100644
+--- i/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.cpp
++++ w/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.cpp
+@@ -453,6 +453,22 @@ static QList<QLocale::Country> countriesForLanguage(QLocale::Language language)
+     return countries;
+ }
+ 
++#else  // QT 6.7.3
++
++static QList<QLocale::Territory> territoriesForLanguage(QLocale::Language language) {
++    QList<QLocale::Territory> territories;
++    const auto locales = QLocale::matchingLocales(language, QLocale::AnyScript, QLocale::AnyTerritory);
++
++    for (const QLocale& locale : locales) {
++        QLocale::Territory territory = locale.territory();
++        if (!territories.contains(territory)) {  // Avoid duplicates
++            territories.append(territory);
++        }
++    }
++
++    return territories;
++}
++
+ #endif
+ 
+ static QList<QLocale::Country> sortCountries(const QList<QLocale::Country> & countries)
+@@ -461,7 +477,7 @@ static QList<QLocale::Country> sortCountries(const QList<QLocale::Country> & cou
+     QListIterator < QLocale::Country > itCountry(countries);
+     while (itCountry.hasNext()) {
+         QLocale::Country country = itCountry.next();
+-        nameToCountry.insert(QLocale::countryToString(country), country);
++        nameToCountry.insert(QLocale::territoryToString(country), country);
+     }
+     return nameToCountry.values();
+ }
+@@ -489,10 +505,10 @@ void QtMetaEnumProvider::initLocale()
+ #if QT_VERSION < 0x040300
+         countries = countriesForLanguage(language);
+ #else
+-        countries = QLocale::countriesForLanguage(language);
++        countries = territoriesForLanguage(language);
+ #endif
+         if (countries.isEmpty() && language == system.language())
+-            countries << system.country();
++            countries << system.territory();
+ 
+         if (!countries.isEmpty() && !m_languageToIndex.contains(language)) {
+             countries = sortCountries(countries);
+@@ -504,7 +520,7 @@ void QtMetaEnumProvider::initLocale()
+             int countryIdx = 0;
+             while (it.hasNext()) {
+                 QLocale::Country country = it.next();
+-                countryNames << QLocale::countryToString(country);
++                countryNames << QLocale::territoryToString(country);
+                 m_indexToCountry[langIdx][countryIdx] = country;
+                 m_countryToIndex[language][country] = countryIdx;
+                 ++countryIdx;
+@@ -1349,14 +1365,29 @@ public:
+ 
+     struct Data {
+         Data() :
+-            regExp(QString(QLatin1Char('*')), Qt::CaseSensitive, QRegExp::Wildcard), echoMode(
+-                QLineEdit::Normal), readOnly(false)
++        regExp(createWildcardRegExp(QString(QLatin1Char('*')), Qt::CaseSensitive)),
++        echoMode(QLineEdit::Normal), readOnly(false)
+         {
+         }
++
+         QString val;
+-        QRegExp regExp;
++        QRegularExpression regExp;
+         int echoMode;
+         bool readOnly;
++
++        static QRegularExpression createWildcardRegExp(const QString& wildcard, Qt::CaseSensitivity caseSensitivity) {
++            QString regex = QRegularExpression::escape(wildcard);
++            regex.replace("\\*", ".*");
++            regex.replace("\\?", ".");
++            regex = "^" + regex + "$";
++
++            QRegularExpression regExp(regex);
++            if (caseSensitivity == Qt::CaseInsensitive) {
++                regExp.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
++            }
++
++            return regExp;
++        }
+     };
+ 
+     typedef QMap<const QtProperty*, Data> PropertyValueMap;
+@@ -1443,10 +1474,10 @@ QString QtStringPropertyManager::value(const QtProperty * property) const
+ 
+  \sa setRegExp()
+  */
+-QRegExp QtStringPropertyManager::regExp(const QtProperty * property) const
++QRegularExpression QtStringPropertyManager::regExp(const QtProperty * property) const
+ {
+-    return getData<QRegExp>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::regExp,
+-        property, QRegExp());
++    return getData<QRegularExpression>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::regExp,
++                                       property, QRegularExpression());
+ }
+ 
+ /*!
+@@ -1455,7 +1486,7 @@ QRegExp QtStringPropertyManager::regExp(const QtProperty * property) const
+ EchoMode QtStringPropertyManager::echoMode(const QtProperty * property) const
+ {
+     return (EchoMode)getData<int>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::echoMode,
+-        property, 0);
++                                  property, 0);
+ }
+ 
+ /*!
+@@ -1522,7 +1553,7 @@ void QtStringPropertyManager::setValue(QtProperty * property, const QString & va
+     if (data.val == val)
+         return;
+ 
+-    if (data.regExp.isValid() && !data.regExp.exactMatch(val))
++    if (data.regExp.isValid() && !data.regExp.match(val).hasMatch())
+         return;
+ 
+     data.val = val;
+@@ -1539,7 +1570,7 @@ void QtStringPropertyManager::setValue(QtProperty * property, const QString & va
+ 
+  \sa regExp(), setValue(), regExpChanged()
+  */
+-void QtStringPropertyManager::setRegExp(QtProperty * property, const QRegExp & regExp)
++void QtStringPropertyManager::setRegExp(QtProperty * property, const QRegularExpression & regExp)
+ {
+     const QtStringPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(
+         property);
+@@ -2549,7 +2580,7 @@ void QtLocalePropertyManagerPrivate::slotEnumChanged(QtProperty * property, int
+     if (QtProperty * prop = m_languageToProperty.value(property, 0)) {
+         const QLocale loc = m_values[prop];
+         QLocale::Language newLanguage = loc.language();
+-        QLocale::Country newCountry = loc.country();
++        QLocale::Country newCountry = loc.territory();
+         metaEnumProvider()->indexToLocale(value, 0, &newLanguage, 0);
+         QLocale newLoc(newLanguage, newCountry);
+         q_ptr->setValue(prop, newLoc);
+@@ -2557,7 +2588,7 @@ void QtLocalePropertyManagerPrivate::slotEnumChanged(QtProperty * property, int
+     else if (QtProperty * prop = m_countryToProperty.value(property, 0)) {
+         const QLocale loc = m_values[prop];
+         QLocale::Language newLanguage = loc.language();
+-        QLocale::Country newCountry = loc.country();
++        QLocale::Country newCountry = loc.territory();
+         metaEnumProvider()->indexToLocale(
+             m_enumPropertyManager->value(m_propertyToLanguage.value(prop)), value, &newLanguage,
+             &newCountry);
+@@ -2677,7 +2708,7 @@ QString QtLocalePropertyManager::valueText(const QtProperty * property) const
+ 
+     int langIdx = 0;
+     int countryIdx = 0;
+-    metaEnumProvider()->localeToIndex(loc.language(), loc.country(), &langIdx, &countryIdx);
++    metaEnumProvider()->localeToIndex(loc.language(), loc.territory(), &langIdx, &countryIdx);
+     QString str = tr("%1, %2").arg(metaEnumProvider()->languageEnumNames().at(langIdx)).arg(
+         metaEnumProvider()->countryEnumNames(loc.language()).at(countryIdx));
+     return str;
+@@ -2706,7 +2737,7 @@ void QtLocalePropertyManager::setValue(QtProperty * property, const QLocale & va
+ 
+     int langIdx = 0;
+     int countryIdx = 0;
+-    metaEnumProvider()->localeToIndex(val.language(), val.country(), &langIdx, &countryIdx);
++    metaEnumProvider()->localeToIndex(val.language(), val.territory(), &langIdx, &countryIdx);
+     if (loc.language() != val.language()) {
+         d_ptr->m_enumPropertyManager->setValue(d_ptr->m_propertyToLanguage.value(property), langIdx);
+         d_ptr->m_enumPropertyManager->setEnumNames(d_ptr->m_propertyToCountry.value(property),
+@@ -2728,7 +2759,7 @@ void QtLocalePropertyManager::initializeProperty(QtProperty * property)
+ 
+     int langIdx = 0;
+     int countryIdx = 0;
+-    metaEnumProvider()->localeToIndex(val.language(), val.country(), &langIdx, &countryIdx);
++    metaEnumProvider()->localeToIndex(val.language(), val.territory(), &langIdx, &countryIdx);
+ 
+     QtProperty* languageProp = d_ptr->m_enumPropertyManager->addProperty();
+     languageProp->setPropertyName(tr("Language"));
+diff --git i/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.h w/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.h
+index f600567b3bb..4e8aaf9bf86 100644
+--- i/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.h
++++ w/src/sw/noc_dev/GUICore/Qtproperty/qtpropertymanager.h
+@@ -175,19 +175,19 @@ public:
+     ~QtStringPropertyManager();
+ 
+     QString value(const QtProperty* property) const;
+-    QRegExp regExp(const QtProperty* property) const;
++    QRegularExpression regExp(const QtProperty* property) const;
+     EchoMode echoMode(const QtProperty* property) const;
+     bool isReadOnly(const QtProperty* property) const;
+ 
+ public Q_SLOTS:
+     void setValue(QtProperty* property, const QString& val);
+-    void setRegExp(QtProperty* property, const QRegExp& regExp);
++    void setRegExp(QtProperty* property, const QRegularExpression& regExp);
+     void setEchoMode(QtProperty* property, EchoMode echoMode);
+     void setReadOnly(QtProperty* property, bool readOnly);
+ 
+ Q_SIGNALS:
+     void valueChanged(QtProperty* property, const QString& val);
+-    void regExpChanged(QtProperty* property, const QRegExp& regExp);
++    void regExpChanged(QtProperty* property, const QRegularExpression& regExp);
+     void echoModeChanged(QtProperty* property, const int);
+     void readOnlyChanged(QtProperty* property, bool);
+ 
+diff --git i/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.cpp w/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.cpp
+index eb5203b5d6b..0a328200636 100644
+--- i/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.cpp
++++ w/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.cpp
+@@ -27,7 +27,7 @@ NsFilterWidget::NsFilterWidget(QWidget* parent)
+     menu->addSeparator();
+     m_patternGroup->setExclusive(true);
+     QAction* patternAction = menu->addAction("Fixed String");
+-    patternAction->setData(QVariant(int(QRegExp::FixedString)));
++    patternAction->setData(QVariant(int(PatternSyntax::FixedString)));
+     patternAction->setCheckable(true);
+     patternAction->setChecked(true);
+     m_patternGroup->addAction(patternAction);
+@@ -68,17 +68,17 @@ void NsFilterWidget::setCaseSensitivity(Qt::CaseSensitivity cs)
+     m_caseSensitivityAction->setChecked(cs == Qt::CaseSensitive);
+ }
+ 
+-static inline QRegExp::PatternSyntax patternSyntaxFromAction(const QAction * a)
++static inline PatternSyntax patternSyntaxFromAction(const QAction * a)
+ {
+-    return static_cast<QRegExp::PatternSyntax>(a->data().toInt());
++    return static_cast<PatternSyntax>(a->data().toInt());
+ }
+ 
+-QRegExp::PatternSyntax NsFilterWidget::patternSyntax() const
++PatternSyntax NsFilterWidget::patternSyntax() const
+ {
+     return patternSyntaxFromAction(m_patternGroup->checkedAction());
+ }
+ 
+-void NsFilterWidget::setPatternSyntax(QRegExp::PatternSyntax s)
++void NsFilterWidget::setPatternSyntax(PatternSyntax s)
+ {
+     foreach(QAction * a, m_patternGroup->actions()) {
+         if (patternSyntaxFromAction(a) == s) {
+@@ -86,4 +86,4 @@ void NsFilterWidget::setPatternSyntax(QRegExp::PatternSyntax s)
+             break;
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git i/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.h w/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.h
+index 6e9c495f692..918f7c25380 100644
+--- i/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.h
++++ w/src/sw/noc_dev/GUICore/Utils/NsFilterWidget.h
+@@ -2,20 +2,31 @@
+ #define NSFILTERWIDGET_H
+ 
+ #include <QLineEdit>
+-#include <QRegExp>
++#include <QRegularExpression>
+ 
+ QT_BEGIN_NAMESPACE
+ #include <QAction>
+ #include <QActionGroup>
+ QT_END_NAMESPACE
+ 
+-Q_DECLARE_METATYPE(QRegExp::PatternSyntax)
++// Define a custom PatternSyntax enumeration
++enum class PatternSyntax {
++    RegularExpression,
++    Wildcard,
++    FixedString,
++    RegExp,
++    RegExp2,  // Match legacy QRegExp syntax types
++    WildcardUnix,
++    W3CXmlSchema11
++};
++
++Q_DECLARE_METATYPE(PatternSyntax)
+ 
+ class NsFilterWidget : public QLineEdit
+ {
+     Q_OBJECT
+         Q_PROPERTY(Qt::CaseSensitivity caseSensitivity READ caseSensitivity WRITE setCaseSensitivity)
+-        Q_PROPERTY(QRegExp::PatternSyntax patternSyntax READ patternSyntax WRITE setPatternSyntax)
++        Q_PROPERTY(PatternSyntax patternSyntax READ patternSyntax WRITE setPatternSyntax)
+ 
+ public:
+     explicit NsFilterWidget(QWidget* parent = nullptr);
+@@ -23,8 +34,8 @@ public:
+     Qt::CaseSensitivity caseSensitivity() const;
+     void setCaseSensitivity(Qt::CaseSensitivity);
+ 
+-    QRegExp::PatternSyntax patternSyntax() const;
+-    void setPatternSyntax(QRegExp::PatternSyntax);
++    PatternSyntax patternSyntax() const;
++    void setPatternSyntax(PatternSyntax);
+ 
+ signals:
+     void filterChanged();
+diff --git i/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp w/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp
+index 47a1ff28199..65dbae3b205 100644
+--- i/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp
++++ w/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp
+@@ -11826,7 +11826,7 @@ void QCPColorGradient::updateColorBuffer()
+             QMap<double, QColor>::const_iterator it = mColorStops.lowerBound(position);
+             if (it == mColorStops.constEnd()) // position is on or after last stop, use color of last stop
+             {
+-                mColorBuffer[i] = (it - 1).value().rgb();
++                mColorBuffer[i] = std::prev(it).value().rgb();
+             }
+             else if (it == mColorStops.constBegin()) // position is on or before first stop, use color of first stop
+             {
+@@ -11835,7 +11835,7 @@ void QCPColorGradient::updateColorBuffer()
+             else // position is in between stops (or on an intermediate stop), interpolate color
+             {
+                 QMap<double, QColor>::const_iterator high = it;
+-                QMap<double, QColor>::const_iterator low = it - 1;
++                QMap<double, QColor>::const_iterator low  = std::prev(it);
+                 double t = (position - low.key()) / (high.key() - low.key()); // interpolation factor 0..1
+                 switch (mColorInterpolation)
+                 {
+@@ -15933,7 +15933,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+         if (lineData)
+         {
+             QCPDataMap::const_iterator it = lower;
+-            QCPDataMap::const_iterator upperEnd = upper + 1;
++            QCPDataMap::const_iterator upperEnd = std::next(upper);
+             double minValue = it.value().value;
+             double maxValue = it.value().value;
+             QCPDataMap::const_iterator currentIntervalFirstPoint = it;
+@@ -15964,11 +15964,11 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+                         lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.25, minValue));
+                         lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.75, maxValue));
+                         if (it.key() > currentIntervalStartKey + keyEpsilon * 2) // new pixel started further away from previous cluster, so make sure the last point of the cluster is at a real data point
+-                            lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.8, (it - 1).value().value));
++                            lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.8, std::prev(it).value().value));
+                     }
+                     else
+                         lineData->append(QCPData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
+-                    lastIntervalEndKey = (it - 1).value().key;
++                    lastIntervalEndKey = std::prev(it).value().key;
+                     minValue = it.value().value;
+                     maxValue = it.value().value;
+                     currentIntervalFirstPoint = it;
+@@ -15996,7 +15996,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+             double valueMaxRange = valueAxis->range().upper;
+             double valueMinRange = valueAxis->range().lower;
+             QCPDataMap::const_iterator it = lower;
+-            QCPDataMap::const_iterator upperEnd = upper + 1;
++            QCPDataMap::const_iterator upperEnd = std::next(upper);
+             double minValue = it.value().value;
+             double maxValue = it.value().value;
+             QCPDataMap::const_iterator minValueIt = it;
+@@ -16084,7 +16084,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+         if (dataVector)
+         {
+             QCPDataMap::const_iterator it = lower;
+-            QCPDataMap::const_iterator upperEnd = upper + 1;
++            QCPDataMap::const_iterator upperEnd = std::next(upper);
+             dataVector->reserve(dataCount + 2); // +2 for possible fill end points
+             while (it != upperEnd)
+             {
+@@ -16236,8 +16236,8 @@ void QCPGraph::getVisibleDataBounds(QCPDataMap::const_iterator & lower, QCPDataM
+     bool lowoutlier = lbound != mData->constBegin(); // indicates whether there exist points below axis range
+     bool highoutlier = ubound != mData->constEnd(); // indicates whether there exist points above axis range
+ 
+-    lower = (lowoutlier ? lbound - 1 : lbound); // data point range that will be actually drawn
+-    upper = (highoutlier ? ubound : ubound - 1); // data point range that will be actually drawn
++    lower = (lowoutlier ? std::prev(lbound) : lbound);  // data point range that will be actually drawn
++    upper = (highoutlier ? ubound : std::prev(ubound));  // data point range that will be actually drawn
+ }
+ 
+ /*!  \internal
+@@ -17229,7 +17229,7 @@ void QCPCurve::addData(double key, double value)
+ {
+     QCPCurveData newData;
+     if (!mData->isEmpty())
+-        newData.t = (mData->constEnd() - 1).key() + 1;
++        newData.t = std::prev(mData->constEnd()).key() + 1;
+     else
+         newData.t = 0;
+     newData.key = key;
+@@ -17518,11 +17518,11 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+         if (currentRegion == 5 || (firstPoint && mBrush.style() != Qt::NoBrush)) // current is in R, add current and last if it wasn't added already
+         {
+             if (!addedLastAlready) // in case curve just entered R, make sure the last point outside R is also drawn correctly
+-                lineData->append(coordsToPixels((it - 1).value().key, (it - 1).value().value)); // add last point to vector
++                lineData->append(coordsToPixels(std::prev(it).value().key, std::prev(it).value().value));  // add last point to vector
+             else if (lastRegion != 5) // added last already. If that's the case, we probably added it at optimized position. So go back and make sure it's at original position (else the angle changes under which this segment enters R)
+             {
+                 if (!firstPoint) // because on firstPoint, currentRegion is 5 and addedLastAlready is true, although there is no last point
+-                    lineData->replace(lineData->size() - 1, coordsToPixels((it - 1).value().key, (it - 1).value().value));
++                    lineData->replace(lineData->size() - 1, coordsToPixels(std::prev(it).value().key, std::prev(it).value().value));
+             }
+             lineData->append(coordsToPixels(it.value().key, it.value().value)); // add current point to vector
+             addedLastAlready = true; // so in next iteration, we don't add this point twice
+@@ -17541,7 +17541,7 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+             {
+                 // always add last point if not added already, original:
+                 if (!addedLastAlready)
+-                    lineData->append(coordsToPixels((it - 1).value().key, (it - 1).value().value));
++                    lineData->append(coordsToPixels(std::prev(it).value().key, std::prev(it).value().value));
+                 // add current point, original:
+                 lineData->append(coordsToPixels(it.value().key, it.value().value));
+             }
+@@ -17549,7 +17549,7 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+             {
+                 // always add last point if not added already, optimized:
+                 if (!addedLastAlready)
+-                    lineData->append(outsideCoordsToPixels((it - 1).value().key, (it - 1).value().value, currentRegion, axisRect));
++                    lineData->append(outsideCoordsToPixels(std::prev(it).value().key, std::prev(it).value().value, currentRegion, axisRect));
+                 // add current point, optimized:
+                 lineData->append(outsideCoordsToPixels(it.value().key, it.value().value, currentRegion, axisRect));
+             }
+@@ -17564,7 +17564,7 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+     }
+     // If curve ends outside R, we want to add very last point so the fill looks like it should when the curve started inside R:
+     if (lastRegion != 5 && mBrush.style() != Qt::NoBrush && !mData->isEmpty())
+-        lineData->append(coordsToPixels((mData->constEnd() - 1).value().key, (mData->constEnd() - 1).value().value));
++        lineData->append(coordsToPixels(std::prev(mData->constEnd()).value().key, (std::prev(mData->constEnd()).value().value)));
+ }
+ 
+ /*! \internal
+@@ -21418,7 +21418,7 @@ void QCPItemTracer::updatePosition()
+             if (mGraph->data()->size() > 1)
+             {
+                 QCPDataMap::const_iterator first = mGraph->data()->constBegin();
+-                QCPDataMap::const_iterator last = mGraph->data()->constEnd() - 1;
++                QCPDataMap::const_iterator last = std::prev(mGraph->data()->constEnd());
+                 if (mGraphKey < first.key())
+                     position->setCoords(first.key(), first.value().value);
+                 else if (mGraphKey > last.key())
+@@ -21428,7 +21428,7 @@ void QCPItemTracer::updatePosition()
+                     QCPDataMap::const_iterator it = mGraph->data()->lowerBound(mGraphKey);
+                     if (it != first) // mGraphKey is somewhere between iterators
+                     {
+-                        QCPDataMap::const_iterator prevIt = it - 1;
++                        QCPDataMap::const_iterator prevIt = std::prev(it);
+                         if (mInterpolating)
+                         {
+                             // interpolate between iterators around mGraphKey:
+diff --git i/src/sw/noc_dev/IPCore/include/ProfileTM.h w/src/sw/noc_dev/IPCore/include/ProfileTM.h
+index 79d08bf5192..3286f7ab0cb 100644
+--- i/src/sw/noc_dev/IPCore/include/ProfileTM.h
++++ w/src/sw/noc_dev/IPCore/include/ProfileTM.h
+@@ -34,6 +34,7 @@
+ #include <string>
+ #include <string.h>
+ #include <iostream>
++#include <cstdint>
+ 
+ namespace NetSpeed {
+ //! @brief Basic design specification, a simple specification of the assemblies needed to configure
+@@ -114,4 +115,4 @@ private:
+ #define PROFILE_FUN_MEM PROFILE_MEM(__FUNCTION__)
+ 
+ }  // namespace BDS
+-}  // end namespace NetSpeed
+\ No newline at end of file
++}  // end namespace NetSpeed
+diff --git i/src/sw/noc_dev/IPStudio/IPStudio.vcxproj w/src/sw/noc_dev/IPStudio/IPStudio.vcxproj
+index 6ed27672e82..93718b7049b 100644
+--- i/src/sw/noc_dev/IPStudio/IPStudio.vcxproj
++++ w/src/sw/noc_dev/IPStudio/IPStudio.vcxproj
+@@ -94,11 +94,11 @@
+     <LinkIncremental>false</LinkIncremental>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.2_msvc2017_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.2_msvc2017_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -187,7 +187,7 @@
+       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+       <OptimizeReferences>true</OptimizeReferences>
+       <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalLibraryDirectories>C:\Qt6\6.7.2\msvc2022_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+     </Link>
+     <ResourceCompile>
+diff --git i/src/sw/noc_dev/NocCore/include/Grid.h w/src/sw/noc_dev/NocCore/include/Grid.h
+index 08c81773876..1422a8584de 100644
+--- i/src/sw/noc_dev/NocCore/include/Grid.h
++++ w/src/sw/noc_dev/NocCore/include/Grid.h
+@@ -203,7 +203,7 @@ public:
+ 
+ public:
+      bool is_agent_stamped(const Host* h) {
+-        for (const auto s : agent_stamp_groups)
++        for (const auto& s : agent_stamp_groups)
+             if (is_member(s,h))
+                 return true;
+         return false;
+diff --git i/src/sw/noc_dev/NocCore/src/AceM.genrtl.cpp w/src/sw/noc_dev/NocCore/src/AceM.genrtl.cpp
+index eb547d0bfb6..d6537364c77 100644
+--- i/src/sw/noc_dev/NocCore/src/AceM.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/AceM.genrtl.cpp
+@@ -105,7 +105,7 @@ void AceM_bridge::rtl_parameters(map<string,RTL_param>& params) const {
+     std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(ldst_rte, this, nullptr, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+ 
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/AgentModels.cpp w/src/sw/noc_dev/NocCore/src/AgentModels.cpp
+index 3c5d3c1fbcc..74521927502 100644
+--- i/src/sw/noc_dev/NocCore/src/AgentModels.cpp
++++ w/src/sw/noc_dev/NocCore/src/AgentModels.cpp
+@@ -1185,7 +1185,7 @@ namespace NetSpeed {
+         }
+ 
+         ret += "Contents of invalidation buffer:\n";
+-        for (const auto entry : invalidation_buffer)
++        for (const auto& entry : invalidation_buffer)
+             ret += entry.second.print() + "\n";
+ 
+         return ret;
+diff --git i/src/sw/noc_dev/NocCore/src/AnalyzeTraffic.cpp w/src/sw/noc_dev/NocCore/src/AnalyzeTraffic.cpp
+index 794b6e49941..80ad0d56ef5 100644
+--- i/src/sw/noc_dev/NocCore/src/AnalyzeTraffic.cpp
++++ w/src/sw/noc_dev/NocCore/src/AnalyzeTraffic.cpp
+@@ -370,7 +370,7 @@ at_result compute_analyze_traffic_props(const vector<Interface*>& ifces, const s
+     }
+ 
+     for (const auto& atp : analyze_traffic_props_map) {
+-        for (const auto e : atp.second.props) {
++        for (const auto& e : atp.second.props) {
+             auto old = ret[e.first];
+             auto& curr = ret[e.first];
+             if(curr.profile == nullptr) curr.profile = profile; // assign the profile to be the profile on which AT is queried on.
+diff --git i/src/sw/noc_dev/NocCore/src/Axi4M.genrtl.cpp w/src/sw/noc_dev/NocCore/src/Axi4M.genrtl.cpp
+index ed918c2b9c7..cbf43bc4707 100644
+--- i/src/sw/noc_dev/NocCore/src/Axi4M.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/Axi4M.genrtl.cpp
+@@ -316,7 +316,7 @@ void Axi4M::rtl_parameters(map<string,RTL_param>& params) const {
+     std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(rtbl, this, nullptr, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+ 
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/Axi4M.register.cpp w/src/sw/noc_dev/NocCore/src/Axi4M.register.cpp
+index dd4c84124eb..d20d23270b1 100644
+--- i/src/sw/noc_dev/NocCore/src/Axi4M.register.cpp
++++ w/src/sw/noc_dev/NocCore/src/Axi4M.register.cpp
+@@ -415,7 +415,7 @@ void Axi4M::routing_table_registers(Registers_t& regs,
+     //axim_addr_hash_function
+     vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(routing_table, nullptr, nullptr, all_hash_fns);
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/BwComp.cpp w/src/sw/noc_dev/NocCore/src/BwComp.cpp
+index f9c69226a1e..caa0e3dbdcb 100644
+--- i/src/sw/noc_dev/NocCore/src/BwComp.cpp
++++ w/src/sw/noc_dev/NocCore/src/BwComp.cpp
+@@ -1280,7 +1280,7 @@ vector<flit_rate_t> compute_arb_loss(const arbgroup_t& ag, const vector<map<cons
+             txpchs[rx_rate.first->get_tx_pch()][ag[i]] += rx_rate.second;
+ 
+     // compute losses for each txpch
+-    for (const auto txp_rates : txpchs) {
++    for (const auto& txp_rates : txpchs) {
+         if (isize(txp_rates.second) < 2) continue; // no loss possible unless there's two contenders for an output
+         vector<double> flat_rates; vector<int> rxp_idxes;
+         for (auto& rxp_rate : txp_rates.second) {
+diff --git i/src/sw/noc_dev/NocCore/src/CHI_master.genrtl.cpp w/src/sw/noc_dev/NocCore/src/CHI_master.genrtl.cpp
+index 2a183e483aa..e0f270da52f 100644
+--- i/src/sw/noc_dev/NocCore/src/CHI_master.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/CHI_master.genrtl.cpp
+@@ -242,7 +242,7 @@ void CHI_master_bridge::rtl_parameters(map<string, RTL_param>& params) const {
+ 
+     std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(rtbl, this, nullptr, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp w/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp
+index 4437c19d371..7214f1a800e 100644
+--- i/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp
+@@ -299,7 +299,7 @@ void CHI_slave_bridge::rtl_parameters(map<string, RTL_param>& params) const {
+ 
+         std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(rtbl, this, nullptr, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+         vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-        for (const auto hf : all_hash_functions)
++        for (const auto& hf : all_hash_functions)
+             if (hf.hash_type == hash_t::idi_hash)
+                 idi_hash_functions.push_back(hf);
+             else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/CMIM.genrtl.cpp w/src/sw/noc_dev/NocCore/src/CMIM.genrtl.cpp
+index 2886f4bc15e..ab6c68dcb59 100644
+--- i/src/sw/noc_dev/NocCore/src/CMIM.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/CMIM.genrtl.cpp
+@@ -171,7 +171,7 @@ void CMIM_bridge::rtl_parameters(std::map<std::string, RTL_param>& params) const
+         int num_idi_hash_bits = 1;
+         std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(rtbl, this, &num_idi_hash_bits, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+         vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-        for (const auto hf : all_hash_functions)
++        for (const auto& hf : all_hash_functions)
+             if (hf.hash_type == hash_t::idi_hash)
+                 idi_hash_functions.push_back(hf);
+             else if (hf.hash_type == hash_t::mod3_hash)
+@@ -208,7 +208,7 @@ void CMIM_bridge::rtl_parameters(std::map<std::string, RTL_param>& params) const
+ 
+         params["P_NUM_CACHE_GROUPS"] = num_cache_groups;
+         vector<bool> cache_disableable, llc_enabled_by_default;
+-        for (const auto cg : rttbl_cache_groups) {
++        for (const auto& cg : rttbl_cache_groups) {
+             cache_disableable.push_back(cg.first && cg.first->allow_llc_disable);
+             llc_enabled_by_default.push_back(cg.first && cg.first->llc_enabled_by_default);
+         }
+diff --git i/src/sw/noc_dev/NocCore/src/CMIM.register.cpp w/src/sw/noc_dev/NocCore/src/CMIM.register.cpp
+index e78468e557e..bb61d57c422 100644
+--- i/src/sw/noc_dev/NocCore/src/CMIM.register.cpp
++++ w/src/sw/noc_dev/NocCore/src/CMIM.register.cpp
+@@ -1231,7 +1231,7 @@ void idi_cmi_routing_table_registers(const Bridge* br, Registers_t & regs, const
+     
+     vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(routing_table, br, nullptr, all_hash_fns);
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/Commands.dom.cpp w/src/sw/noc_dev/NocCore/src/Commands.dom.cpp
+index 52c7331d579..bad12a20cbb 100644
+--- i/src/sw/noc_dev/NocCore/src/Commands.dom.cpp
++++ w/src/sw/noc_dev/NocCore/src/Commands.dom.cpp
+@@ -1845,7 +1845,7 @@ COMMAND(assign_regbus_node_clock_domain, eco_t::ECO_DISABLED, XY_set, "<clock do
+ 
+     Clock_domain_props_t* cd = g.clock_domains->get_domainp(cd_s);
+     set<Node_id> node_set;
+-    for (const string n : nodes) {
++    for (const string& n : nodes) {
+         const Node_id ni(n);
+         if (ni.is_null()) { LOG_ERROR("3000") << "Argument " << n << " not recognized as a valid node." << endl; return false; }
+         node_set.insert(ni);
+diff --git i/src/sw/noc_dev/NocCore/src/Commands.range.cpp w/src/sw/noc_dev/NocCore/src/Commands.range.cpp
+index 7b576791f7f..216a5435b89 100644
+--- i/src/sw/noc_dev/NocCore/src/Commands.range.cpp
++++ w/src/sw/noc_dev/NocCore/src/Commands.range.cpp
+@@ -2052,7 +2052,7 @@ void auto_align_offsets_helper_n_way_intersection(const vector<addr_ranges_per_m
+     }
+ 
+     //apply the offsets
+-    for (const auto offset_per_mst : offsets_per_mst) {
++    for (const auto& offset_per_mst : offsets_per_mst) {
+         offset_per_mst.first->apply_master_register_offsets(offset_per_mst.second);
+         if (offset_per_mst.first->get_rtl_defer()) {
+             for (auto defer : offset_per_mst.first->get_rtl_defer()->get_deferring_to_me())
+diff --git i/src/sw/noc_dev/NocCore/src/Flit.cpp w/src/sw/noc_dev/NocCore/src/Flit.cpp
+index 96623d1d715..33b51541059 100644
+--- i/src/sw/noc_dev/NocCore/src/Flit.cpp
++++ w/src/sw/noc_dev/NocCore/src/Flit.cpp
+@@ -254,7 +254,7 @@ vector<global_sim_time> Packet_template::final_consume_times() const {
+     }
+     else if (!noc_packets.empty()) {
+         vector<global_sim_time> ret;
+-        for (const auto noc_packet : noc_packets) {
++        for (const auto& noc_packet : noc_packets) {
+             auto fin_time = noc_packet->final_consume_times();
+             if(!fin_time.empty())
+                 ret.push_back(vec_max(fin_time));
+@@ -308,7 +308,7 @@ vector<global_sim_time> Packet_template::transaction_latencies(global_sim_time s
+     if (!noc_packets.empty()) {
+         sent_sop_time_adjusted.clear();
+         gen_time_adjusted.clear();
+-        for (const auto noc_packet : noc_packets) {
++        for (const auto& noc_packet : noc_packets) {
+             for (int i = 0; i < isize(noc_packet->sent_sop_time); i++)
+                 sent_sop_time_adjusted.push_back(noc_packet->sent_sop_time[i]);
+ 
+@@ -366,7 +366,7 @@ bitcount Packet_template::get_transaction_volume(global_sim_time stat_start_time
+     }
+     for (const auto& r : resps) {
+         if (!r.packet->noc_packets.empty()) {
+-            for (const auto noc_packet : r.packet->noc_packets)
++            for (const auto& noc_packet : r.packet->noc_packets)
+                 t += noc_packet->get_transaction_volume(stat_start_time);
+         }
+         else t += r.packet->get_transaction_volume(stat_start_time);
+diff --git i/src/sw/noc_dev/NocCore/src/GenOSXML.cpp w/src/sw/noc_dev/NocCore/src/GenOSXML.cpp
+index b4711e5c371..210a34b8b73 100644
+--- i/src/sw/noc_dev/NocCore/src/GenOSXML.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenOSXML.cpp
+@@ -57,7 +57,7 @@ namespace NetSpeed {
+ 
+     bitcount get_reg_width(const Register_t& reg) {
+         size_t reg_width = 0;
+-        for (const auto regfield : reg.get_ranges())  reg_width += regfield.hi - regfield.lo + 1;
++        for (const auto& regfield : reg.get_ranges()) reg_width += regfield.hi - regfield.lo + 1;
+         return static_cast<bitcount>(reg_width);
+     }
+ 
+diff --git i/src/sw/noc_dev/NocCore/src/GenSDC.cpp w/src/sw/noc_dev/NocCore/src/GenSDC.cpp
+index 8bc7c86ed93..db484def004 100644
+--- i/src/sw/noc_dev/NocCore/src/GenSDC.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenSDC.cpp
+@@ -1355,7 +1355,7 @@ bool GenSdc::gen_soc_ip(const Grid& g, const Gen_rtl_state& grs) {
+         if (!virtual_clk_to_pin.empty()) {
+             set<string> virtual_clocks_added_pins_top;
+             for (const auto& vc : virtual_clk_to_pin) {
+-                for (const auto vp : vc.second) {
++                for (const auto& vp : vc.second) {
+                     print_set_delay_simple(prefix, Sig_dir::Input, "virtual_clk", vc.first, vp, os, virtual_clocks_added_pins_top);
+                 }
+             }
+diff --git i/src/sw/noc_dev/NocCore/src/GenSysc.cpp w/src/sw/noc_dev/NocCore/src/GenSysc.cpp
+index bd15609128d..8b724500966 100644
+--- i/src/sw/noc_dev/NocCore/src/GenSysc.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenSysc.cpp
+@@ -2465,7 +2465,7 @@ class ns_soc_ip : public sc_module {
+                assert(true);
+                return 0;
+            };
+-           for (const auto p_pin : pd.priority_pins) {
++           for (const auto& p_pin : pd.priority_pins) {
+                y << "    void set_" << p_pin << "() {\n";
+                int qos_id = get_qos_id(p_pin);
+                y << "      if(" << p_pin << ".read()) {";
+diff --git i/src/sw/noc_dev/NocCore/src/Grid.cpp w/src/sw/noc_dev/NocCore/src/Grid.cpp
+index cd299bae3f6..9c0d9770cf9 100644
+--- i/src/sw/noc_dev/NocCore/src/Grid.cpp
++++ w/src/sw/noc_dev/NocCore/src/Grid.cpp
+@@ -525,7 +525,7 @@ Range_t* Grid::get_range(std::string s) const {
+ const std::set<const Range_t*> Grid::get_all_root_ranges() const {
+     set<const Range_t*> root_ranges;
+     set<string> root_range_names;
+-    for (const auto range_name : ranges)
++    for (const auto& range_name : ranges)
+         for (const auto range : range_name.second) {
+             if (root_range_names.insert(range->get_root_range()->name).second)
+                 root_ranges.insert(range->get_root_range());
+diff --git i/src/sw/noc_dev/NocCore/src/Grid.sim.cpp w/src/sw/noc_dev/NocCore/src/Grid.sim.cpp
+index 21b8de29b03..27dec330df0 100644
+--- i/src/sw/noc_dev/NocCore/src/Grid.sim.cpp
++++ w/src/sw/noc_dev/NocCore/src/Grid.sim.cpp
+@@ -87,17 +87,17 @@ void dump_ph_props(const Grid& g) {
+         return;
+     }
+     ofs << "flit_tx,flit_rx,credits,credit_delay,data_delay,type\n\n";
+-    for (const auto ifce : g.get_tx_ifces("*")) {
+-        for (const auto detail :
++    for (const auto& ifce : g.get_tx_ifces("*")) {
++        for (const auto& detail :
+              get_flit_tx_rx_ifce_details(ifce->get_tx_protocol_handler()->get_flit_xforms())) {
+             ofs << detail.src_name << "," << detail.dest_name << "," << detail.credits << ","
+                 << detail.credit_delay << "," << detail.data_delay << "," << detail.ifce_type() << "\n";
+         }
+         ofs << "\n\n";
+     }
+-    for (const auto ifce : g.get_rx_ifces("*")) {
+-        for (auto rxvc : ifce->get_all_rx_vchannels()) {
+-            for (const auto detail : get_flit_tx_rx_ifce_details(
++    for (const auto& ifce : g.get_rx_ifces("*")) {
++        for (auto& rxvc : ifce->get_all_rx_vchannels()) {
++            for (const auto& detail : get_flit_tx_rx_ifce_details(
+                      ifce->get_rx_protocol_handler(IVC_id(rxvc->get_id()))->get_flit_xforms())) {
+                 ofs << detail.src_name << "," << detail.dest_name << "," << detail.credits << ","
+                     << detail.credit_delay << "," << detail.data_delay << "," << detail.ifce_type() << "\n";
+diff --git i/src/sw/noc_dev/NocCore/src/IDI2CMI_host.cpp w/src/sw/noc_dev/NocCore/src/IDI2CMI_host.cpp
+index 5ecf3de6993..f748644601d 100644
+--- i/src/sw/noc_dev/NocCore/src/IDI2CMI_host.cpp
++++ w/src/sw/noc_dev/NocCore/src/IDI2CMI_host.cpp
+@@ -338,7 +338,7 @@ bool IDI2CMI_host::checks_container() const {
+     auto cmi_mst_ifce = cmi_mst->get_any_if(CMI_RD_DATA);
+     for (const auto rd_vifce : cmi_rd_data_vifce) {
+         if (cmi_mst_ifce->get_rx_vifce(rd_vifce)->get_cmi_supports_interleaved_response()) {
+-            for (const auto src : idi_slv->get_traffic_src_ifce()) {
++            for (const auto& src : idi_slv->get_traffic_src_ifce()) {
+                 if (src.first->get_props()->get_data_width() == MAX_CMI_DATA_WIDTH) {
+                     stringstream messg;
+                     messg << "If the CMIM bridge of the converter has cmi_supports_interleaved_responses set to true, none of the IDIM bridges that send to that converter can have their data widths set to " << MAX_CMI_DATA_WIDTH
+diff --git i/src/sw/noc_dev/NocCore/src/IDIM.genrtl.cpp w/src/sw/noc_dev/NocCore/src/IDIM.genrtl.cpp
+index 0e2e07eccb7..6a53b33a653 100644
+--- i/src/sw/noc_dev/NocCore/src/IDIM.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/IDIM.genrtl.cpp
+@@ -114,7 +114,7 @@ void Bridge::rtl_parameters_idim_rttbl(std::map<std::string, RTL_param>& params)
+     std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(rtbl, this, &num_idi_hash_bits, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+ 
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/Interface.cpp w/src/sw/noc_dev/NocCore/src/Interface.cpp
+index 4562771085b..f623b3dcc03 100644
+--- i/src/sw/noc_dev/NocCore/src/Interface.cpp
++++ w/src/sw/noc_dev/NocCore/src/Interface.cpp
+@@ -2982,9 +2982,9 @@ bitcount Tx_interface::compute_transaction_volume(global_sim_time stat_reset_tim
+     };
+ 
+     bitcount t = 0;
+-    for (const auto pkt : transmitted_packets) {
++    for (const auto& pkt : transmitted_packets) {
+         if (!pkt->noc_packets.empty()) {
+-            for (const auto noc_packet : pkt->noc_packets)
++            for (const auto& noc_packet : pkt->noc_packets)
+                 t += compute_bits_from_pkt(noc_packet);
+         }
+         else t += compute_bits_from_pkt(pkt);
+@@ -3022,9 +3022,9 @@ bitcount Tx_interface::compute_transaction_data_volume(global_sim_time stat_rese
+     };
+ 
+     bitcount t = 0;
+-    for (const auto pkt : transmitted_packets) {
++    for (const auto& pkt : transmitted_packets) {
+         if (!pkt->noc_packets.empty()) {
+-            for (const auto noc_packet : pkt->noc_packets)
++            for (const auto& noc_packet : pkt->noc_packets)
+                 t += compute_bits_from_pkt(noc_packet);
+         }
+         else t += compute_bits_from_pkt(pkt);
+diff --git i/src/sw/noc_dev/NocCore/src/Rssb.cpp w/src/sw/noc_dev/NocCore/src/Rssb.cpp
+index 0210dc93641..fb3dd216149 100644
+--- i/src/sw/noc_dev/NocCore/src/Rssb.cpp
++++ w/src/sw/noc_dev/NocCore/src/Rssb.cpp
+@@ -6034,7 +6034,7 @@ std::vector<std::unique_ptr<RTL_module_inst>> make_rssb(rssb::cfg c, const Rtlab
+                 rtr_neighbors.insert(mcast_rtr);
+ 
+                 // account for chops NS-64905
+-                for (const auto c : g->chop) {
++                for (const auto& c : g->chop) {
+                     IDFOR(p, Port_id) {
+                         if (mcast_rtr->get_tx_port(p) && mcast_rtr->get_tx_port(p)->get_adj_rx_port_chop(&c) &&
+                             mcast_rtr->get_tx_port(p)->get_adj_rx_port_chop(&c)->get_parent()->is_router()) {
+@@ -6149,7 +6149,7 @@ std::vector<std::unique_ptr<RTL_module_inst>> make_rssb(rssb::cfg c, const Rtlab
+                         }
+                     }
+                     // account for chops NS-64800
+-                    for (const auto c : g->chop) {
++                    for (const auto& c : g->chop) {
+                         IDFOR(p, Port_id) {
+                         auto rtr_tx_port = crtr->get_tx_port(p);
+                             if (rtr_tx_port && rtr_tx_port->get_adj_rx_port_chop(&c) &&
+diff --git i/src/sw/noc_dev/NocCore/src/Sim.cpp w/src/sw/noc_dev/NocCore/src/Sim.cpp
+index 9e1aa7af21a..ef6bf1fc026 100644
+--- i/src/sw/noc_dev/NocCore/src/Sim.cpp
++++ w/src/sw/noc_dev/NocCore/src/Sim.cpp
+@@ -1016,7 +1016,7 @@ const Packet_template* get_cls_last_packet(const Packet_template* first) {
+ 
+ StatsCalculator get_chain_latency_stats(const Tx_interface* txif) {
+     StatsCalculator ret;
+-    for (const std::shared_ptr<Packet_template> first : txif->get_transmitted_packets()) {
++    for (const std::shared_ptr<Packet_template>& first : txif->get_transmitted_packets()) {
+         if (!first->is_first_in_chain()) continue; //skip packets that aren't first in their chain
+         const Packet_template* last = get_cls_last_packet(first.get());
+         if (last == nullptr) continue;
+diff --git i/src/sw/noc_dev/NocCore/src/TraceGen.cpp w/src/sw/noc_dev/NocCore/src/TraceGen.cpp
+index e7935483ff7..90630cdb7a1 100644
+--- i/src/sw/noc_dev/NocCore/src/TraceGen.cpp
++++ w/src/sw/noc_dev/NocCore/src/TraceGen.cpp
+@@ -1296,7 +1296,7 @@ local_sim_time IfceDriver::act() {
+         // Now decide if we should use the rxifs from trace file. If any rxif in trace file is part of a multicast group, we must use all rxifs (and not just those from the trace file) to ensure that we send to all destinations in the multicast group
+         bool use_filtered_rx = true;
+         for (const auto& rxif : req_pkt_inst->get_rx()) if (grid->is_present_in_mc_groups(rxif.first->bridgep())) { use_filtered_rx = false; break; }
+-        vector<Rx_interface*> req_pkt_inst_rxifs; for (const auto req_pkt_int_rxif : req_pkt_inst->get_rx()) req_pkt_inst_rxifs.push_back(req_pkt_int_rxif.first);
++        vector<Rx_interface*> req_pkt_inst_rxifs; for (const auto& req_pkt_int_rxif : req_pkt_inst->get_rx()) req_pkt_inst_rxifs.push_back(req_pkt_int_rxif.first);
+         const vector<Rx_interface*>& rxifs = use_filtered_rx && grid->get_is_multicast_enabled()? req_pkt_inst_rxifs : req->rxif;
+         int cmi_src_id = is_cmi_master(req->txif->bridgep()->get_type()) ? req->txif->bridgep()->get_cmi_srcid() : req->txif->bridgep()->get_bridge_id();
+         auto reqf = grid->get_flit_from_packet(req, LastResponse{ true }, rxifs, req_pkt_inst->get_aid(), req_pkt_inst->get_address_props(), sysc_payload_t(),
+diff --git i/src/sw/noc_dev/NocCore/src/Trace_lib.cpp w/src/sw/noc_dev/NocCore/src/Trace_lib.cpp
+index 22a0d6d8ba3..ee9cb400244 100644
+--- i/src/sw/noc_dev/NocCore/src/Trace_lib.cpp
++++ w/src/sw/noc_dev/NocCore/src/Trace_lib.cpp
+@@ -653,7 +653,7 @@ std::string commands_t::strxtor_get_string(global_sim_time& /*time_elapsed*/) co
+        
+         assert(is_stream_br(src->bridgep()->get_type()) || is_scf_ad_br(src->bridgep()->get_type()));
+         assert(is_stream(src->id) || is_scf(src->id));
+-         for (const auto d : dest) assert(is_stream(d.first->id) || is_scf(src->id));
++        for (const auto& d : dest) assert(is_stream(d.first->id) || is_scf(src->id));
+         //streaming transaxtor beats are in number of 32-bit words
+         int base_beat_size = src->get_cell_size_ifce();
+         assert(base_beat_size > 0);
+diff --git i/src/sw/noc_dev/NocCore/src/Traffic.non-coherency.cpp w/src/sw/noc_dev/NocCore/src/Traffic.non-coherency.cpp
+index ed4607b4c1f..3d8ba5c0d13 100644
+--- i/src/sw/noc_dev/NocCore/src/Traffic.non-coherency.cpp
++++ w/src/sw/noc_dev/NocCore/src/Traffic.non-coherency.cpp
+@@ -42,9 +42,9 @@ void cmdReplace(cc_traffic_type_t& cmd, string to_replace, const vector<Bridge*>
+ void cmdReplace(cc_traffic_type_t& cmd, string fg_to_replace, string new_fg);
+ 
+ void append_hops_to_transaction(const cc_traffic_type_t& new_cmd, transaction_t& new_trans) {
+-    for (const auto cc_str_hop : new_cmd.cc_str_hops_v) {
++    for (const auto& cc_str_hop : new_cmd.cc_str_hops_v) {
+         vector<flow_group_t> fgs;
+-        for (const auto flow : cc_str_hop.cc_str_flows) fgs.push_back(flow.fg);
++        for (const auto& flow : cc_str_hop.cc_str_flows) fgs.push_back(flow.fg);
+         new_trans.add_hop(hop_t(fgs));
+     }
+ }
+diff --git i/src/sw/noc_dev/NocCore/src/nocstudio.cpp w/src/sw/noc_dev/NocCore/src/nocstudio.cpp
+index 464b5d4a8be..c0d79df7790 100644
+--- i/src/sw/noc_dev/NocCore/src/nocstudio.cpp
++++ w/src/sw/noc_dev/NocCore/src/nocstudio.cpp
+@@ -2502,9 +2502,9 @@ void dump_blocked_causes(NetSpeed::Sim* s, std::ostream& os, std::string* error)
+     if (s == nullptr) { if (error) *error = "Sim object is null"; return; }
+     if (!os.good()) { if (error) *error = "Specified output stream does not exist"; return; }
+ 
+-    for (const auto chan : NetSpeed::get_channel_names(s, "*")) {
++    for (const auto& chan : NetSpeed::get_channel_names(s, "*")) {
+         os << "Blocked causes for channel " << chan << "\n";
+-        for (const auto bc : query_blocked_causes(s, chan)) {
++        for (const auto& bc : query_blocked_causes(s, chan)) {
+             os << bc.first << " " << bc.second << "\n";
+         }
+         os << "\n";
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Customized/tableview.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Customized/tableview.cpp
+index d15b53acef5..857452aee7d 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Customized/tableview.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Customized/tableview.cpp
+@@ -92,7 +92,7 @@ void TableView::handleCopyEvent(bool all, int row)
+     QAbstractItemModel * abmodel = this->model();
+     QItemSelectionModel * model = this->selectionModel();
+     QModelIndexList list = model->selectedIndexes();
+-    qSort(list);
++    std::sort(list.begin(), list.end());
+     if (list.count() < 1)  return;
+ 
+     QString copied_table;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/IniTxnItemModel.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/IniTxnItemModel.cpp
+index d17bc871135..4e09fe84dc2 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/IniTxnItemModel.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/IniTxnItemModel.cpp
+@@ -45,7 +45,7 @@ QVariant IniTxnItemModel::headerData(int section, Qt::Orientation orientation,
+ Qt::ItemFlags IniTxnItemModel::flags(const QModelIndex & index) const
+ {
+     if (!index.isValid())
+-        return 0;
++        return Qt::ItemFlags(0);
+ 
+     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+ 
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.cpp
+index 9f21906206e..fd0aed7be43 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.cpp
+@@ -59,10 +59,10 @@ void NsSortFilterProxyModel::setFilterKeyColumns(const QList<qint32> & filterCol
+     m_columnPatterns.clear();
+ 
+     foreach(qint32 column, filterColumns)
+-        m_columnPatterns.insert(column, QRegExp());
++        m_columnPatterns.insert(column, QRegularExpression());
+ }
+ 
+-void NsSortFilterProxyModel::addFilterFixedString(qint32 column, const QRegExp & pattern)
++void NsSortFilterProxyModel::addFilterFixedString(qint32 column, const QRegularExpression & pattern)
+ {
+     if (!m_columnPatterns.contains(column))
+         return;
+@@ -70,7 +70,7 @@ void NsSortFilterProxyModel::addFilterFixedString(qint32 column, const QRegExp &
+     m_columnPatterns[column] = pattern;
+ }
+ 
+-void NsSortFilterProxyModel::appendFilterKeyColumn(qint32 column, const QRegExp & pattern)
++void NsSortFilterProxyModel::appendFilterKeyColumn(qint32 column, const QRegularExpression & pattern)
+ {
+     if (!m_columnPatterns.contains(column))
+         m_columnPatterns.insert(column, pattern);
+@@ -84,6 +84,17 @@ void NsSortFilterProxyModel::clearFilterKeyColumn()
+     m_columnPatterns.clear();
+ }
+ 
++QRegularExpression stringRegExp(const QString& pattern, Qt::CaseSensitivity caseSensitivity)
++{
++    QString escapedPattern = QRegularExpression::escape(pattern);
++    QRegularExpression regExp(escapedPattern);
++    if (caseSensitivity == Qt::CaseInsensitive) {
++        regExp.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
++    }
++
++    return regExp;
++}
++
+ void NsSortFilterProxyModel::filterAction(QString s)
+ {
+     this->clearFilterKeyColumn();
+@@ -108,7 +119,7 @@ void NsSortFilterProxyModel::filterAction(QString s)
+         }
+ 
+         /* Set search text */
+-        QRegExp regExp(s, Qt::CaseInsensitive, QRegExp::FixedString);
++        QRegularExpression regExp = stringRegExp(s, Qt::CaseInsensitive);
+ 
+         /* Set search column */
+         int col = toLintHeader(cat);
+@@ -139,7 +150,7 @@ bool NsSortFilterProxyModel::filterAcceptsRow(int sourceRow,
+     //        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+ 
+     bool result = false;
+-    for (QMap<qint32, QRegExp>::const_iterator iter = m_columnPatterns.constBegin();
++    for (QMap<qint32, QRegularExpression>::const_iterator iter = m_columnPatterns.constBegin();
+         iter != m_columnPatterns.constEnd();
+         ++iter)
+     {
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.h w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.h
+index 9060b3e836e..cd6d0400692 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.h
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/NsSortFilterProxyModel.h
+@@ -47,7 +47,7 @@ public:
+      * @param column
+      * @param pattern
+      */
+-    void addFilterFixedString(qint32 column, const QRegExp& pattern);
++    void addFilterFixedString(qint32 column, const QRegularExpression& pattern);
+ 
+     /**
+      * @brief append the fixed string used to filter the contents of the source model
+@@ -55,7 +55,7 @@ public:
+      * @param column
+      * @param pattern
+      */
+-    void appendFilterKeyColumn(qint32 column, const QRegExp& pattern);
++    void appendFilterKeyColumn(qint32 column, const QRegularExpression& pattern);
+ 
+     /**
+      * @brief clear all filter Key Column
+@@ -90,7 +90,7 @@ protected:
+ 
+ private:
+     QObject* view;
+-    QMap<qint32, QRegExp> m_columnPatterns;
++    QMap<qint32, QRegularExpression> m_columnPatterns;
+ };
+ 
+ class MainWindow;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/treemodel.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/treemodel.cpp
+index 0275d710e6a..ba4594ed630 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/DRC/treemodel.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/DRC/treemodel.cpp
+@@ -135,7 +135,7 @@ QVariant TreeModel::data(const QModelIndex& index, int role) const
+ Qt::ItemFlags TreeModel::flags(const QModelIndex & index) const
+ {
+     if (!index.isValid())
+-        return 0;
++        return Qt::ItemFlags(0);
+ 
+     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+ 
+@@ -516,4 +516,4 @@ void TreeModel::fetchMore(const QModelIndex & parent)
+     itemsCount += itemsToFetch;
+     parentItem->setItemsCount(itemsCount);
+     endInsertRows();
+-}
+\ No newline at end of file
++}
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsBridgeDiagram.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsBridgeDiagram.cpp
+index 3c18762e466..579582e9686 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsBridgeDiagram.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsBridgeDiagram.cpp
+@@ -97,7 +97,7 @@ void NsRouterDiagram::drawFeedBackArrow(int dir, QLineF & line, const NetSpeed::
+     const QPointF arrowLength = QPointF(29, 0);
+     auto arrowHeadLine = QLineF(path.pointAtPercent(0),
+         path.pointAtPercent(0) + arrowLength);
+-    QMatrix matrix;
++    QTransform matrix;
+     QPoint start = line.p1().toPoint();
+     matrix.translate(start.x(), start.y());
+     // Rotate clockwise
+@@ -198,7 +198,7 @@ void NsRouterDiagramVC::paint(QPainter * painter, const QStyleOptionGraphicsItem
+     Q_UNUSED(widget);
+ 
+     // To fix problem which makes QPainter does not draw arrow tail
+-    painter->setRenderHint(QPainter::Qt4CompatiblePainting);
++    //painter->setRenderHint(QPainter::Qt4CompatiblePainting);
+ 
+     auto arrowPath = path();
+     bool selected = isSelected();
+@@ -293,7 +293,7 @@ void NsRouterDiagram::drawVcLabel(QLineF & line, QString vcName, QPainterPath &
+ 
+     QPainterPath p;
+     p.addText(xMargin, yMargin, font, vcName);
+-    QMatrix matrix;
++    QTransform matrix;
+     auto transPoint = end + adjustPoint;
+     matrix.translate(transPoint.x(), transPoint.y());
+     matrix.rotate(rotationAngle);
+@@ -400,14 +400,14 @@ void NsBridgeDiagram::initData() {
+ 
+     // max width of vc name
+     for (const auto& vc : allVcs) {
+-        int width = fontMetrics.width(QString::fromStdString(vc->name()));
++        int width = fontMetrics.tightBoundingRect(QString::fromStdString(vc->name())).width();
+         maxWidthVcName = std::max(maxWidthVcName, width);
+         maxVCsPenWidth = std::max(maxVCsPenWidth, vc->get_width());
+     }
+ 
+     //Get maximum width of ifce names
+     for (auto const& ifce : allIfces) {
+-        int width = fontMetrics.width(QString::fromStdString(ifce->if_name()));
++        int width = fontMetrics.tightBoundingRect(QString::fromStdString(ifce->if_name())).width();
+         maxWidthIfceName = std::max(maxWidthIfceName, width);
+         maxIFCEPenWidth = std::max(maxIFCEPenWidth, ifce->get_if_msg_width_cached());
+     }
+@@ -601,7 +601,7 @@ void NsRouterDiagram::initData()
+             font.setPixelSize(nameSize);
+             QString name = QString::fromStdString(vc.name());
+ 
+-            int width = QFontMetrics(font).width(name) + vcLength;
++            int width = QFontMetrics(font).tightBoundingRect(name).width() + vcLength;
+             qreal transition = qMin(vcBodyLine * v.as_int() + spacing, rp.size);
+             QPoint startL, endL;
+             NetSpeed::Port_id rp_id = (out) ?
+@@ -885,7 +885,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+             (rp.size / 2 - rp.north_port_length) *
+             diagramTextFactor));
+         painter.rotate(-45);
+-        painter.drawText(painter.fontMetrics().width("North West (J)") *
++        painter.drawText(painter.fontMetrics().tightBoundingRect("North West (J)").width() *
+             -diagramTextFactor, yOffsetMargin,
+             QString("North West (J)"));
+         painter.restore();
+@@ -899,7 +899,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+             (rp.size / 2 - rp.north_port_length) *
+             diagramTextFactor));
+         painter.rotate(45);
+-        painter.drawText(painter.fontMetrics().width("North East (K)") *
++        painter.drawText(painter.fontMetrics().tightBoundingRect("North East (K)").width() *
+             -diagramTextFactor, yOffsetMargin,
+             QString("North East (K)"));
+         painter.restore();
+@@ -914,7 +914,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+             (rp.size / 2 - rp.north_port_length) *
+             diagramTextFactor));
+         painter.rotate(-45);
+-        painter.drawText(painter.fontMetrics().width("South East (H)") *
++        painter.drawText(painter.fontMetrics().tightBoundingRect("South East (H)").width() *
+             -diagramTextFactor, -tolerance,
+             QString("South East (H)"));
+         painter.restore();
+@@ -929,7 +929,7 @@ void NsRouterPolyGon::drawTextRouterDiagram(QPainter & painter, NetSpeed::Port_i
+             (rp.size / 2 - rp.north_port_length) *
+             diagramTextFactor));
+         painter.rotate(45);
+-        painter.drawText(painter.fontMetrics().width("South West (I)") *
++        painter.drawText(painter.fontMetrics().tightBoundingRect("South West (I)").width() *
+             -diagramTextFactor, -tolerance,
+             QString("South West (I)"));
+         painter.restore();
+@@ -1133,11 +1133,11 @@ void NsRegbusRing::initData() {
+     font.setBold(true);
+     QFontMetrics metric = QFontMetrics(font);
+     QString label = "Regbus Ring for node " + QString::number(regbus_ring_postion.id());
+-    const int labelWidth = metric.width(label);
+-    const int ringMasterNameWidth = metric.width(masterName);
++    const int labelWidth = metric.tightBoundingRect(label).width();
++    const int ringMasterNameWidth = metric.tightBoundingRect(masterName).width();
+     int maxWidth = std::max(labelWidth, ringMasterNameWidth);
+     for (auto const& it : ring_slaves)
+-        maxWidth = std::max(metric.width(QString::fromStdString(it->name())),
++        maxWidth = std::max(metric.tightBoundingRect(QString::fromStdString(it->name())).width(),
+             maxWidth);
+     maxWidth += sidesMargin;
+ 
+@@ -1515,7 +1515,7 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         ingressForwardArrowPath = drawNormalArrow(line);
+         //Ingress text
+         ingressPath.addText(0, 0, font, ingressText);
+-        QMatrix iMatrix;
++        QTransform iMatrix;
+         auto transPoint = line.p2() + QPointF(-fontSize / 2, fontSize);
+         iMatrix.translate(transPoint.x(), transPoint.y());
+         iMatrix.rotate(90);
+@@ -1529,7 +1529,7 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         arrowOutPath = drawNormalArrow(line);
+         arrowOutTt = QString::fromStdString(router->get_tx_port(NetSpeed::NORTH_PORT)->get_adj_rx_port()->get_vc(NetSpeed::VC_id(0)).get_tooltip());
+         //Egress text
+-        QMatrix eMatrix;
++        QTransform eMatrix;
+         egressPath.addText(0, 0, font, egressText);
+         transPoint = QPointF(arrowOutStartPoint.x() - fontSize / 2,
+             routerRecBox.center().y());
+@@ -1569,7 +1569,7 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         ingressForwardArrowPath = drawNormalArrow(line);
+         //Ingress text
+         ingressPath.addText(0, 0, font, ingressText);
+-        QMatrix iMatrix;
++        QTransform iMatrix;
+         auto transPoint = line.p2() + QPointF(fontSize / 2, -fontSize);
+         iMatrix.translate(transPoint.x(), transPoint.y());
+         iMatrix.rotate(-90);
+@@ -1578,7 +1578,7 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         linePath.moveTo(arrowInStartPoint);
+         linePath.quadTo(controlPoint, arrowOutStartPoint);
+         //Egress text
+-        QMatrix eMatrix;
++        QTransform eMatrix;
+         egressPath.addText(0, 0, font, egressText);
+         transPoint = QPointF(arrowOutStartPoint.x() + fontSize / 2,
+             routerRecBox.center().y());
+@@ -1611,7 +1611,7 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         ingressForwardArrowPath = drawNormalArrow(line);
+         //Ingress text
+         ingressPath.addText(0, 0, font, ingressText);
+-        QMatrix iMatrix;
++        QTransform iMatrix;
+         auto transPoint = line.p2() + QPointF(-fontSize, fontSize / 2)
+             - QPointF(ingressPath.boundingRect().width(), 0);
+         iMatrix.translate(transPoint.x(), transPoint.y());
+@@ -1625,7 +1625,7 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         linePath.moveTo(arrowInStartPoint);
+         linePath.quadTo(controlPoint, arrowOutStartPoint);
+         //Egress text
+-        QMatrix eMatrix;
++        QTransform eMatrix;
+         egressPath.addText(0, 0, font, egressText);
+         transPoint = QPointF(routerRecBox.center().x() -
+             fontSize - egressPath.boundingRect().width(),
+@@ -1663,12 +1663,12 @@ void NsMeshSplitDiagram::generateChildrenItems()
+         ingressForwardArrowPath = drawNormalArrow(line);
+         //Ingress text
+         ingressPath.addText(0, 0, font, ingressText);
+-        QMatrix iMatrix;
++        QTransform iMatrix;
+         auto transPoint = line.p2() + QPointF(fontSize, -fontSize / 2);
+         iMatrix.translate(transPoint.x(), transPoint.y());
+         ingressPath = iMatrix.map(ingressPath);
+         //Egress text
+-        QMatrix eMatrix;
++        QTransform eMatrix;
+         egressPath.addText(0, 0, font, egressText);
+         transPoint = QPointF(routerRecBox.center().x() -
+             fontSize,
+@@ -1754,7 +1754,7 @@ void NsLinkDiagram::initData()
+         if (!vc || !vc->is_active()) continue;
+         vcs.push_back(vc);
+         maxVCsPenWidth = std::max(maxVCsPenWidth, vc->get_width());
+-        const int txtSize = metric.width(QString::fromStdString(vc->name()));
++        const int txtSize = metric.tightBoundingRect(QString::fromStdString(vc->name())).width();
+         maxVCNameLength = std::max(maxVCNameLength, txtSize);
+     }
+ 
+@@ -1930,14 +1930,14 @@ void NsRSSBDiagram::initRssbBridgeData()
+ 
+     // max width of vc name
+     for (const auto& vc : allVcs) {
+-        int width = fontMetrics.width(QString::fromStdString(vc->name()));
++        int width = fontMetrics.tightBoundingRect(QString::fromStdString(vc->name())).width();
+         maxWidthVcName = std::max(maxWidthVcName, width);
+         maxVCsPenWidth = std::max(maxVCsPenWidth, vc->get_width());
+     }
+ 
+     //Get maximum width of ifce names
+     for (auto const& ifce : allIfces) {
+-        int width = fontMetrics.width(QString::fromStdString(ifce->if_name()));
++        int width = fontMetrics.tightBoundingRect(QString::fromStdString(ifce->if_name())).width();
+         maxWidthIfceName = std::max(maxWidthIfceName, width);
+         maxIFCEPenWidth = std::max(maxIFCEPenWidth, ifce->get_if_msg_width_cached());
+     }
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsHost.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsHost.cpp
+index fe1c1101183..8197150c478 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsHost.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsHost.cpp
+@@ -493,7 +493,7 @@ NsStorageComponents::NsStorageComponents(const std::vector<std::unique_ptr<NetSp
+     const qreal cosmeticMargin = (BRIDGE_SIZE - metric.height()) / 2;
+     for(auto const& component : components){
+         auto name = QString::fromStdString(component->full_name());
+-        auto const nameWidth = metric.width(name);
++        auto const nameWidth = metric.tightBoundingRect(name).width();
+         if(nameWidth >= maxWidth) {
+             name = metric.elidedText(name, Qt::ElideRight, maxWidth);
+             textWidth = maxWidth;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMesh.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMesh.cpp
+index 3458852ebc5..f8f9c5d9e40 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMesh.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMesh.cpp
+@@ -28,6 +28,7 @@
+ #include <QStaticText>
+ #include <QApplication>
+ #include <QGraphicsSceneContextMenuEvent>
++#include <QTransform>
+ 
+  //extern const int NODE_SIZE;
+ using namespace NetSpeed;
+@@ -591,7 +592,7 @@ void NsMesh::displayLayerInfo()
+     layerName->setFont(layerNameFont);
+     layerName->setPos(rectText.x(), rectText.y());
+     layerName->setParentItem(this);
+-    auto layerNameWidth = layerNameFontMetric.width(layerName->toPlainText());
++    auto layerNameWidth = layerNameFontMetric.tightBoundingRect(layerName->toPlainText()).width();
+     currentTextStopPoint.setX(layerName->pos().rx() + layerNameWidth);
+ 
+     const int textMargin = 5;
+@@ -604,7 +605,7 @@ void NsMesh::displayLayerInfo()
+         textMode->setParentItem(this);
+         auto textStartPoint = currentTextStopPoint.rx() + textMargin;
+         textMode->setPos(textStartPoint, rectText.y());
+-        currentTextStopPoint.setX(textStartPoint + layerNameFontMetric.width(textMode->toPlainText()));
++        currentTextStopPoint.setX(textStartPoint + layerNameFontMetric.tightBoundingRect(textMode->toPlainText()).width());
+     }
+     // display layer's buffer-cost and link-cost
+     // get buffer cost, link cost
+@@ -617,13 +618,13 @@ void NsMesh::displayLayerInfo()
+             linkBufferFont.setPixelSize(BUFFER_TEXT_SIZE);
+             const QString txt = linkBufferCost->toPlainText();
+             const int currentStop = currentTextStopPoint.rx();
+-            while ((currentStop + textMargin + QFontMetricsF(linkBufferFont).width(txt)) > bufferEndPoint.rx()) {
++            while ((currentStop + textMargin + QFontMetricsF(linkBufferFont).tightBoundingRect(txt).width()) > bufferEndPoint.rx()) {
+                 auto pixel = linkBufferFont.pixelSize() - 1;
+                 if (pixel < 1) break;
+                 linkBufferFont.setPixelSize(pixel);
+             }
+             linkBufferCost->setFont(linkBufferFont);
+-            auto const linkBufferCostWidth = QFontMetricsF(linkBufferFont).width(txt);
++            auto const linkBufferCostWidth = QFontMetricsF(linkBufferFont).tightBoundingRect(txt).width();
+             if ((currentTextStopPoint.rx() + textMargin) > bufferEndPoint.rx())
+                 linkBufferCost->setPos(currentTextStopPoint.rx() + linkBufferCostWidth + textMargin, rectText.y() + textMargin);
+             else linkBufferCost->setPos(bufferEndPoint.rx() - linkBufferCostWidth, rectText.y() + textMargin);
+@@ -807,10 +808,10 @@ NsSectorName::NsSectorName(const std::string& sName, const Node_id &tLeft, int w
+         textFont.setPixelSize(qMax(15, qMin(30, (h * NODE_SIZE) / 10)));
+         QFontMetricsF metric(textFont);
+         auto sectorH = sector.height();
+-        if(metric.width(sectorName) > sectorH) sectorName = metric.elidedText(sectorName, Qt::ElideRight, sectorH);
+-        auto textWidth = metric.width(sectorName);
++        if(metric.tightBoundingRect(sectorName).width() > sectorH) sectorName = metric.elidedText(sectorName, Qt::ElideRight, sectorH);
++        auto textWidth = metric.tightBoundingRect(sectorName).width();
+         namePath.addText(QPointF(0, 0), textFont, sectorName);
+-        QMatrix matrix;
++        QTransform matrix;
+         auto point = (angle < 0) ? startPoint - (sectorH - textWidth)/2 : startPoint + (sectorH - textWidth)/2;
+         matrix.translate(distance, point);
+         matrix.rotate(angle);
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMultipleBridges.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMultipleBridges.cpp
+index e57fdac72df..aeaa725153c 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMultipleBridges.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsMultipleBridges.cpp
+@@ -39,7 +39,7 @@ NsMultipleBridges::NsMultipleBridges(const QPoint pos, const QVector<NetSpeed::B
+     QPoint start(STRECH_MUL_BRI / 2, HEADER_MUL_BRI_HIG + STRECH_MUL_BRI / 2 + DIAGRAM_NAME_SIZE);
+     for(auto const& br : bridges) {
+         QString name = QString::fromStdString(br->name());
+-        int w = fm.width(name) + BRIDGE_SIZE + 2;
++        int w = fm.tightBoundingRect(name).width() + BRIDGE_SIZE + 2;
+         width = width > w ? width : w;
+         /* Create Bridge item */
+         NsNormalBridge* bridge = new NsNormalBridge(br, layerID);
+@@ -199,7 +199,7 @@ NsSocViewMultipleBridges::NsSocViewMultipleBridges(const std::vector<NetSpeed::B
+     for (auto br : bridges)
+     {
+         QString name = QString::fromStdString(br->name());
+-        int w = fm.width(name) + bridge_edge_len * SOC_VIEW_UNIT + 2;
++        int w = fm.tightBoundingRect(name).width() + bridge_edge_len * SOC_VIEW_UNIT + 2;
+         width = width > w ? width : w;
+         /* Create Bridge item */
+         NsSocViewBridge* bridge = new NsSocViewBridge(br);
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsPlusItem.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsPlusItem.cpp
+index 1b210ee0a1c..71ad3b9f989 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsPlusItem.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsPlusItem.cpp
+@@ -188,7 +188,7 @@ void NsSocViewPlusItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         {
+             if (!(socScene->getConsole()->is_nogui_mode()))
+             {
+-                auto* mulBris = new NsSocViewMultipleBridges(bridgeList.toStdVector());
++                auto* mulBris = new NsSocViewMultipleBridges(std::vector<NetSpeed::Bridge *>(bridgeList.begin(), bridgeList.end()));
+                 mulBris->setGroup(this->group());
+                 mulBris->hide();
+                 connect(this, SIGNAL(triggered(bool)), mulBris, SLOT(visibleChanged(bool)));
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewBoundingBox.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewBoundingBox.cpp
+index 2b5409e2bce..3807c189b3e 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewBoundingBox.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewBoundingBox.cpp
+@@ -143,7 +143,7 @@ void NsSocViewBoundingBox::sceneScaleChanged(double newScale)
+     auto r = rect();
+     int maxDimension = std::max(r.width(), r.height());
+     // measure size of text to get closest that ticks can be packed
+-    const auto labelWidth = QFontMetrics(scaleFont).width(QString("00%1").arg(maxDimension));
++    const auto labelWidth = QFontMetrics(scaleFont).tightBoundingRect(QString("00%1").arg(maxDimension)).width();
+ 
+     // target step size is widest dimension of label at new scale (zoom level)
+     const auto targetStep = roundUpToMultiple((labelWidth + 20) / newScale,
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewHost.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewHost.cpp
+index 5d296c31ca6..8d3bdeae550 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewHost.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsSocViewHost.cpp
+@@ -155,7 +155,7 @@ void NsSocViewHost::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+     if (false && event->modifiers().testFlag(Qt::ControlModifier)) {
+         QString clone_name;
+         bool ok;
+-        Qt::WindowFlags flags = 0;
++        Qt::WindowFlags flags = Qt::Widget;
+         auto mw = socView->getMainWindow();
+         if (mw && !mw->isHiddenDesignReview())
+             flags |= Qt::WindowStaysOnTopHint;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsVC.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsVC.cpp
+index b2347951d33..9c3c5880c21 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsVC.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Item/NsVC.cpp
+@@ -591,16 +591,16 @@ NsILDCLAbel::NsILDCLAbel(const QString text, const QLineF& line, NsVC *parent) :
+     f.setPixelSize(fontSize);
+     setFont(f);
+     QFontMetricsF fm(f);
+-    const qreal txtWidth = fm.width(text);
++    const qreal txtWidth = fm.tightBoundingRect(text).width();
+     const int limit = line.length() / 2;
+     if(txtWidth > limit) setPlainText(fm.elidedText(text, Qt::ElideRight, limit));
+     const int angle = line.angle();
+     QPointF p;
+     if (isVertical(angle)) { //Is vertical
+         setTransform(QTransform().rotate(270), true);
+-        p = line.center() + QPointF(-boundingRect().height(), fm.width(toPlainText()) / 2);
++        p = line.center() + QPointF(-boundingRect().height(), fm.tightBoundingRect(toPlainText()).width() / 2);
+     }
+-    else p = line.center() - QPointF(fm.width(toPlainText()) / 2, 2);
++    else p = line.center() - QPointF(fm.tightBoundingRect(toPlainText()).width() / 2, 2);
+     setPos(p);
+ }
+ 
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/LintDashboard.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/LintDashboard.cpp
+index 8e8f30d33d5..4a15f1af7ce 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/LintDashboard.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/LintDashboard.cpp
+@@ -192,7 +192,7 @@ void LintDashboard::reFocusAct() {
+     if (!isParent) {
+         int childIndex = std::get<2>(row4ReFocus);
+         table->expand(parentModel);
+-        scrollAndFocus(parentModel.child(childIndex, 0));
++        scrollAndFocus(parentModel.model()->index(childIndex, 0));
+     }
+     else scrollAndFocus(parentModel);
+ }
+@@ -306,7 +306,7 @@ void LintDashboard::upgradeIdSlot()
+     /* Apply upgrade_warning cmd for selected warning items */
+     if (mainWindow && mainWindow->getConsole())
+     {
+-        QString cmd = QString(CMD_UPGRADE_WARNING) + tr(" -id %1").arg(QStringList(ids.toList()).join(" "));
++        QString cmd = QString(CMD_UPGRADE_WARNING) + tr(" -id %1").arg(QStringList(ids.begin(), ids.end()).join(" "));
+         mainWindow->getConsole()->applyCmd(cmd);
+     }
+ }
+@@ -326,7 +326,7 @@ void LintDashboard::downgradeIdSlot()
+     /* Apply upgrade_warning cmd for selected warning items */
+     if (mainWindow && mainWindow->getConsole())
+     {
+-        QString cmd = QString(CMD_RESET_UPGRADE_WARNING) + tr(" -id %1").arg(QStringList(ids.toList()).join(" "));
++        QString cmd = QString(CMD_RESET_UPGRADE_WARNING) + tr(" -id %1").arg(QStringList(ids.begin(), ids.end()).join(" "));
+         mainWindow->getConsole()->applyCmd(cmd);
+     }
+ }
+@@ -342,7 +342,7 @@ void LintDashboard::waiveItemSlot()
+     foreach(QModelIndex row, idIndexes)
+     {
+         QString msg = row.data().toString();
+-        QStringList list = msg.split(QRegExp("[\r\n]"));
++        QStringList list = msg.split(QRegularExpression("[\r\n]"));
+         auto txt = list.at(0);
+         strings.insert(QString("add_%1r -string {%2}")
+             .arg(prefix.toLower())
+@@ -353,7 +353,7 @@ void LintDashboard::waiveItemSlot()
+     if (!mainWindow) return;
+     auto console = mainWindow->getConsole();
+     if (console) {
+-        QString cmds = QStringList(strings.toList()).join("\n");
++        QString cmds = QStringList(strings.begin(), strings.end()).join("\n");
+         console->applyCmd(cmds);
+     }
+ }
+@@ -374,7 +374,7 @@ void LintDashboard::waiveIdSlot()
+     /* Apply waive/unwaive cmd for IDs */
+     if (mainWindow && mainWindow->getConsole())
+     {
+-        QString cmd = tr("add_%1r -id ").arg(prefix.toLower()) + QStringList(ids.toList()).join(" ");
++        QString cmd = tr("add_%1r -id ").arg(prefix.toLower()) + QStringList(ids.begin(), ids.end()).join(" ");
+         mainWindow->getConsole()->applyCmd(cmd);
+     }
+ }
+@@ -386,7 +386,7 @@ void LintDashboard::waiveCategorySlot() {
+ 
+     // apply waive/unwaive cmd for categories
+     if (mainWindow && mainWindow->getConsole()) {
+-        QString cmd = tr("add_%1r -cat ").arg(prefix.toLower()) + QStringList(categories.toList()).join(" ");
++        QString cmd = tr("add_%1r -cat ").arg(prefix.toLower()) + QStringList(categories.begin(), categories.end()).join(" ");
+         mainWindow->getConsole()->applyCmd(cmd);
+     }
+ }
+@@ -451,7 +451,7 @@ void LintDashboard::waiveButtonClicked()
+                 if (row.column() == LINT_MES)
+                 {
+                     QString msg = row.data().toString();
+-                    QStringList list = msg.split(QRegExp("[\r\n]"));
++                    QStringList list = msg.split(QRegularExpression("[\r\n]"));
+                     auto txt = list.at(0);
+                     if (listCmd.contains(txt)) continue;
+                     string << (" {" + txt + "}");
+@@ -760,7 +760,7 @@ TitleBar::TitleBar(bool addClose, QWidget * parent)
+ 
+     QHBoxLayout* layout = new QHBoxLayout(this);
+     layout->setSpacing(0);
+-    layout->setMargin(0);
++    //layout->setMargin(0);
+     layout->setContentsMargins(0, 0, 0, 0);
+     layout->addWidget(floatBt, 0, Qt::AlignRight);
+     if (addClose)
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/Models/propertytablemodel.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/Models/propertytablemodel.cpp
+index 0448bd40352..5076b893bfb 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/Models/propertytablemodel.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/Models/propertytablemodel.cpp
+@@ -14,7 +14,7 @@ static bool run_cmd(std::string cmd) {
+     QString cmdTmp;
+     cmdTmp.append(QString::fromStdString(cmd));
+     // add bracket to support uppercase
+-    QStringList cmds = cmdTmp.split(" ", QString::SkipEmptyParts);
++    QStringList cmds = cmdTmp.split(" ", Qt::SkipEmptyParts);
+     if (cmds[0] == "host_prop") {
+         // command: host_prop <host_name_old> host_name <host_name_new>
+         if (cmds[2] == "host_name") cmdTmp = cmds[0] + " {" + cmds[1] + "} " + cmds[2] + " {" + cmds[3] + "}";
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/NsTypes.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/NsTypes.cpp
+index 12a2828e0e1..c5cefc89453 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/NsTypes.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/NsTypes.cpp
+@@ -13,8 +13,10 @@
+ #include <QGraphicsItem>
+ #include <QSplashScreen>
+ #include <QApplication>
+-#include <QDesktopWidget>
++//#include <QDesktopWidget>
++#include <QGuiApplication>
+ #include <QStyleOptionGraphicsItem>
++#include <QRegularExpression>
+ 
+ #include <cmath>
+ #include <regex>
+@@ -229,7 +231,7 @@ void drawAutoFitText(const QString & text, const QRectF & itemRect, QPainter * p
+     QFont measureFont = painter->font();
+     measureFont.setPointSizeF(FLOOR_PLAN_DEFAULT_TEXT_SIZE);
+     QFontMetrics metrics(measureFont);
+-    if (itemRect.width() < metrics.width(text) || itemRect.height() < FLOOR_PLAN_DEFAULT_TEXT_SIZE) {
++    if (itemRect.width() < metrics.tightBoundingRect(text).width() || itemRect.height() < FLOOR_PLAN_DEFAULT_TEXT_SIZE) {
+         const float hmargin = 0.1 * itemRect.width();// horizontal margin of 10% host width
+         const auto brect = itemRect.adjusted(hmargin, 0, -hmargin, 0); //reduce rect by margin
+         const int flags = Qt::TextDontClip | Qt::TextWordWrap; //more flags if needed
+@@ -316,7 +318,7 @@ bool imgSave(QImage * img, const QString & absFilePath, const QString & extensio
+ QString wrapTextForTooltip(const QString & text, int width)
+ {
+     QFontMetrics fm(QToolTip::font());
+-    const int row = fm.width(text) / width;
++    const int row = fm.tightBoundingRect(text).width() / width;
+     if (row <= 1) return text;
+     const int col = text.length() / row;
+     QString tempStr = text;
+@@ -451,11 +453,11 @@ double fontSizeCheck(double size)
+ 
+ QStringList extractNumberFromString(QString str) {
+     QStringList result;
+-    QRegExp rx("(\\d+)");
+-    int pos = 0;
+-    while ((pos = rx.indexIn(str, pos)) != -1) {
+-        result << rx.cap(1);
+-        pos += rx.matchedLength();
++    QRegularExpression rx("(\\d+)");
++    QRegularExpressionMatchIterator matchedIterator = rx.globalMatch(str);
++    while (matchedIterator.hasNext()) {
++        QRegularExpressionMatch match = matchedIterator.next();
++        result << match.captured(1);
+     }
+     return result;
+ }
+@@ -478,8 +480,8 @@ QSplashScreen* createSpashScreen() {
+     //generate auto-sized splash image
+     QPixmap splashImage = QPixmap(":/images/cfg.png");
+     QWidget* screen = nullptr;
+-    screen = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen());//get primary screen (splash screen only displayed on primary)
+-    if (QApplication::desktop()->screenCount() == 0 || screen == nullptr)//if there is no screen registered, calculate size based on font metrics
++    //screen = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen());//get primary screen (splash screen only displayed on primary)
++    if (screen == nullptr)  // if there is no screen registered, calculate size based on font metrics
+     {
+         QFontMetrics fontMet = QFontMetrics(QFont("Gotham Rounded Book", 10, 10));
+         splashImage = splashImage.scaledToHeight(fontMet.height() * 18);
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsChopview.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsChopview.cpp
+index a6701a12579..45f16ddd7aa 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsChopview.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsChopview.cpp
+@@ -128,8 +128,8 @@ void NsChopView::mouseReleaseEvent(QMouseEvent *event)
+ void NsChopView::wheelEvent(QWheelEvent *event)
+ {
+     if(event->modifiers().testFlag(Qt::ControlModifier)){
+-        if(event->delta() > 0) zoom(ZOOM_STEP); // zoom in
+-        if(event->delta() < 0) zoom(-ZOOM_STEP); // zoon out
++        if (event->angleDelta().y() > 0) zoom(ZOOM_STEP);  // zoom in
++        if (event->angleDelta().y() < 0) zoom(-ZOOM_STEP);  // zoon out
+     }else NsView::wheelEvent(event);
+ }
+ 
+@@ -186,7 +186,7 @@ void NsSector::drawTransmissionQueue() {
+     QFont font;
+     font.setPixelSize(15);
+     QFontMetricsF metric(font);
+-    const qreal start = metric.width(text);
++    const qreal start = metric.tightBoundingRect(text).width();
+     for(int shiftVal = 0; shiftVal <= delta.first; ++shiftVal){
+         auto nodeShift = topLeft.shift(NetSpeed::Col_delta(shiftVal), NetSpeed::Row_delta(0));
+         auto col = nodeShift.x();
+@@ -199,7 +199,7 @@ void NsSector::drawTransmissionQueue() {
+         path.moveTo(start, 0);
+         path.lineTo(QPointF(length, 0));
+         QPointF startPoint = QPointF(x, 0);
+-        QMatrix matrix;
++        QTransform matrix;
+         matrix.translate(startPoint.rx(), startPoint.ry());
+         matrix.rotate(90);
+         auto item = new NsTransmissionQueue(matrix.map(path), this);
+@@ -267,9 +267,9 @@ void NsSector::drawNodeTexts(QPainterPath& path, const NetSpeed::Node_id node, c
+     const QFontMetricsF metric(font);
+     const double leftMargin = NODE_SIZE/2;
+     const double fontHeight = metric.height();
+-    if(metric.width(text) > leftMargin) text = metric.elidedText(text, Qt::ElideRight, leftMargin);
+-    if (metric.width(stopIdText) > leftMargin) stopIdText = metric.elidedText(stopIdText, Qt::ElideRight, leftMargin);
+-    if (metric.width(stopIdText) > leftMargin) instanceSuffix = metric.elidedText(instanceSuffix, Qt::ElideRight, leftMargin);
++    if(metric.tightBoundingRect(text).width() > leftMargin) text = metric.elidedText(text, Qt::ElideRight, leftMargin);
++    if (metric.tightBoundingRect(stopIdText).width() > leftMargin) stopIdText = metric.elidedText(stopIdText, Qt::ElideRight, leftMargin);
++    if (metric.tightBoundingRect(stopIdText).width() > leftMargin) instanceSuffix = metric.elidedText(instanceSuffix, Qt::ElideRight, leftMargin);
+     const NetSpeed::orient orient = (router) ? router->get_orientation() : NetSpeed::orient::MX;
+     switch (orient) {
+     case NetSpeed::orient::R0: //Router at bottom left
+@@ -299,7 +299,7 @@ void NsSector::updateSectorNameFontSize()
+     QFontMetricsF metric(textFont);
+     const qreal marginSectorNameX = 40;
+     QString sName = name;
+-    auto textWidth = metric.width(sName);
++    auto textWidth = metric.tightBoundingRect(sName).width();
+     qreal sectorDisplayHeight = (bottomRight.y() - topLeft.y() - rows.size() + 1) * NODE_SIZE;
+     qreal posY = 0;
+     if(textWidth >= sectorDisplayHeight){
+@@ -307,7 +307,7 @@ void NsSector::updateSectorNameFontSize()
+         posY = sectorDisplayHeight;
+     } else posY = (sectorDisplayHeight + textWidth)/2;
+     qreal posX =  (-offset * NODE_SIZE) - marginSectorNameX;
+-    QMatrix matrix;
++    QTransform matrix;
+     matrix.translate(posX, posY);
+     matrix.rotate(-90);
+     QPainterPath path;
+@@ -615,7 +615,7 @@ void NsChopViewBoundingBox::createVirtualRouterAndVC(const NetSpeed::internal_db
+             NsTurnBackVcItem* turnBackVcItem = new NsTurnBackVcItem(vc, pos, true);
+             turnBackVcItem->setZValue(NsChopView::LINK_ORDER);
+             auto path = sector->lineUTurn(pos, vc);
+-            QMatrix matrix;
++            QTransform matrix;
+             auto pos = sector->pos();
+             matrix.translate(pos.rx(), pos.ry());
+             turnBackVcItem->setPath(matrix.map(path));
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsNocViewScene.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsNocViewScene.cpp
+index 8f27a2c11b5..90390a66a86 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsNocViewScene.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsNocViewScene.cpp
+@@ -562,7 +562,7 @@ bool NsNocViewScene::applyCmd(QPointF scenePos)
+ 
+         // for design view mode
+         bool ok;
+-        Qt::WindowFlags flags = 0;
++        Qt::WindowFlags flags = Qt::Widget;
+         auto mw = nsWorkArea->getMainWindow();
+         if (mw && !mw->isHiddenDesignReview())
+             flags |= Qt::WindowStaysOnTopHint;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocView.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocView.cpp
+index 2a5eedd9b02..a1fbde6da69 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocView.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocView.cpp
+@@ -195,10 +195,10 @@ void NsSocView::wheelEvent(QWheelEvent * event)
+ {
+     if (event->modifiers().testFlag(Qt::ControlModifier))
+     {
+-        if (event->delta() > 0) {
++        if (event->angleDelta().y() > 0) {
+             mainWindow->zoomInAct();
+         }
+-        else if (event->delta() < 0) {
++        else if (event->angleDelta().y() < 0) {
+             mainWindow->zoomOutAct();
+         }
+     }
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocViewScene.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocViewScene.cpp
+index 23a1513590b..dde94e5908f 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocViewScene.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsSocViewScene.cpp
+@@ -20,6 +20,8 @@
+ #include "Domain.h"
+ #include "Grid.h"
+ #include "GenDoc.h"
++#include <QSet>
++#include <QList>
+ 
+ using namespace std;
+ const double NOC_TRANSPARENCY_IN_REGULAR_SOC_VIEW = 1;
+@@ -368,7 +370,7 @@ void NsSocViewScene::createHosts()
+             {
+                 return b1.first.size() > b2.first.size();
+             };
+-            qSort(overlapRectList.begin(), overlapRectList.end(), sortSizeList);
++            std::sort(overlapRectList.begin(), overlapRectList.end(), sortSizeList);
+             //Store background only item's ID number
+             QList<int> backGroundOnly;
+             //Counting current overlap item
+@@ -448,7 +450,7 @@ void NsSocViewScene::createPlusItem(QVector<NetSpeed::Bridge*> overlappedbridgeL
+     plus->setChecked(false);
+     plus->setZValue(zPos);
+     addItem(plus);
+-    auto* mulBris = new NsSocViewMultipleBridges(overlappedbridgeList.toStdVector());
++    auto* mulBris = new NsSocViewMultipleBridges(std::vector<NetSpeed::Bridge *>(overlappedbridgeList.begin(), overlappedbridgeList.end()));
+     mulBris->setHandlesChildEvents(false);
+     mulBris->hide();
+     connect(plus, SIGNAL(triggered(bool)), mulBris, SLOT(visibleChanged(bool)));
+@@ -758,7 +760,7 @@ void NsSocViewScene::createRegionItems()
+     regionColors.clear();
+     if (!console || !console->get_container().get_grid()) return;
+     int color = 1;
+-    auto usedColors = regionColors.values().toSet();
++    auto usedColors = QSet<int>(regionColors.values().begin(), regionColors.values().end());
+     //store region map
+     QMap<std::string, NsSocViewRegion*> regionMap;
+     for (const auto& region : console->get_container().get_grid()->get_phy_regions()) {
+@@ -776,7 +778,7 @@ void NsSocViewScene::createRegionItems()
+         for (auto rect : region.phy_poss) {
+             auto regionItem = new NsSocViewRegion(QString::fromStdString(region.name), region, rect, rgbToColor(NetSpeed::color_choices[color].second));
+             //store region Item for handling overlap
+-            regionMap.insertMulti(region.name, regionItem);
++            regionMap.insert(region.name, regionItem);
+             if (NetSpeed::Grid::region_view_show == NetSpeed::RegionShowForeground || imageSaving)
+                 regionItem->setZValue(SocViewZValue::RegionForegroundZ);
+             else if (NetSpeed::Grid::region_view_show == NetSpeed::RegionShowBackground)
+@@ -785,13 +787,13 @@ void NsSocViewScene::createRegionItems()
+         regionColors.insert(region.unified_domain->name, color++);
+     }
+     //Overlap region handler
+-    auto keysList = regionMap.uniqueKeys();
++    auto keysList = regionMap.keys();
+     for (auto it = keysList.begin(); it != keysList.end(); ++it)
+     {
+         //Gets current region list
+         auto list = regionMap.values(it->data());
+         //Iterates through current region list
+-        for (auto regionItem : list)
++        for (auto& regionItem : list)
+         {
+             //Loop for same region name overlap
+             for (auto nextRegionItem : list)
+@@ -818,7 +820,7 @@ void NsSocViewScene::createRegionItems()
+                 }
+             }
+             addItem(regionItem);
+-            regions.insertMulti(it->data(), regionItem);
++            regions.insert(it->data(), regionItem);
+         }
+     }
+     /* Re-use colors of deleted regions */
+@@ -1065,7 +1067,7 @@ bool NsSocViewScene::applyCmd(QPointF positionF)
+             NetSpeed::clamp(&position.rx(), 0, grid->get_soc_phy_size_x() - phy_width);
+             NetSpeed::clamp(&position.ry(), 0, grid->get_soc_phy_size_y() - phy_height);
+             bool ok;
+-            Qt::WindowFlags flags = 0;
++            Qt::WindowFlags flags = Qt::Widget;
+             auto mw = socView->getMainWindow();
+             if (mw && !mw->isHiddenDesignReview())
+                 flags |= Qt::WindowStaysOnTopHint;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsView.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsView.cpp
+index 3355ececa45..e5acad20a16 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsView.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsView.cpp
+@@ -48,7 +48,7 @@ double NsView::getZoomFactor() const
+ 
+ void NsView::setZoomFactor(qreal value)
+ {
+-    resetMatrix();
++    resetTransform();
+     scale(value, value);
+ }
+ 
+@@ -90,7 +90,7 @@ QRect NsView::visibleRect() const
+ 
+ void NsView::sceneScaleChanged(double newScale)
+ {
+-    resetMatrix();
++    resetTransform();
+     scale(newScale, newScale);
+ }
+ 
+@@ -129,4 +129,4 @@ void NsView::mouseReleaseEvent(QMouseEvent *event)
+         }
+     }
+     QGraphicsView::mouseReleaseEvent(event);
+-}
+\ No newline at end of file
++}
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsWorkArea.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsWorkArea.cpp
+index e4f22b058f2..84de1c14778 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/View/NsWorkArea.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/View/NsWorkArea.cpp
+@@ -317,10 +317,10 @@ void NsWorkArea::wheelEvent(QWheelEvent * event)
+ {
+     if (event->modifiers().testFlag(Qt::ControlModifier))
+     {
+-        if (event->delta() > 0) {
++        if (event->angleDelta().y() > 0) {
+             mainWindow->zoomInAct();
+         }
+-        else if (event->delta() < 0) {
++        else if (event->angleDelta().y() < 0) {
+             mainWindow->zoomOutAct();
+         }
+     }
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/dialogs.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/dialogs.cpp
+index 819dd28534b..adfcf26e458 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/dialogs.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/dialogs.cpp
+@@ -326,7 +326,7 @@ TuneLinkDialog::TuneLinkDialog(QWidget * parent) : QDialog(parent)
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignRight);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignLeft);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -365,7 +365,7 @@ SizeDialog::SizeDialog(bool col, int val, QWidget * parent) : QDialog(parent)
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignRight);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignLeft);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     mainLayout->addLayout(layout);
+     mainLayout->addLayout(buttonLayout);
+@@ -565,7 +565,7 @@ ConfirmCreateHostDialog::ConfirmCreateHostDialog(QString mes, QWidget * parent)
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignRight);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignLeft);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -641,7 +641,7 @@ CreateHostFailureDialog::CreateHostFailureDialog(QString mes, QWidget * parent)
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignRight);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignLeft);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -904,7 +904,7 @@ CloseAppDialog::CloseAppDialog(QWidget * parent) : QDialog(parent)
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignRight);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignLeft);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -941,7 +941,7 @@ LicenseWarningDialog::LicenseWarningDialog(QWidget * parent) : QDialog(parent)
+ 
+     QGridLayout * buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignCenter);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout * mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -975,7 +975,7 @@ AliasDialog::AliasDialog(QWidget * parent) : QDialog(parent)
+     QGridLayout * buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignRight);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignLeft);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout * mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -1122,7 +1122,7 @@ DesignReviewDialog::DesignReviewDialog(QString scripts, INIConsole * con) :conso
+     setWindowIcon(QIcon(ICON_NOC_M1));
+     setWindowFlags(getFlagsDialog());
+     //move(QApplication::desktop()->screenGeometry().right(),QApplication::desktop()->screenGeometry().top());
+-    move(QApplication::desktop()->screenGeometry().right() - size().width() - 10, QApplication::desktop()->screenGeometry().top() + 10);
++    move(QGuiApplication::primaryScreen()->geometry().right() - size().width() - 10, QGuiApplication::primaryScreen()->geometry().top() + 10);
+ 
+     /* Add scripts into treeView (and check valid also) */
+     QStringList arr = scripts.split("\n");
+@@ -1360,14 +1360,14 @@ void DesignReviewDialog::resetHighLight()
+     for (int i = 0; i < treeViewWidget->topLevelItemCount(); i++)
+     {
+         QTreeWidgetItem* treeItem = treeViewWidget->topLevelItem(i);
+-        if (treeItem->columnCount() > 0) treeItem->setTextColor(0, QColor("black"));
++        //if (treeItem->columnCount() > 0) treeItem->setTextColor(0, QColor("black"));
+         treeItem->setDisabled(false);
+         for (int j = 0; j < treeItem->childCount(); j++)
+         {
+             QTreeWidgetItem* child = treeItem->child(j);
+             if (child->columnCount() < 2) continue;
+             child->setDisabled(false);
+-            child->setTextColor(0, QColor("black"));
++            //child->setTextColor(0, QColor("black"));
+         }
+     }
+ }
+@@ -1386,17 +1386,17 @@ void DesignReviewDialog::hightLightItem(int idx)
+             if (child->columnCount() < 2) continue;
+             if (!found && idx > 0)
+             {
+-                child->setTextColor(0, QColor("gray"));
++                //child->setTextColor(0, QColor("gray"));
+                 child->setSelected(false);
+                 if (child->parent())
+                 {
+-                    child->parent()->setTextColor(0, QColor("gray"));
++                    //child->parent()->setTextColor(0, QColor("gray"));
+                     child->parent()->setSelected(false);
+                 }
+             }
+             else
+             {
+-                child->setTextColor(0, QColor("black"));
++                //child->setTextColor(0, QColor("black"));
+                 child->setDisabled(false);
+                 if (child->parent())
+                 {
+@@ -1407,12 +1407,12 @@ void DesignReviewDialog::hightLightItem(int idx)
+             if (child->text(1).toInt() == (idx1))
+             {
+                 found = true;
+-                child->setTextColor(0, QColor("blue"));
++                //child->setTextColor(0, QColor("blue"));
+                 emit currentItemChanged(child);
+                 child->setDisabled(false);
+                 if (child->parent())
+                 {
+-                    child->parent()->setTextColor(0, QColor("blue"));
++                    //child->parent()->setTextColor(0, QColor("blue"));
+                     child->parent()->setDisabled(false);
+                 }
+                 treeViewWidget->scrollToItem(child);
+@@ -1445,7 +1445,7 @@ QTreeWidgetItem* DesignReviewDialog::addTreeChild(QTreeWidgetItem * parent, QStr
+     QTreeWidgetItem* treeItem = new QTreeWidgetItem();
+     treeItem->setText(0, name);
+     treeItem->setText(1, QString::number(index));
+-    treeItem->setTextColor(0, QColor("black"));
++    //treeItem->setTextColor(0, QColor("black"));
+     parent->addChild(treeItem);
+     return treeItem;
+ }
+@@ -1640,7 +1640,7 @@ void HelpAppDialog::updateHelpContents() {
+         connect(filterAction, &QAction::triggered, this, [this]() { itemFinderButtonSlot(); });
+         filterOptions->addAction(filterAction);
+     }
+-    for (int idx = 0; idx < items.count(); ++idx)  if (items.at(idx)->text(0).endsWith("Commands")) { items.swap(idx, 0); break; }
++    for (int idx = 0; idx < items.count(); ++idx)  if (items.at(idx)->text(0).endsWith("Commands")) { items.swapItemsAt(idx, 0); break; }
+     tree->addTopLevelItems(items);
+     tree->expandAll();
+ }
+@@ -1666,9 +1666,9 @@ void HelpMenuTreeWidget::wheelEvent(QWheelEvent* event)
+     if (event->modifiers().testFlag(Qt::ControlModifier))
+     {
+         auto mSlider = ResizeDialog::getResizeDialog()->getMSlider();
+-        if (event->delta() > 0)
++        if (event->angleDelta().y() > 0)
+             mSlider->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+-        else if (event->delta() < 0)
++        else if (event->angleDelta().y() < 0)
+             mSlider->triggerAction(QAbstractSlider::SliderSingleStepSub);
+         event->accept();
+     }
+@@ -1760,7 +1760,7 @@ void HelpAppDialog::itemFinderButtonSlot()
+             if (headerMatches || valueMatches) {
+                 if(!treeRoot) treeRoot = addTreeRoot(chapterName, chapterHeader + chapterFooter);
+                 auto child = addTreeChild(treeRoot, lineName, lineValue, QString::fromStdString(line.html_help));
+-                if (headerMatches && !itemFinderText.isEmpty()) child->setBackgroundColor(0, QColor("#ffdab3"));
++                if (headerMatches && !itemFinderText.isEmpty()) child->setBackground(0, QColor("#ffdab3"));
+             }
+         }
+         if (!treeRoot) {
+@@ -1790,7 +1790,7 @@ void HelpAppDialog::itemFinderButtonSlot()
+         });
+     }
+ 
+-    for (int idx = 0; idx < items.count(); ++idx)  if (items.at(idx)->text(0).endsWith("Commands")) { items.swap(idx, 0); break; }
++    for (int idx = 0; idx < items.count(); ++idx)  if (items.at(idx)->text(0).endsWith("Commands")) { items.swapItemsAt(idx, 0); break; }
+     tree->addTopLevelItems(items);
+     tree->expandAll();
+     setUpdatesEnabled(true);
+@@ -1911,7 +1911,7 @@ AliasMsg::AliasMsg(QWidget * parent) : QDialog(parent)
+ 
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignCenter);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+@@ -1962,8 +1962,8 @@ AddRangeToAXISlavesDialog::AddRangeToAXISlavesDialog(NetSpeed::Grid * grid, QWid
+     //set some default values here
+     for (int i = 0; i < slaveNames.size(); i++)
+         slaveName->addItem(slaveNames.at(i));
+-    connect(slaveName, SIGNAL(currentIndexChanged(QString)), this, SLOT(slaveNameChanged(QString)));
+-    emit slaveName->currentIndexChanged(slaveName->currentText());
++    connect(slaveName, SIGNAL(currentTextChanged(QString)), this, SLOT(slaveNameChanged(QString)));
++    emit slaveName->currentTextChanged(slaveName->currentText());
+ 
+     rangeName->setText("");
+     address->setText("");
+@@ -1994,7 +1994,7 @@ AddRangeToAXISlavesDialog::AddRangeToAXISlavesDialog(NetSpeed::Grid * grid, QWid
+     layout->addWidget(new QLabel("Region ID: "), row, 0, Qt::AlignRight);
+     layout->addWidget(region, row++, 1);
+ 
+-    rangeType->addItems(QString("enabled, disabled, readonly, writeonly").split(", ", QString::SkipEmptyParts));
++    rangeType->addItems(QString("enabled, disabled, readonly, writeonly").split(", ", Qt::SkipEmptyParts));
+     layout->addWidget(rangeType, row++, 1);
+     priv->setToolTip("priv");
+     layout->addWidget(new QLabel(tr("%1: ").arg(priv->toolTip())), row, 0, Qt::AlignRight);
+@@ -2159,7 +2159,7 @@ AddRangeToAXIMasterDialog::AddRangeToAXIMasterDialog(QWidget * parent, QStringLi
+     layout->addWidget(new QLabel("Master Name: "), row, 0, Qt::AlignRight);
+     layout->addWidget(masterName, row++, 1);
+ 
+-    rangeType->addItems(QString("enabled, disabled, readonly, writeonly").split(", ", QString::SkipEmptyParts));
++    rangeType->addItems(QString("enabled, disabled, readonly, writeonly").split(", ", Qt::SkipEmptyParts));
+     layout->addWidget(rangeType, row++, 1);
+     priv->setToolTip("priv");
+     layout->addWidget(new QLabel(tr("%1: ").arg(priv->toolTip())), row, 0, Qt::AlignRight);
+@@ -2317,7 +2317,7 @@ AboutDialog::AboutDialog(QWidget * parent) : QDialog(parent)
+     aboutContent->setText(dialogText);
+     QScrollArea * sa = new QScrollArea;
+     QWidget * w = new QWidget;
+-    QVBoxLayout * l = new QVBoxLayout; l->setMargin(10);
++    QVBoxLayout * l = new QVBoxLayout;
+     l->addWidget(image);
+     l->addWidget(aboutContent);
+     l->setSpacing(15);
+@@ -2331,7 +2331,7 @@ AboutDialog::AboutDialog(QWidget * parent) : QDialog(parent)
+     h->addWidget(close);
+     mainLayout->addLayout(h);
+     connect(close, &QPushButton::clicked, this, &QDialog::accept);
+-    mainLayout->setMargin(5);
++    //mainLayout->setMargin(5);
+     mainLayout->setAlignment(l, Qt::AlignHCenter);
+     setLayout(mainLayout);
+     this->resize(600, 550);
+@@ -2394,7 +2394,7 @@ RangeNameItemControl::RangeNameItemControl(QWidget * parent, QStringList rangeNa
+     layout->addWidget(rangeNamesComboBox);
+     layout->addWidget(removeButton);
+     setLayout(layout);
+-    layout->setMargin(0);
++    //layout->setMargin(0);
+     connect(removeButton, SIGNAL(clicked()), this, SLOT(selfRemove()));
+ }
+ 
+@@ -3334,7 +3334,7 @@ FinalizeDialog::FinalizeDialog(QWidget * parent) : QDialog(parent)
+     QGridLayout* buttonLayout = new QGridLayout;
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignLeft);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignRight);
+-    buttonLayout->setMargin(5);
++    //buttonLayout->setMargin(5);
+ 
+     QVBoxLayout* mainLayout = new QVBoxLayout;
+     mainLayout->addLayout(layout);
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/mainwindow.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/mainwindow.cpp
+index f9b55f9e2ea..733e2813b29 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/mainwindow.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/mainwindow.cpp
+@@ -175,9 +175,9 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     progressBar->setMinimum(0);
+     progressBar->setMaximum(100);
+     setPrgrBarValue(100);
+-    consoleDock = new NSDockWidget(OBJ_CONSOLE_MAINWINDOW, this, 0);
++    consoleDock = new NSDockWidget(OBJ_CONSOLE_MAINWINDOW, this, Qt::Widget);
+     consoleDock->setObjectName(OBJ_CONSOLE_DOCK);
+-    dockLintTab = new NSDockWidget(OBJ_LINT_DOCK, this, 0);
++    dockLintTab = new NSDockWidget(OBJ_LINT_DOCK, this, Qt::Widget);
+     connect(this, SIGNAL(updateLinttab()), this, SLOT(addLintTab()));
+     centerSplitter = new QSplitter(this);
+ 
+@@ -237,7 +237,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     containerLayout->addWidget(floatingButt);
+     containerLayout->addWidget(closeTabButt);
+     containerLayout->setContentsMargins(0, 0, 0, 0);
+-    containerLayout->setMargin(0);
++    //containerLayout->setMargin(0);
+     containerLayout->setSpacing(0);
+     container->setLayout(containerLayout);
+     container->setStyleSheet("border:2px;");
+@@ -283,7 +283,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     connect(this, &MainWindow::resizeWindow, this, [this](int width, int height) {
+         //Set state to prevent problems when windows is at full screen then resize
+         setWindowState(Qt::WindowNoState);
+-        auto rect = QDesktopWidget().availableGeometry();
++        auto rect = QGuiApplication::primaryScreen()->geometry();
+         const int maxWidth = rect.width();
+         const int maxHeight = rect.height();
+         width = std::min(maxWidth, width);
+@@ -983,7 +983,7 @@ void MainWindow::createLayerButtons(NetSpeed::Grid * grid)
+         }
+         else {
+             QString t = "Shift+A";
+-            t[t.length() - 1] = t[t.length() - 1].unicode() + l - 10;
++            t[t.length() - 1] = QChar(t[t.length() - 1].unicode() + l - 10);
+             shortCut = layerShortcut.arg(t);
+             layerPb->setShortcut(shortCut);
+         }
+@@ -2431,9 +2431,7 @@ bool MainWindow::saveProjectAct()
+     }
+ 
+     QJsonDocument saveDoc(loadDoc.object());
+-    saveFile.write(fileName.endsWith(".json")
+-        ? saveDoc.toJson()
+-        : saveDoc.toBinaryData());
++    saveFile.write(saveDoc.toJson());
+ 
+ #endif
+     return true;
+@@ -2458,9 +2456,7 @@ bool MainWindow::openProjectAct()
+ 
+     QByteArray saveData = loadFile.readAll();
+ 
+-    QJsonDocument loadDoc(fileName.endsWith(".json")
+-        ? QJsonDocument::fromJson(saveData)
+-        : QJsonDocument::fromBinaryData(saveData));
++    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+ 
+     //! TODO: Read data from Json Objects
+     qDebug() << loadDoc.toJson() << loadDoc.object().keys();
+@@ -2863,10 +2859,10 @@ void MainWindow::wheelEvent(QWheelEvent * event)
+         if (!displayPanel || (displayPanel->currentIndex() != 0 && !isDisplayingChipView())) return;
+         QWidget * widget = displayPanel->widget(0);
+         if (!widget || (!widget->underMouse() && !isDisplayingChipView())) return;
+-        if (event->delta() > 0) {
++        if (event->angleDelta().y() > 0) {
+             zoomInAct();
+         }
+-        else if (event->delta() < 0) {
++        else if (event->angleDelta().y() < 0) {
+             zoomOutAct();
+         }
+     }
+@@ -2877,8 +2873,8 @@ bool MainWindow::checkLicense(bool checkFlexlm)
+     if (!checkFlexlm) { // show license warning dialog
+         auto closeApp = new LicenseWarningDialog(this);
+         closeApp->resize(200, 50);
+-        QRect scr = QApplication::desktop()->screenGeometry();
+-        closeApp->move(scr.center() - closeApp->rect().center());
++        //QRect scr = QApplication::desktop()->screenGeometry();
++        //closeApp->move(scr.center() - closeApp->rect().center());
+         setStayOnTopDesignReview(closeApp);
+         if (closeApp->exec()) {
+             console->cancelCommands();
+@@ -3738,7 +3734,7 @@ void MainWindow::delTypeDomainAct()
+         }
+     }
+     if (allDomains.isEmpty()) return;
+-    Qt::WindowFlags flags = 0;
++    Qt::WindowFlags flags = Qt::Widget;
+     if (!isHiddenDesignReview())
+         flags |= Qt::WindowStaysOnTopHint;
+     bool ok;
+@@ -4950,7 +4946,7 @@ void MainWindow::processChartTab(const NetSpeed::chart_tab_t & chs, bool create_
+ 
+         // Get Max StatTab Id
+         int id = charts.liveId = 0;
+-        if (!charts.chartTabs.isEmpty()) id = charts.liveId = (charts.chartTabs.constEnd() - 1).key() + 1;
++        if (!charts.chartTabs.isEmpty()) id = charts.liveId = prev(charts.chartTabs.constEnd()).key() + 1;
+ 
+         // Insert to map
+         charts.chartTabs.insert(id, chs);
+@@ -4958,7 +4954,7 @@ void MainWindow::processChartTab(const NetSpeed::chart_tab_t & chs, bool create_
+         // Get layout of transaction plots
+         auto mainLayout = createChartTabLayout(chs);
+         mainLayout->setSpacing(6);
+-        mainLayout->setMargin(0);
++        //mainLayout->setMargin(0);
+ 
+         // Add to display panel
+         QString tabName = tr("%1 %2").arg(QString::fromStdString(chs.headline)).arg(id);
+@@ -5046,11 +5042,11 @@ QVBoxLayout* MainWindow::createChartTabLayout(const NetSpeed::chart_tab_t & chs)
+ {
+     QVBoxLayout* mainLayout = new QVBoxLayout();
+     mainLayout->setSpacing(6);
+-    mainLayout->setMargin(0);
++    //mainLayout->setMargin(0);
+     QMap<QString, QCustomPlot*>* plots = new QMap<QString, QCustomPlot*>();
+     charts.plots.insert(charts.liveId, plots);
+     // Display normal plots
+-    for (const auto chart : chs.charts) {
++    for (const auto& chart : chs.charts) {
+         // Init chart
+         QCustomPlot* customPlot = new QCustomPlot();
+         initChartLayout(customPlot, chart);
+@@ -5064,12 +5060,12 @@ QVBoxLayout* MainWindow::createChartTabLayout(const NetSpeed::chart_tab_t & chs)
+         QVBoxLayout* plotLayout;
+         plotLayout = new QVBoxLayout();
+         plotLayout->setSpacing(0);
+-        plotLayout->setMargin(0);
++        //plotLayout->setMargin(0);
+         plotLayout->addWidget(customPlot);
+ 
+         QVBoxLayout* verticalLayout = new QVBoxLayout();
+         verticalLayout->addLayout(plotLayout);
+-        verticalLayout->setMargin(10);
++        //verticalLayout->setMargin(10);
+         widget->setLayout(verticalLayout);
+ 
+         // Add to main layout
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/myconsole.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/myconsole.cpp
+index 1058118d8ad..b88bce8cd27 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/myconsole.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/myconsole.cpp
+@@ -591,7 +591,7 @@ void INIConsole::handlePasteEvent()
+ 
+     // Delete characters/ selected text which user inputed
+     if (min >= beginOfCurrentTyping) {
+-        if (blkCmd.contains(QRegExp("[\r\n]"))) {
++        if (blkCmd.contains(QRegularExpression("[\r\n]"))) {
+             textCursor().deleteChar();
+             moveCursor(QTextCursor::End);
+             moveCursor(QTextCursor::StartOfBlock);
+@@ -618,7 +618,7 @@ void INIConsole::handlePasteEvent()
+ 
+ void INIConsole::setLineLimit()
+ {
+-    Qt::WindowFlags flags = 0;
++    Qt::WindowFlags flags = Qt::Widget;
+     if (designRevDialog && !designRevDialog->isHidden())
+         flags |= Qt::WindowStaysOnTopHint;
+     bool ok;
+@@ -1538,10 +1538,10 @@ void INIConsole::wheelEvent(QWheelEvent * event)
+     if (event->modifiers().testFlag(Qt::ControlModifier))
+     {
+         auto cSlider = ResizeDialog::getResizeDialog()->getCSlider();
+-        if (event->delta() > 0) {
++        if (event->angleDelta().y() > 0) {
+             cSlider->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+         }
+-        else if (event->delta() < 0) {
++        else if (event->angleDelta().y() < 0) {
+             cSlider->triggerAction(QAbstractSlider::SliderSingleStepSub);
+         }
+     }
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/propertypanel.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/propertypanel.cpp
+index 19b82cac2f1..cfae47d2f6c 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/propertypanel.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/propertypanel.cpp
+@@ -141,7 +141,7 @@ template <> QString getPropCmd<NetSpeed::Bridge>(QtProperty * p, const NetSpeed:
+     auto propName = (helpTxtEmpty) ? p->propertyName() : helpTxt;
+     auto value = p->valueText();
+     if (!helpTxtEmpty) {
+-        auto nameList = value.split(QRegExp("/"));
++        auto nameList = value.split(QRegularExpression("/"));
+         if (!nameList.empty()) value = nameList.last();
+     }
+     return QString("bridge_prop {%1} %2 {%3}").arg(QString::fromStdString(h->name()), propName, value);
+@@ -4681,12 +4681,12 @@ QString PropertyPanel::wrapTextForTooltip(QString text, int width)
+     static int colLen = 0;
+     if (localWidth != width)
+     {
+-        int numRow = fm.width(text) / width;
++        int numRow = fm.tightBoundingRect(text).width() / width;
+         if (numRow <= 1) return text;
+         colLen = text.length() / numRow;
+         while (colLen < text.length())
+         {
+-            if (fm.width(text.left(++colLen + 1)) > width)
++            if (fm.tightBoundingRect(text.left(++colLen + 1)).width() > width)
+                 break;
+         }
+         localWidth = width;
+@@ -6391,8 +6391,12 @@ void PropertyPanel::createMeshPropertyItems(const NetSpeed::Grid * g, QtTreeProp
+         addPropertyMesh(propTree, i.value(), i.key());
+         ++i;
+     }
+-    auto keys = cateProp.keys().toVector().toStdVector();
+-    setBoldProperty(propTree, keys);
++    auto keys = cateProp.keys();
++    std::vector<QString> keys_vector;
++    for (auto itr = keys.begin(); itr != keys.end(); ++itr) {
++        keys_vector.push_back(*itr);
++    }
++    setBoldProperty(defaultPropertyEditor, keys_vector);
+     // Add Property Items
+     QtProperty* propertyItem = nullptr;
+     FOR(it, NetSpeed::Property::mesh_props) {
+@@ -6612,7 +6616,7 @@ void PropertyPanel::createDefaultPropertyItems(QtTreePropertyBrowser * propTree)
+         addPropertyDefault(propTree, i.value(), i.key());
+         ++i;
+     }
+-    auto keys = cateProp.keys().toVector().toStdVector();
++    std::vector<QString> keys(cateProp.keys().begin(), cateProp.keys().end());
+     setBoldProperty(propTree, keys);
+ 
+     // Add Property Items
+@@ -7111,22 +7115,22 @@ void PropertyPanel::wheelOnCustomPlot(QWheelEvent * event)
+         // Get the current widget, statTab and plotmap for current tab
+         StatTab* statTab = mw->getTabStatTabMap().value(mw->getLiveWidget(), nullptr);
+         if (!statTab) return;
+-        QCPAxisRect* axisRect = dynamic_cast<QCPAxisRect*>(customPlot->layoutElementAt(event->pos()));
++        QCPAxisRect* axisRect = dynamic_cast<QCPAxisRect*>(customPlot->layoutElementAt(event->position()));
+         if (axisRect)
+         {
+             QCPAxis* xAxis = axisRect->axis(QCPAxis::atBottom, 0);
+             if (xAxis)
+             {
+-                double wheelStep = event->delta() / 120.0;
++                double wheelStep = event->angleDelta().y() / 120.0;
+                 double factor = pow(axisRect->rangeZoomFactor(Qt::Horizontal), wheelStep);
+                 // Scale the range
+-                xAxis->scaleRange(factor, xAxis->pixelToCoord(event->pos().x()));
++                xAxis->scaleRange(factor, xAxis->pixelToCoord(event->position().x()));
+                 bool haveData = customPlot->haveDataInRange(xAxis->range().lower, xAxis->range().upper);
+                 if (haveData == false) // No data
+                 {
+                     // Undo range change
+                     factor = pow(axisRect->rangeZoomFactor(Qt::Horizontal), -wheelStep);
+-                    xAxis->scaleRange(factor, xAxis->pixelToCoord(event->pos().x()));
++                    xAxis->scaleRange(factor, xAxis->pixelToCoord(event->position().x()));
+                     return;
+                 }
+                 else //Have data
+@@ -7496,7 +7500,7 @@ void LazyLoadPortGroup::loadMore(const int /*count*/) {}
+ void LazyLoadPortGroup::wheelEvent(QWheelEvent * event)
+ {
+     // wheel down
+-    if (event->delta() < 0) {
++    if (event->angleDelta().y() < 0) {
+         if (canLoadMore()) loadMore();
+     }
+     QWidget::wheelEvent(event);
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/statdashboard.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/statdashboard.cpp
+index ed22000babe..567f92486d2 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/statdashboard.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/statdashboard.cpp
+@@ -360,7 +360,7 @@ void StatDashboard::statMergeAct()
+ void StatDashboard::statCompareAct()
+ {
+     bool ok;
+-    Qt::WindowFlags flags = 0;
++    Qt::WindowFlags flags = Qt::Widget;
+ 
+     QString requestedName = QInputDialog::getText(this, tr("Comparison Name"),
+         tr("Specify comparision name:"), QLineEdit::Normal,
+@@ -426,4 +426,4 @@ void StatDashboard::statLoadAct()
+     // Create command and apply
+     emit processCmdSignal(QString::fromStdString(CMD_LOAD_AND_MERGE) + " -path {"
+         + fileName + "} -stat " + QString::number(currentStatTab->id));
+-}
+\ No newline at end of file
++}
+diff --git i/src/sw/noc_dev/SCFNocStudio/Gui/statsview.cpp w/src/sw/noc_dev/SCFNocStudio/Gui/statsview.cpp
+index 9382ce841d9..1c4220b58cb 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Gui/statsview.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Gui/statsview.cpp
+@@ -339,10 +339,10 @@ void StatsView::refresh()
+         zoomAutofit(layer_columns);
+     }
+ 
+-    QMatrix matrix;
++    QTransform matrix;
+     matrix.scale(zoomFactor, zoomFactor);
+ 
+-    setMatrix(matrix);
++    setTransform(matrix);
+     int active_layer_cnt = 0; // count active layers for positioning
+     for (int i = 0; i < isize(layer_groups); ++i) {
+         auto lg = layer_groups[i];
+@@ -539,10 +539,10 @@ void StatsView::wheelEvent(QWheelEvent * event)
+ {
+     if (event->modifiers().testFlag(Qt::ControlModifier))
+     {
+-        if (event->delta() > 0) {
++        if (event->angleDelta().y() > 0) {
+             mw->zoomInAct();
+         }
+-        else if (event->delta() < 0) {
++        else if (event->angleDelta().y() < 0) {
+             mw->zoomOutAct();
+         }
+     }
+@@ -976,7 +976,7 @@ void stats_box_data_t::paint(QPainter * painter, const QStyleOptionGraphicsItem*
+         const int n2 = STATS_NODE_SIZE * 2 / 4;
+         const int n3 = STATS_NODE_SIZE * 3 / 4;
+         const int n4 = STATS_NODE_SIZE;
+-        const QVector<QLine> lines = QVector<QLine>::fromStdVector({
++        std::vector<QLine> vector_lines = {
+             // Horizontal lines
+             QLine(n0, n2, n4, n2),
+             QLine(n2, n1, n4, n1),
+@@ -986,14 +986,15 @@ void stats_box_data_t::paint(QPainter * painter, const QStyleOptionGraphicsItem*
+                 QLine(n2, n0, n2, n4),
+                 QLine(n1, n0, n1, n2),
+                 QLine(n3, n2, n3, n4),
+-            });
++            };
++        const QVector<QLine> lines(vector_lines.begin(), vector_lines.end());
+         painter->drawLines(lines);
+ 
+         QPoint p1, p2;
+ 
+         // Gray lines
+         painter->setPen(Qt::gray);
+-        const QVector<QLine> lines2 = QVector<QLine>::fromStdVector({
++        std::vector<QLine> vector_lines2 = {
+             // Horizontal lines
+             QLine(n0, n1, n2, n1),
+             QLine(n2, n3, n4, n3),
+@@ -1001,7 +1002,8 @@ void stats_box_data_t::paint(QPainter * painter, const QStyleOptionGraphicsItem*
+             // Vertical lines
+             QLine(n1, n2, n1, n4),
+             QLine(n3, n0, n3, n2),
+-            });
++            };
++        const QVector<QLine> lines2(vector_lines2.begin(), vector_lines2.end());
+         painter->drawLines(lines2);
+         painter->restore();
+ 
+diff --git i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qteditorfactory.cpp w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qteditorfactory.cpp
+index 1822357b118..37bf9fec9c4 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qteditorfactory.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qteditorfactory.cpp
+@@ -970,7 +970,7 @@ class QtLineEditFactoryPrivate : public EditorFactoryPrivate<QLineEdit> {
+ public:
+ 
+     void slotPropertyChanged(QtProperty* property, const QString& value);
+-    void slotRegExpChanged(QtProperty* property, const QRegExp& regExp);
++    void slotRegExpChanged(QtProperty* property, const QRegularExpression& regExp);
+     void slotSetValue(const QString& value);
+     void slotEchoModeChanged(QtProperty*, int);
+     void slotReadOnlyChanged(QtProperty*, bool);
+@@ -992,7 +992,7 @@ void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty * property, const
+     }
+ }
+ 
+-void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty * property, const QRegExp & regExp)
++void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty * property, const QRegularExpression & regExp)
+ {
+     if (!m_createdEditors.contains(property))
+         return;
+@@ -1008,7 +1008,7 @@ void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty * property, const QR
+         const QValidator* oldValidator = editor->validator();
+         QValidator* newValidator = 0;
+         if (regExp.isValid()) {
+-            newValidator = new QRegExpValidator(regExp, editor);
++            newValidator = new QRegularExpressionValidator(QRegularExpression(regExp.pattern()), editor);
+         }
+         editor->setValidator(newValidator);
+         if (oldValidator)
+@@ -1125,7 +1125,7 @@ QWidget* QtLineEditFactory::createEditor(QtStringPropertyManager * manager, QtPr
+     QLineEdit* editor = d_ptr->createEditor(property, parent);
+     editor->setEchoMode((EchoMode)manager->echoMode(property));
+     editor->setReadOnly(manager->isReadOnly(property));
+-    QRegExp regExp = manager->regExp(property);
++    QRegularExpression regExp = manager->regExp(property);
+     if (regExp.isValid()) {
+         QValidator* validator = new QRegExpValidator(regExp, editor);
+         editor->setValidator(validator);
+@@ -1650,7 +1650,7 @@ QtCharEdit::QtCharEdit(QWidget* parent) :
+ {
+     QHBoxLayout* layout = new QHBoxLayout(this);
+     layout->addWidget(m_lineEdit);
+-    layout->setMargin(0);
++    //layout->setMargin(0);
+     m_lineEdit->installEventFilter(this);
+     m_lineEdit->setReadOnly(true);
+     m_lineEdit->setFocusProxy(this);
+@@ -1715,7 +1715,7 @@ void QtCharEdit::handleKeyEvent(QKeyEvent * e)
+     }
+ 
+     const QString text = e->text();
+-    if (text.count() != 1)
++    if (text.length() != 1)
+         return;
+ 
+     const QChar c = text.at(0);
+@@ -1774,7 +1774,7 @@ void QtCharEdit::keyReleaseEvent(QKeyEvent * e)
+ void QtCharEdit::paintEvent(QPaintEvent*)
+ {
+     QStyleOption opt;
+-    opt.init(this);
++    opt.initFrom(this);
+     QPainter p(this);
+     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+ }
+@@ -2308,7 +2308,8 @@ void QtColorEditWidget::buttonClicked()
+ {
+     bool ok = false;
+     QRgb oldRgba = m_color.rgba();
+-    QRgb newRgba = QColorDialog::getRgba(oldRgba, &ok, this);
++    QColor oldColor(oldRgba);
++    QRgb newRgba = QColorDialog::getColor(oldColor, this).rgba();
+     if (ok && newRgba != oldRgba) {
+         setValue(QColor::fromRgba(newRgba));
+         emit valueChanged(m_color);
+@@ -2342,7 +2343,7 @@ bool QtColorEditWidget::eventFilter(QObject * obj, QEvent * ev)
+ void QtColorEditWidget::paintEvent(QPaintEvent*)
+ {
+     QStyleOption opt;
+-    opt.init(this);
++    opt.initFrom(this);
+     QPainter p(this);
+     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+ }
+@@ -2559,7 +2560,7 @@ bool QtFontEditWidget::eventFilter(QObject * obj, QEvent * ev)
+ void QtFontEditWidget::paintEvent(QPaintEvent*)
+ {
+     QStyleOption opt;
+-    opt.init(this);
++    opt.initFroms(this);
+     QPainter p(this);
+     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+ }
+@@ -2670,4 +2671,4 @@ QT_END_NAMESPACE
+ #endif
+ 
+ #include "moc_qteditorfactory.cpp"
+-#include "qteditorfactory.moc"
+\ No newline at end of file
++#include "qteditorfactory.moc"
+diff --git i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertybrowserutils.cpp w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertybrowserutils.cpp
+index 65317d1e3bf..6431a08a0b1 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertybrowserutils.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertybrowserutils.cpp
+@@ -294,7 +294,7 @@ void QtBoolEdit::mousePressEvent(QMouseEvent * event)
+ void QtBoolEdit::paintEvent(QPaintEvent*)
+ {
+     QStyleOption opt;
+-    opt.init(this);
++    opt.initFrom(this);
+     QPainter p(this);
+     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+ }
+@@ -304,7 +304,7 @@ QtKeySequenceEdit::QtKeySequenceEdit(QWidget * parent) :
+ {
+     QHBoxLayout* layout = new QHBoxLayout(this);
+     layout->addWidget(m_lineEdit);
+-    layout->setMargin(0);
++    //layout->setMargin(0);
+     m_lineEdit->installEventFilter(this);
+     m_lineEdit->setReadOnly(true);
+     m_lineEdit->setFocusProxy(this);
+@@ -361,10 +361,10 @@ void QtKeySequenceEdit::handleKeyEvent(QKeyEvent * e)
+         return;
+ 
+     nextKey |= translateModifiers(e->modifiers(), e->text());
+-    int k0 = m_keySequence[0];
+-    int k1 = m_keySequence[1];
+-    int k2 = m_keySequence[2];
+-    int k3 = m_keySequence[3];
++    int k0 = m_keySequence[0].toCombined();
++    int k1 = m_keySequence[1].toCombined();
++    int k2 = m_keySequence[2].toCombined();
++    int k3 = m_keySequence[3].toCombined();
+     switch (m_num) {
+     case 0:
+         k0 = nextKey;
+@@ -454,7 +454,7 @@ void QtKeySequenceEdit::keyReleaseEvent(QKeyEvent * e)
+ void QtKeySequenceEdit::paintEvent(QPaintEvent*)
+ {
+     QStyleOption opt;
+-    opt.init(this);
++    opt.initFrom(this);
+     QPainter p(this);
+     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+ }
+@@ -471,4 +471,4 @@ bool QtKeySequenceEdit::event(QEvent * e)
+ 
+ #if QT_VERSION >= 0x040400
+ QT_END_NAMESPACE
+-#endif
+\ No newline at end of file
++#endif
+diff --git i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.cpp w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.cpp
+index 36adcc92844..4fdd1bfeb6d 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.cpp
+@@ -1349,14 +1349,28 @@ public:
+ 
+     struct Data {
+         Data() :
+-            regExp(QString(QLatin1Char('*')), Qt::CaseSensitive, QRegExp::Wildcard), echoMode(
+-                QLineEdit::Normal), readOnly(false)
++            regExp(createWildcardRegExp(QString(QLatin1Char('*')), Qt::CaseSensitive)),
++          echoMode(QLineEdit::Normal), readOnly(false)
+         {
+         }
+         QString val;
+-        QRegExp regExp;
++        QRegularExpression regExp;
+         int echoMode;
+         bool readOnly;
++
++        static QRegularExpression createWildcardRegExp(const QString& wildcard, Qt::CaseSensitivity caseSensitivity) {
++            QString regex = QRegularExpression::escape(wildcard);
++            regex.replace("\\*", ".*");
++            regex.replace("\\?", ".");
++            regex = "^" + regex + "$";
++
++            QRegularExpression regExp(regex);
++            if (caseSensitivity == Qt::CaseInsensitive) {
++                regExp.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
++            }
++
++            return regExp;
++        }
+     };
+ 
+     typedef QMap<const QtProperty*, Data> PropertyValueMap;
+@@ -1443,10 +1457,10 @@ QString QtStringPropertyManager::value(const QtProperty * property) const
+ 
+  \sa setRegExp()
+  */
+-QRegExp QtStringPropertyManager::regExp(const QtProperty * property) const
++QRegularExpression QtStringPropertyManager::regExp(const QtProperty * property) const
+ {
+-    return getData<QRegExp>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::regExp,
+-        property, QRegExp());
++    return getData<QRegularExpression>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::regExp,
++                                       property, QRegularExpression());
+ }
+ 
+ /*!
+@@ -1522,7 +1536,7 @@ void QtStringPropertyManager::setValue(QtProperty * property, const QString & va
+     if (data.val == val)
+         return;
+ 
+-    if (data.regExp.isValid() && !data.regExp.exactMatch(val))
++    if (data.regExp.isValid() && !data.regExp.match(val).hasMatch())
+         return;
+ 
+     data.val = val;
+@@ -1539,7 +1553,7 @@ void QtStringPropertyManager::setValue(QtProperty * property, const QString & va
+ 
+  \sa regExp(), setValue(), regExpChanged()
+  */
+-void QtStringPropertyManager::setRegExp(QtProperty * property, const QRegExp & regExp)
++void QtStringPropertyManager::setRegExp(QtProperty * property, const QRegularExpression& regExp)
+ {
+     const QtStringPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(
+         property);
+@@ -2549,7 +2563,7 @@ void QtLocalePropertyManagerPrivate::slotEnumChanged(QtProperty * property, int
+     if (QtProperty * prop = m_languageToProperty.value(property, 0)) {
+         const QLocale loc = m_values[prop];
+         QLocale::Language newLanguage = loc.language();
+-        QLocale::Country newCountry = loc.country();
++        QLocale::Country newCountry = loc.territory();
+         metaEnumProvider()->indexToLocale(value, 0, &newLanguage, 0);
+         QLocale newLoc(newLanguage, newCountry);
+         q_ptr->setValue(prop, newLoc);
+@@ -2557,7 +2571,7 @@ void QtLocalePropertyManagerPrivate::slotEnumChanged(QtProperty * property, int
+     else if (QtProperty * prop = m_countryToProperty.value(property, 0)) {
+         const QLocale loc = m_values[prop];
+         QLocale::Language newLanguage = loc.language();
+-        QLocale::Country newCountry = loc.country();
++        QLocale::Country newCountry = loc.territory();
+         metaEnumProvider()->indexToLocale(
+             m_enumPropertyManager->value(m_propertyToLanguage.value(prop)), value, &newLanguage,
+             &newCountry);
+@@ -6205,7 +6219,7 @@ void QtFontPropertyManager::setValue(QtProperty * property, const QFont & val)
+         return;
+ 
+     const QFont oldVal = it.value();
+-    if (oldVal == val && oldVal.resolve() == val.resolve())
++    if (oldVal == val)
+         return;
+ 
+     it.value() = val;
+@@ -6798,4 +6812,4 @@ QT_END_NAMESPACE
+ #endif
+ 
+ #include "moc_qtpropertymanager.cpp"
+-#include "qtpropertymanager.moc"
+\ No newline at end of file
++#include "qtpropertymanager.moc"
+diff --git i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.h w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.h
+index 69657aee843..c4b18deb713 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.h
++++ w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qtpropertymanager.h
+@@ -175,19 +175,19 @@ public:
+     ~QtStringPropertyManager();
+ 
+     QString value(const QtProperty* property) const;
+-    QRegExp regExp(const QtProperty* property) const;
++    QRegularExpression regExp(const QtProperty* property) const;
+     EchoMode echoMode(const QtProperty* property) const;
+     bool isReadOnly(const QtProperty* property) const;
+ 
+ public Q_SLOTS:
+     void setValue(QtProperty* property, const QString& val);
+-    void setRegExp(QtProperty* property, const QRegExp& regExp);
++    void setRegExp(QtProperty* property, const QRegularExpression& regExp);
+     void setEchoMode(QtProperty* property, EchoMode echoMode);
+     void setReadOnly(QtProperty* property, bool readOnly);
+ 
+ Q_SIGNALS:
+     void valueChanged(QtProperty* property, const QString& val);
+-    void regExpChanged(QtProperty* property, const QRegExp& regExp);
++    void regExpChanged(QtProperty* property, const QRegularExpression& regExp);
+     void echoModeChanged(QtProperty* property, const int);
+     void readOnlyChanged(QtProperty* property, bool);
+ 
+diff --git i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qttreepropertybrowser.cpp w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qttreepropertybrowser.cpp
+index 248f7d0ec0e..57d21dfe913 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Qtproperty/qttreepropertybrowser.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Qtproperty/qttreepropertybrowser.cpp
+@@ -164,9 +164,9 @@ void QtPropertyEditorView::wheelEvent(QWheelEvent* event)
+     {
+         if (auto pSlider = QtTreePropertyBrowser::getAbstractFontSlider())
+         {
+-            if (event->delta() > 0)
++            if (event->angleDelta().y() > 0)
+                 pSlider->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+-            else if (event->delta() < 0)
++            else if (event->angleDelta().y() < 0)
+                 pSlider->triggerAction(QAbstractSlider::SliderSingleStepSub);
+         }
+         event->accept();
+@@ -457,7 +457,7 @@ static QIcon drawIndicatorIcon(const QPalette & palette, QStyle * style)
+ void QtTreePropertyBrowserPrivate::init(QWidget * parent)
+ {
+     QHBoxLayout* layout = new QHBoxLayout(parent);
+-    layout->setMargin(0);
++    //layout->setMargin(0);
+     m_treeWidget = new QtPropertyEditorView(parent);
+     m_treeWidget->setEditorPrivate(this);
+     m_treeWidget->setIconSize(QSize(18, 18));
+@@ -582,7 +582,7 @@ void QtTreePropertyBrowserPrivate::propertyInserted(QtBrowserItem * index,
+     m_indexToItem[index] = newItem;
+ 
+     newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
+-    m_treeWidget->setItemExpanded(newItem, true);
++    newItem->setExpanded(true);
+ 
+     updateItem(newItem);
+ }
+@@ -624,7 +624,7 @@ void QtTreePropertyBrowserPrivate::updateItem(QTreeWidgetItem * item)
+             }
+             else font.setBold(false);
+             item->setFont(col, font);
+-            item->setTextColor(col, color);
++            //item->setTextColor(col, color);
+         }
+     }
+ 
+diff --git i/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.cpp w/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.cpp
+index eb5203b5d6b..0a328200636 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.cpp
+@@ -27,7 +27,7 @@ NsFilterWidget::NsFilterWidget(QWidget* parent)
+     menu->addSeparator();
+     m_patternGroup->setExclusive(true);
+     QAction* patternAction = menu->addAction("Fixed String");
+-    patternAction->setData(QVariant(int(QRegExp::FixedString)));
++    patternAction->setData(QVariant(int(PatternSyntax::FixedString)));
+     patternAction->setCheckable(true);
+     patternAction->setChecked(true);
+     m_patternGroup->addAction(patternAction);
+@@ -68,17 +68,17 @@ void NsFilterWidget::setCaseSensitivity(Qt::CaseSensitivity cs)
+     m_caseSensitivityAction->setChecked(cs == Qt::CaseSensitive);
+ }
+ 
+-static inline QRegExp::PatternSyntax patternSyntaxFromAction(const QAction * a)
++static inline PatternSyntax patternSyntaxFromAction(const QAction * a)
+ {
+-    return static_cast<QRegExp::PatternSyntax>(a->data().toInt());
++    return static_cast<PatternSyntax>(a->data().toInt());
+ }
+ 
+-QRegExp::PatternSyntax NsFilterWidget::patternSyntax() const
++PatternSyntax NsFilterWidget::patternSyntax() const
+ {
+     return patternSyntaxFromAction(m_patternGroup->checkedAction());
+ }
+ 
+-void NsFilterWidget::setPatternSyntax(QRegExp::PatternSyntax s)
++void NsFilterWidget::setPatternSyntax(PatternSyntax s)
+ {
+     foreach(QAction * a, m_patternGroup->actions()) {
+         if (patternSyntaxFromAction(a) == s) {
+@@ -86,4 +86,4 @@ void NsFilterWidget::setPatternSyntax(QRegExp::PatternSyntax s)
+             break;
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git i/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.h w/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.h
+index 6e9c495f692..918f7c25380 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.h
++++ w/src/sw/noc_dev/SCFNocStudio/Utils/NsFilterWidget.h
+@@ -2,20 +2,31 @@
+ #define NSFILTERWIDGET_H
+ 
+ #include <QLineEdit>
+-#include <QRegExp>
++#include <QRegularExpression>
+ 
+ QT_BEGIN_NAMESPACE
+ #include <QAction>
+ #include <QActionGroup>
+ QT_END_NAMESPACE
+ 
+-Q_DECLARE_METATYPE(QRegExp::PatternSyntax)
++// Define a custom PatternSyntax enumeration
++enum class PatternSyntax {
++    RegularExpression,
++    Wildcard,
++    FixedString,
++    RegExp,
++    RegExp2,  // Match legacy QRegExp syntax types
++    WildcardUnix,
++    W3CXmlSchema11
++};
++
++Q_DECLARE_METATYPE(PatternSyntax)
+ 
+ class NsFilterWidget : public QLineEdit
+ {
+     Q_OBJECT
+         Q_PROPERTY(Qt::CaseSensitivity caseSensitivity READ caseSensitivity WRITE setCaseSensitivity)
+-        Q_PROPERTY(QRegExp::PatternSyntax patternSyntax READ patternSyntax WRITE setPatternSyntax)
++        Q_PROPERTY(PatternSyntax patternSyntax READ patternSyntax WRITE setPatternSyntax)
+ 
+ public:
+     explicit NsFilterWidget(QWidget* parent = nullptr);
+@@ -23,8 +34,8 @@ public:
+     Qt::CaseSensitivity caseSensitivity() const;
+     void setCaseSensitivity(Qt::CaseSensitivity);
+ 
+-    QRegExp::PatternSyntax patternSyntax() const;
+-    void setPatternSyntax(QRegExp::PatternSyntax);
++    PatternSyntax patternSyntax() const;
++    void setPatternSyntax(PatternSyntax);
+ 
+ signals:
+     void filterChanged();
+diff --git i/src/sw/noc_dev/SCFNocStudio/Utils/qcustomplot.cpp w/src/sw/noc_dev/SCFNocStudio/Utils/qcustomplot.cpp
+index b36479eea03..6e910b13141 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Utils/qcustomplot.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Utils/qcustomplot.cpp
+@@ -3252,7 +3252,7 @@ Qt::Alignment QCPLayoutInset::insetAlignment(int index) const
+     else
+     {
+         qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
+-        return 0;
++        return Qt::AlignLeft;
+     }
+ }
+ 
+@@ -6466,8 +6466,10 @@ QByteArray QCPAxisPainterPrivate::generateLabelParameterHash() const
+     result.append(QByteArray::number(tickLabelRotation));
+     result.append(QByteArray::number((int)substituteExponent));
+     result.append(QByteArray::number((int)numberMultiplyCross));
+-    result.append(tickLabelColor.name() + QByteArray::number(tickLabelColor.alpha(), 16));
+-    result.append(tickLabelFont.toString());
++    result.append(tickLabelColor.name().toStdString().c_str());
++    result.append(QByteArray::number(tickLabelColor.alpha(), 16));
++    result.append(tickLabelFont.toString().toStdString().c_str());
++
+     return result;
+ }
+ 
+@@ -7588,7 +7590,10 @@ QCPItemAnchor::QCPItemAnchor(QCustomPlot * parentPlot, QCPAbstractItem * parentI
+ QCPItemAnchor::~QCPItemAnchor()
+ {
+     // unregister as parent at children:
+-    QList<QCPItemPosition*> currentChildren(mChildren.toList());
++    QList<QCPItemPosition*> currentChildren;
++    for (auto itr = mChildren.begin(); itr != mChildren.end(); ++itr) {
++        currentChildren.push_back(*itr);
++    }
+     for (int i = 0; i < currentChildren.size(); ++i)
+         currentChildren.at(i)->setParentAnchor(0); // this acts back on this anchor and child removes itself from mChildren
+ }
+@@ -7696,7 +7701,10 @@ QCPItemPosition::~QCPItemPosition()
+     // unregister as parent at children:
+     // Note: this is done in ~QCPItemAnchor again, but it's important QCPItemPosition does it itself, because only then
+     //       the setParentAnchor(0) call the correct QCPItemPosition::pixelPoint function instead of QCPItemAnchor::pixelPoint
+-    QList<QCPItemPosition*> currentChildren(mChildren.toList());
++    QList<QCPItemPosition*> currentChildren;
++    for (auto itr = mChildren.begin(); itr != mChildren.end(); ++itr) {
++        currentChildren.push_back(*itr);
++    }
+     for (int i = 0; i < currentChildren.size(); ++i)
+         currentChildren.at(i)->setParentAnchor(0); // this acts back on this anchor and child removes itself from mChildren
+       // unregister as child in parent:
+@@ -10523,7 +10531,7 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
+     painter.begin(&mPaintBuffer);
+     if (painter.isActive())
+     {
+-        painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
++        //painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+         if (mBackgroundBrush.style() != Qt::SolidPattern && mBackgroundBrush.style() != Qt::NoBrush)
+             painter.fillRect(mViewport, mBackgroundBrush);
+         draw(&painter);
+@@ -10751,7 +10759,7 @@ bool QCustomPlot::savePdf(const QString & fileName, bool noCosmeticPen, int widt
+     printer.printEngine()->setProperty(QPrintEngine::PPK_DocumentName, pdfTitle);
+     QRect oldViewport = viewport();
+     setViewport(QRect(0, 0, newWidth, newHeight));
+-    printer.setPaperSize(viewport().size(), QPrinter::DevicePixel);
++    //printer.setPaperSize(viewport().size(), QPrinter::DevicePixel);
+     QCPPainter printpainter;
+     if (printpainter.begin(&printer))
+     {
+@@ -10970,7 +10978,7 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent * event)
+         emit titleDoubleClick(event, pt);
+ 
+     // call double click event of affected layout element:
+-    if (QCPLayoutElement * el = layoutElementAt(event->pos()))
++    if (QCPLayoutElement* el = layoutElementAt(event->position()))
+         el->mouseDoubleClickEvent(event);
+ 
+     // call release event of affected layout element (as in mouseReleaseEvent, since the mouseDoubleClick replaces the second release event in double click case):
+@@ -10996,7 +11004,7 @@ void QCustomPlot::mousePressEvent(QMouseEvent * event)
+     mMousePressPos = event->pos(); // need this to determine in releaseEvent whether it was a click (no position change between press and release)
+ 
+     // call event of affected layout element:
+-    mMouseEventElement = layoutElementAt(event->pos());
++    mMouseEventElement = layoutElementAt(event->position());
+     if (mMouseEventElement)
+         mMouseEventElement->mousePressEvent(event);
+ 
+@@ -11120,7 +11128,7 @@ void QCustomPlot::wheelEvent(QWheelEvent * event)
+     emit mouseWheel(event);
+ 
+     // call event of affected layout element:
+-    if (QCPLayoutElement * el = layoutElementAt(event->pos()))
++    if (QCPLayoutElement* el = layoutElementAt(event->position()))
+         el->wheelEvent(event);
+ 
+     QWidget::wheelEvent(event);
+@@ -11818,7 +11826,7 @@ void QCPColorGradient::updateColorBuffer()
+             QMap<double, QColor>::const_iterator it = mColorStops.lowerBound(position);
+             if (it == mColorStops.constEnd()) // position is on or after last stop, use color of last stop
+             {
+-                mColorBuffer[i] = (it - 1).value().rgb();
++                mColorBuffer[i] = std::prev(it).value().rgb();
+             }
+             else if (it == mColorStops.constBegin()) // position is on or before first stop, use color of first stop
+             {
+@@ -11827,7 +11835,7 @@ void QCPColorGradient::updateColorBuffer()
+             else // position is in between stops (or on an intermediate stop), interpolate color
+             {
+                 QMap<double, QColor>::const_iterator high = it;
+-                QMap<double, QColor>::const_iterator low = it - 1;
++                QMap<double, QColor>::const_iterator low  = std::prev(it);
+                 double t = (position - low.key()) / (high.key() - low.key()); // interpolation factor 0..1
+                 switch (mColorInterpolation)
+                 {
+@@ -12834,18 +12842,18 @@ void QCPAxisRect::wheelEvent(QWheelEvent * event)
+         {
+             double factor;
+             //qDebug() << "delta = " << event->delta();
+-            double wheelSteps = event->delta() / 120.0; // a single step delta is +/-120 usually
++            double wheelSteps = event->angleDelta().y() / 120.0;  // a single step delta is +/-120 usually
+             if (mRangeZoom.testFlag(Qt::Horizontal))
+             {
+                 factor = pow(mRangeZoomFactorHorz, wheelSteps);
+                 if (mRangeZoomHorzAxis.data())
+-                    mRangeZoomHorzAxis.data()->scaleRange(factor, mRangeZoomHorzAxis.data()->pixelToCoord(event->pos().x()));
++                    mRangeZoomHorzAxis.data()->scaleRange(factor, mRangeZoomHorzAxis.data()->pixelToCoord(event->position().x()));
+             }
+             if (mRangeZoom.testFlag(Qt::Vertical) && !mParentPlot->interactions().testFlag(QCP::iNotZoomVertically))
+             {
+                 factor = pow(mRangeZoomFactorVert, wheelSteps);
+                 if (mRangeZoomVertAxis.data())
+-                    mRangeZoomVertAxis.data()->scaleRange(factor, mRangeZoomVertAxis.data()->pixelToCoord(event->pos().y()));
++                    mRangeZoomVertAxis.data()->scaleRange(factor, mRangeZoomVertAxis.data()->pixelToCoord(event->position().y()));
+             }
+             mParentPlot->replot();
+         }
+@@ -14277,7 +14285,7 @@ void QCPColorScale::setRangeDrag(bool enabled)
+     if (enabled)
+         mAxisRect.data()->setRangeDrag(QCPAxis::orientation(mType));
+     else
+-        mAxisRect.data()->setRangeDrag(0);
++        mAxisRect.data()->setRangeDrag(Qt::Orientation(0));
+ }
+ 
+ /*!
+@@ -14297,7 +14305,7 @@ void QCPColorScale::setRangeZoom(bool enabled)
+     if (enabled)
+         mAxisRect.data()->setRangeZoom(QCPAxis::orientation(mType));
+     else
+-        mAxisRect.data()->setRangeZoom(0);
++        mAxisRect.data()->setRangeZoom(Qt::Orientation(0));
+ }
+ 
+ /*!
+@@ -14799,7 +14807,7 @@ void QCPGraph::setData(const QVector<float> & key, const QVector<float> & value)
+     {
+         newData.key = key[i];
+         newData.value = value[i];
+-        mData->insertMulti(newData.key, newData);
++        mData->insert(newData.key, newData);
+     }
+ }
+ 
+@@ -14827,7 +14835,7 @@ void QCPGraph::setDataValueError(const QVector<double> & key, const QVector<doub
+         newData.valueErrorMinus = valueError[i];
+         newData.valueErrorPlus = valueError[i];
+ #endif
+-        mData->insertMulti(key[i], newData);
++        mData->insert(key[i], newData);
+     }
+ }
+ 
+@@ -14856,7 +14864,7 @@ void QCPGraph::setDataValueError(const QVector<double> & key, const QVector<doub
+         newData.valueErrorMinus = valueErrorMinus[i];
+         newData.valueErrorPlus = valueErrorPlus[i];
+ #endif
+-        mData->insertMulti(key[i], newData);
++        mData->insert(key[i], newData);
+     }
+ }
+ 
+@@ -14884,7 +14892,7 @@ void QCPGraph::setDataKeyError(const QVector<double> & key, const QVector<double
+         newData.keyErrorMinus = keyError[i];
+         newData.keyErrorPlus = keyError[i];
+ #endif
+-        mData->insertMulti(key[i], newData);
++        mData->insert(key[i], newData);
+     }
+ }
+ 
+@@ -14913,7 +14921,7 @@ void QCPGraph::setDataKeyError(const QVector<double> & key, const QVector<double
+         newData.keyErrorMinus = keyErrorMinus[i];
+         newData.keyErrorPlus = keyErrorPlus[i];
+ #endif
+-        mData->insertMulti(key[i], newData);
++        mData->insert(key[i], newData);
+     }
+ }
+ 
+@@ -14944,7 +14952,7 @@ void QCPGraph::setDataBothError(const QVector<double> & key, const QVector<doubl
+         newData.valueErrorMinus = valueError[i];
+         newData.valueErrorPlus = valueError[i];
+ #endif
+-        mData->insertMulti(key[i], newData);
++        mData->insert(key[i], newData);
+     }
+ }
+ 
+@@ -14977,7 +14985,7 @@ void QCPGraph::setDataBothError(const QVector<double> & key, const QVector<doubl
+         newData.valueErrorMinus = valueErrorMinus[i];
+         newData.valueErrorPlus = valueErrorPlus[i];
+ #endif
+-        mData->insertMulti(key[i], newData);
++        mData->insert(key[i], newData);
+     }
+ }
+ 
+@@ -15124,7 +15132,9 @@ void QCPGraph::setAdaptiveSampling(bool enabled)
+ */
+ void QCPGraph::addData(const QCPDataMap & dataMap)
+ {
+-    mData->unite(dataMap);
++    for (auto itr = dataMap.cbegin(); itr != dataMap.cend(); ++itr) {
++        mData->insert(itr.key(), itr.value());
++    }
+ }
+ 
+ /*! \overload
+@@ -15137,7 +15147,7 @@ void QCPGraph::addData(const QCPDataMap & dataMap)
+ */
+ void QCPGraph::addData(const QCPData & data)
+ {
+-    mData->insertMulti(data.key, data);
++    mData->insert(data.key, data);
+ }
+ 
+ /*! \overload
+@@ -15153,7 +15163,7 @@ void QCPGraph::addData(double key, double value)
+     QCPData newData;
+     newData.key = key;
+     newData.value = value;
+-    mData->insertMulti(newData.key, newData);
++    mData->insert(newData.key, newData);
+ }
+ 
+ /*! \overload
+@@ -15172,7 +15182,7 @@ void QCPGraph::addData(const QVector<double> & keys, const QVector<double> & val
+     {
+         newData.key = keys[i];
+         newData.value = values[i];
+-        mData->insertMulti(newData.key, newData);
++        mData->insert(newData.key, newData);
+     }
+ }
+ 
+@@ -15923,7 +15933,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+         if (lineData)
+         {
+             QCPDataMap::const_iterator it = lower;
+-            QCPDataMap::const_iterator upperEnd = upper + 1;
++            QCPDataMap::const_iterator upperEnd = std::next(upper);
+             double minValue = it.value().value;
+             double maxValue = it.value().value;
+             QCPDataMap::const_iterator currentIntervalFirstPoint = it;
+@@ -15954,11 +15964,11 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+                         lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.25, minValue));
+                         lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.75, maxValue));
+                         if (it.key() > currentIntervalStartKey + keyEpsilon * 2) // new pixel started further away from previous cluster, so make sure the last point of the cluster is at a real data point
+-                            lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.8, (it - 1).value().value));
++                            lineData->append(QCPData(currentIntervalStartKey + keyEpsilon * 0.8, std::prev(it).value().value));
+                     }
+                     else
+                         lineData->append(QCPData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
+-                    lastIntervalEndKey = (it - 1).value().key;
++                    lastIntervalEndKey = std::prev(it).value().key;
+                     minValue = it.value().value;
+                     maxValue = it.value().value;
+                     currentIntervalFirstPoint = it;
+@@ -15986,7 +15996,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+             double valueMaxRange = valueAxis->range().upper;
+             double valueMinRange = valueAxis->range().lower;
+             QCPDataMap::const_iterator it = lower;
+-            QCPDataMap::const_iterator upperEnd = upper + 1;
++            QCPDataMap::const_iterator upperEnd = std::next(upper);
+             double minValue = it.value().value;
+             double maxValue = it.value().value;
+             QCPDataMap::const_iterator minValueIt = it;
+@@ -16074,7 +16084,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> * lineData, QVector<QCPData> * s
+         if (dataVector)
+         {
+             QCPDataMap::const_iterator it = lower;
+-            QCPDataMap::const_iterator upperEnd = upper + 1;
++            QCPDataMap::const_iterator upperEnd = std::next(upper);
+             dataVector->reserve(dataCount + 2); // +2 for possible fill end points
+             while (it != upperEnd)
+             {
+@@ -16226,8 +16236,8 @@ void QCPGraph::getVisibleDataBounds(QCPDataMap::const_iterator & lower, QCPDataM
+     bool lowoutlier = lbound != mData->constBegin(); // indicates whether there exist points below axis range
+     bool highoutlier = ubound != mData->constEnd(); // indicates whether there exist points above axis range
+ 
+-    lower = (lowoutlier ? lbound - 1 : lbound); // data point range that will be actually drawn
+-    upper = (highoutlier ? ubound : ubound - 1); // data point range that will be actually drawn
++    lower = (lowoutlier ? std::prev(lbound) : lbound);  // data point range that will be actually drawn
++    upper = (highoutlier ? ubound : std::prev(ubound));  // data point range that will be actually drawn
+ }
+ 
+ /*!  \internal
+@@ -17146,7 +17156,7 @@ void QCPCurve::setData(const QVector<double> & key, const QVector<double> & valu
+         newData.t = i; // no t vector given, so we assign t the index of the key/value pair
+         newData.key = key[i];
+         newData.value = value[i];
+-        mData->insertMulti(newData.t, newData);
++        mData->insert(newData.t, newData);
+     }
+ }
+ 
+@@ -17180,7 +17190,9 @@ void QCPCurve::setLineStyle(QCPCurve::LineStyle style)
+ */
+ void QCPCurve::addData(const QCPCurveDataMap & dataMap)
+ {
+-    mData->unite(dataMap);
++    for (auto itr = dataMap.cbegin(); itr != dataMap.cend(); ++itr) {
++        mData->insert(itr.key(), itr.value());
++    }
+ }
+ 
+ /*! \overload
+@@ -17189,7 +17201,7 @@ void QCPCurve::addData(const QCPCurveDataMap & dataMap)
+ */
+ void QCPCurve::addData(const QCPCurveData & data)
+ {
+-    mData->insertMulti(data.t, data);
++    mData->insert(data.t, data);
+ }
+ 
+ /*! \overload
+@@ -17202,7 +17214,7 @@ void QCPCurve::addData(double t, double key, double value)
+     newData.t = t;
+     newData.key = key;
+     newData.value = value;
+-    mData->insertMulti(newData.t, newData);
++    mData->insert(newData.t, newData);
+ }
+ 
+ /*! \overload
+@@ -17217,12 +17229,12 @@ void QCPCurve::addData(double key, double value)
+ {
+     QCPCurveData newData;
+     if (!mData->isEmpty())
+-        newData.t = (mData->constEnd() - 1).key() + 1;
++        newData.t = std::prev(mData->constEnd()).key() + 1;
+     else
+         newData.t = 0;
+     newData.key = key;
+     newData.value = value;
+-    mData->insertMulti(newData.t, newData);
++    mData->insert(newData.t, newData);
+ }
+ 
+ /*! \overload
+@@ -17240,7 +17252,7 @@ void QCPCurve::addData(const QVector<double> & ts, const QVector<double> & keys,
+         newData.t = ts[i];
+         newData.key = keys[i];
+         newData.value = values[i];
+-        mData->insertMulti(newData.t, newData);
++        mData->insert(newData.t, newData);
+     }
+ }
+ 
+@@ -17506,11 +17518,11 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+         if (currentRegion == 5 || (firstPoint && mBrush.style() != Qt::NoBrush)) // current is in R, add current and last if it wasn't added already
+         {
+             if (!addedLastAlready) // in case curve just entered R, make sure the last point outside R is also drawn correctly
+-                lineData->append(coordsToPixels((it - 1).value().key, (it - 1).value().value)); // add last point to vector
++                lineData->append(coordsToPixels(std::prev(it).value().key, std::prev(it).value().value));  // add last point to vector
+             else if (lastRegion != 5) // added last already. If that's the case, we probably added it at optimized position. So go back and make sure it's at original position (else the angle changes under which this segment enters R)
+             {
+                 if (!firstPoint) // because on firstPoint, currentRegion is 5 and addedLastAlready is true, although there is no last point
+-                    lineData->replace(lineData->size() - 1, coordsToPixels((it - 1).value().key, (it - 1).value().value));
++                    lineData->replace(lineData->size() - 1, coordsToPixels(std::prev(it).value().key, std::prev(it).value().value));
+             }
+             lineData->append(coordsToPixels(it.value().key, it.value().value)); // add current point to vector
+             addedLastAlready = true; // so in next iteration, we don't add this point twice
+@@ -17529,7 +17541,7 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+             {
+                 // always add last point if not added already, original:
+                 if (!addedLastAlready)
+-                    lineData->append(coordsToPixels((it - 1).value().key, (it - 1).value().value));
++                    lineData->append(coordsToPixels(std::prev(it).value().key, std::prev(it).value().value));
+                 // add current point, original:
+                 lineData->append(coordsToPixels(it.value().key, it.value().value));
+             }
+@@ -17537,7 +17549,7 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+             {
+                 // always add last point if not added already, optimized:
+                 if (!addedLastAlready)
+-                    lineData->append(outsideCoordsToPixels((it - 1).value().key, (it - 1).value().value, currentRegion, axisRect));
++                    lineData->append(outsideCoordsToPixels(std::prev(it).value().key, std::prev(it).value().value, currentRegion, axisRect));
+                 // add current point, optimized:
+                 lineData->append(outsideCoordsToPixels(it.value().key, it.value().value, currentRegion, axisRect));
+             }
+@@ -17552,7 +17564,7 @@ void QCPCurve::getCurveData(QVector<QPointF> * lineData) const
+     }
+     // If curve ends outside R, we want to add very last point so the fill looks like it should when the curve started inside R:
+     if (lastRegion != 5 && mBrush.style() != Qt::NoBrush && !mData->isEmpty())
+-        lineData->append(coordsToPixels((mData->constEnd() - 1).value().key, (mData->constEnd() - 1).value().value));
++        lineData->append(coordsToPixels(std::prev(mData->constEnd()).value().key, std::prev(mData->constEnd()).value().value));
+ }
+ 
+ /*! \internal
+@@ -17848,7 +17860,7 @@ void QCPBars::setData(const QVector<double> & key, const QVector<double> & value
+     {
+         newData.key = key[i];
+         newData.value = value[i];
+-        mData->insertMulti(newData.key, newData);
++        mData->insert(newData.key, newData);
+     }
+ }
+ 
+@@ -17924,7 +17936,9 @@ void QCPBars::moveAbove(QCPBars * bars)
+ */
+ void QCPBars::addData(const QCPBarDataMap & dataMap)
+ {
+-    mData->unite(dataMap);
++    for (auto itr = dataMap.cbegin(); itr != dataMap.cend(); ++itr) {
++        mData->insert(itr.key(), itr.value());
++    }
+ }
+ 
+ /*! \overload
+@@ -17933,7 +17947,7 @@ void QCPBars::addData(const QCPBarDataMap & dataMap)
+ */
+ void QCPBars::addData(const QCPBarData & data)
+ {
+-    mData->insertMulti(data.key, data);
++    mData->insert(data.key, data);
+ }
+ 
+ /*! \overload
+@@ -17945,7 +17959,7 @@ void QCPBars::addData(double key, double value)
+     QCPBarData newData;
+     newData.key = key;
+     newData.value = value;
+-    mData->insertMulti(newData.key, newData);
++    mData->insert(newData.key, newData);
+ }
+ 
+ /*! \overload
+@@ -17961,7 +17975,7 @@ void QCPBars::addData(const QVector<double> & keys, const QVector<double> & valu
+     {
+         newData.key = keys[i];
+         newData.value = values[i];
+-        mData->insertMulti(newData.key, newData);
++        mData->insert(newData.key, newData);
+     }
+ }
+ 
+@@ -21404,7 +21418,8 @@ void QCPItemTracer::updatePosition()
+             if (mGraph->data()->size() > 1)
+             {
+                 QCPDataMap::const_iterator first = mGraph->data()->constBegin();
+-                QCPDataMap::const_iterator last = mGraph->data()->constEnd() - 1;
++                QCPDataMap::const_iterator last  = std::prev(mGraph->data()->constEnd());
++
+                 if (mGraphKey < first.key())
+                     position->setCoords(first.key(), first.value().value);
+                 else if (mGraphKey > last.key())
+@@ -21414,7 +21429,7 @@ void QCPItemTracer::updatePosition()
+                     QCPDataMap::const_iterator it = mGraph->data()->lowerBound(mGraphKey);
+                     if (it != first) // mGraphKey is somewhere between iterators
+                     {
+-                        QCPDataMap::const_iterator prevIt = it - 1;
++                        QCPDataMap::const_iterator prevIt = std::prev(it);
+                         if (mInterpolating)
+                         {
+                             // interpolate between iterators around mGraphKey:
+diff --git i/src/sw/noc_dev/SCFNocStudio/Utils/sort_property.cpp w/src/sw/noc_dev/SCFNocStudio/Utils/sort_property.cpp
+index b2f845c2709..93194f55c13 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Utils/sort_property.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Utils/sort_property.cpp
+@@ -52,8 +52,8 @@ bool wordsFilter(QString text, QString filter)
+ {
+     // multiple words
+     if (!filter.isEmpty()) {
+-        QRegExp rx("(\\ |\\,|\\;|\\:|\\t)"); //RegEx for ' ' or ',' or ';' or '.' or ':' or '\t'
+-        QStringList words = filter.split(rx, QString::SkipEmptyParts);
++        QRegularExpression rx("(\\ |\\,|\\;|\\:|\\t)");  // RegEx for ' ' or ',' or ';' or '.' or ':' or '\t'
++        QStringList words = filter.split(rx, Qt::SkipEmptyParts);
+         for (auto const& w : words) {
+             if (text.contains(w, Qt::CaseInsensitive)) {
+                 return false;
+diff --git i/src/sw/noc_dev/SCFNocStudio/Utils/worker.cpp w/src/sw/noc_dev/SCFNocStudio/Utils/worker.cpp
+index 138a79ba6ff..16ec7860039 100644
+--- i/src/sw/noc_dev/SCFNocStudio/Utils/worker.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/Utils/worker.cpp
+@@ -2,7 +2,7 @@
+ #include "Utils/global.h"
+ #include "Utils/inidebug.h"
+ #include "Gui/propertypanel.h"
+-
++#include <QRegularExpression>
+ #include "Grid.h"
+ 
+ Worker::Worker(NetSpeed::NocConsole* c, INIConsole* ini, MainWindow* parent) :
+@@ -16,7 +16,7 @@ Worker::Worker(NetSpeed::NocConsole* c, INIConsole* ini, MainWindow* parent) :
+ void Worker::processBlkCmd(QString blkCmd, bool isDesignRevMode)
+ {
+     bool res = false;
+-    QStringList cmds = blkCmd.split(QRegExp("[\r\n]"));
++    QStringList cmds = blkCmd.split(QRegularExpression("[\r\n]"));
+     if (cmds.isEmpty()) return;
+     emit setReadOnly();
+ 
+diff --git i/src/sw/noc_dev/SCFNocStudio/main.cpp w/src/sw/noc_dev/SCFNocStudio/main.cpp
+index fec34617dc0..7603d2e567e 100644
+--- i/src/sw/noc_dev/SCFNocStudio/main.cpp
++++ w/src/sw/noc_dev/SCFNocStudio/main.cpp
+@@ -14,6 +14,7 @@
+ #include <vector>                   // for vector, _Vector_iterator, _Vector_const_iterator
+ 
+ #include <QApplication>
++#include <QGuiApplication>
+ #include <QSemaphore>
+ 
+ #include "Gui/View/NsNocViewScene.h"
+@@ -341,8 +342,8 @@ int main(int argc, char* argv[]) {
+             //generate auto-sized splash image
+             QPixmap splashImage = QPixmap(":/images/intel_splash.png");
+             QWidget* screen = nullptr;
+-            screen = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen());//get primary screen (splash screen only displayed on primary)
+-            if (QApplication::desktop()->screenCount() == 0 || screen == nullptr)//if there is no screen registered, calculate size based on font metrics
++            //screen = QApplication::desktop()->screen(QApplication::desktop()->primaryScreen());//get primary screen (splash screen only displayed on primary)
++            if (screen == nullptr)  // if there is no screen registered, calculate size based on font metrics
+             {
+                 QFontMetrics fontMet = QFontMetrics(QFont("Gotham Rounded Book", 10, 10));
+                 splashImage = splashImage.scaledToHeight(fontMet.height() * 18);
+diff --git i/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp w/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index f7d22ac2aa6..bcb3c54d6cb 100644
+--- i/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ w/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -1375,7 +1375,7 @@ void NsRouterPolyGon::hoverEnterEvent(QGraphicsSceneHoverEvent * event) {
+ void NsRouterPolyGon::mousePressEvent(QGraphicsSceneMouseEvent * event) {
+     event->ignore();
+     auto meshScene = static_cast<NsMeshViewScene*>(scene());
+-    if (event->button() != Qt::MidButton && !isAddBridgeNoc(meshScene->getInsType()) &&
++    if (event->button() != Qt::MiddleButton && !isAddBridgeNoc(meshScene->getInsType()) &&
+         !isAddAgentMeshView(meshScene->getInsType())) {
+         auto mw = qobject_cast<MainWindow*>(QApplication::activeWindow());
+         if (!mw)  return;
+diff --git i/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp w/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+index 05ea5e8e57d..db1ca34da9c 100644
+--- i/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
++++ w/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+@@ -140,7 +140,7 @@ void NsRegbusBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+     meshScene->clearSelection();
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+     if (!mw) return;
+-    if ((event->button() != Qt::MidButton) && (!isAddBridgeNoc(meshScene->getInsType())) &&
++    if ((event->button() != Qt::MiddleButton) && (!isAddBridgeNoc(meshScene->getInsType())) &&
+         (!isAddAgentMeshView(meshScene->getInsType()))) {
+         // show property, tooltip panel
+         auto proPanel = mw->getPropertyPanel();
+diff --git i/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.cpp w/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.cpp
+index 344dc297220..a93c0355dcc 100644
+--- i/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.cpp
++++ w/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.cpp
+@@ -61,10 +61,10 @@ void NsSortFilterProxyModel::setFilterKeyColumns(const QList<qint32> & filterCol
+     m_columnPatterns.clear();
+ 
+     foreach(qint32 column, filterColumns)
+-        m_columnPatterns.insert(column, QRegExp());
++        m_columnPatterns.insert(column, QRegularExpression());
+ }
+ 
+-void NsSortFilterProxyModel::addFilterFixedString(qint32 column, const QRegExp & pattern)
++void NsSortFilterProxyModel::addFilterFixedString(qint32 column, const QRegularExpression& pattern)
+ {
+     if (!m_columnPatterns.contains(column))
+         return;
+@@ -72,7 +72,7 @@ void NsSortFilterProxyModel::addFilterFixedString(qint32 column, const QRegExp &
+     m_columnPatterns[column] = pattern;
+ }
+ 
+-void NsSortFilterProxyModel::appendFilterKeyColumn(qint32 column, const QRegExp & pattern)
++void NsSortFilterProxyModel::appendFilterKeyColumn(qint32 column, const QRegularExpression& pattern)
+ {
+     if (!m_columnPatterns.contains(column))
+         m_columnPatterns.insert(column, pattern);
+@@ -86,6 +86,17 @@ void NsSortFilterProxyModel::clearFilterKeyColumn()
+     m_columnPatterns.clear();
+ }
+ 
++QRegularExpression stringRegExp(const QString& pattern, Qt::CaseSensitivity caseSensitivity) {
++    QString escapedPattern = QRegularExpression::escape(pattern);  // Escape special characters
++    QRegularExpression regExp(escapedPattern);
++
++    if (caseSensitivity == Qt::CaseInsensitive) {
++        regExp.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
++    }
++
++    return regExp;
++}
++
+ void NsSortFilterProxyModel::filterAction(QString s)
+ {
+     this->clearFilterKeyColumn();
+@@ -110,7 +121,7 @@ void NsSortFilterProxyModel::filterAction(QString s)
+         }
+ 
+         /* Set search text */
+-        QRegExp regExp(s, Qt::CaseInsensitive, QRegExp::FixedString);
++        QRegularExpression regExp = stringRegExp(s, Qt::CaseInsensitive);
+ 
+         /* Set search column */
+         int col = toLintHeader(cat);
+@@ -141,7 +152,7 @@ bool NsSortFilterProxyModel::filterAcceptsRow(int sourceRow,
+     //        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+ 
+     bool result = false;
+-    for (QMap<qint32, QRegExp>::const_iterator iter = m_columnPatterns.constBegin();
++    for (QMap<qint32, QRegularExpression>::const_iterator iter = m_columnPatterns.constBegin();
+         iter != m_columnPatterns.constEnd();
+         ++iter)
+     {
+diff --git i/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.h w/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.h
+index 6f31bfe7cd2..3b51a5e149e 100644
+--- i/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.h
++++ w/src/sw/noc_dev/prototype/Gui/NsSortFilterProxyModel.h
+@@ -48,7 +48,7 @@ public:
+      * @param column
+      * @param pattern
+      */
+-    void addFilterFixedString(qint32 column, const QRegExp& pattern);
++    void addFilterFixedString(qint32 column, const QRegularExpression& pattern);
+ 
+     /**
+      * @brief append the fixed string used to filter the contents of the source model
+@@ -56,7 +56,7 @@ public:
+      * @param column
+      * @param pattern
+      */
+-    void appendFilterKeyColumn(qint32 column, const QRegExp& pattern);
++    void appendFilterKeyColumn(qint32 column, const QRegularExpression& pattern);
+ 
+     /**
+      * @brief clear all filter Key Column
+@@ -91,7 +91,7 @@ protected:
+ 
+ private:
+     QObject* view;
+-    QMap<qint32, QRegExp> m_columnPatterns;
++    QMap<qint32, QRegularExpression> m_columnPatterns;
+ };
+ 
+ class MainWindow;
+diff --git i/src/sw/noc_dev/prototype/NocStudio.vcxproj w/src/sw/noc_dev/prototype/NocStudio.vcxproj
+index 131181ac31d..6a562993085 100644
+--- i/src/sw/noc_dev/prototype/NocStudio.vcxproj
++++ w/src/sw/noc_dev/prototype/NocStudio.vcxproj
+@@ -69,7 +69,7 @@
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -77,7 +77,7 @@
+   </ImportGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;release;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt6\6.7.3\msvc2019_64\bin\include;C:\Qt6\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt6\6.7.3\msvc2019_64\include\QtSvg;C:\Qt6\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt6\6.7.3\msvc2019_64\include\QtGui;C:\Qt6\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt6\6.7.3\msvc2019_64\include\QtCore;release;C:\Qt6\6.7.3\msvc2019_64\mkspecs\win32-msvc;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+       <AssemblerListingLocation>release\</AssemblerListingLocation>
+       <BrowseInformation>false</BrowseInformation>
+@@ -263,7 +263,7 @@
+     </QtMoc>
+     <ClInclude Include="..\include\SysVerilogPEG.h" />
+     <QtMoc Include="Gui\Item\NsBridge.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <ClInclude Include="Gui\View\AddressrangeTable.h" />
+@@ -296,7 +296,7 @@
+     </QtMoc>
+     <ClInclude Include="Gui\Item\NsHost.h" />
+     <QtMoc Include="Gui\Item\NsBridgeDiagram.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\Item\NsVC.h">
+@@ -308,7 +308,7 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\Item\NsPlusItem.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsScene.h">
+@@ -369,7 +369,7 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsChopView.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsView.h">
+diff --git i/src/sw/noc_dev/prototype/main.cpp w/src/sw/noc_dev/prototype/main.cpp
+index 0d251aec54e..35bacb660a3 100644
+--- i/src/sw/noc_dev/prototype/main.cpp
++++ w/src/sw/noc_dev/prototype/main.cpp
+@@ -364,13 +364,13 @@ int main(int argc, char* argv[]) {
+             //app.setFont(QFont("font_name")
+             app.setFont(QFont("Sans Serif"));
+ #endif
+-            static const char DEVICE_PIXEL_RATIO[] = "QT_DEVICE_PIXEL_RATIO";
++            /*static const char DEVICE_PIXEL_RATIO[] = "QT_DEVICE_PIXEL_RATIO";
+             if (!qEnvironmentVariableIsSet(DEVICE_PIXEL_RATIO)
+                 && !qEnvironmentVariableIsSet("QT_AUTO_SCREEN_SCALE_FACTOR")
+                 && !qEnvironmentVariableIsSet("QT_SCALE_FACTOR")
+                 && !qEnvironmentVariableIsSet("QT_SCREEN_SCALE_FACTORS")) {
+                 QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+-            }
++            }*/
+ 
+             //generate auto-sized splash image
+             auto splash = createSpashScreen();
+@@ -474,7 +474,8 @@ int main(int argc, char* argv[]) {
+                 cout << "//SUCCESSFUL" << endl;
+         }
+     }
+-    catch (std::bad_alloc) {
++    catch (const std::bad_alloc& e) {
++	std::cerr << "Memory allocation failed: " << e.what() << std::endl;
+         std::cerr << "Out of memory exception raised; please provide more memory to " << PRODUCT_NAME << " for this config or try running it without GUI." << endl;
+         return -1;
+     }

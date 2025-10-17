@@ -1,0 +1,45 @@
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index 1c7af877a3e..ee8f8395ee5 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -709,21 +709,17 @@ NsWorkArea* NsMeshViewScene::getNsWorkArea()
+     return nsWorkArea;
+ }
+ 
+-void NsMeshViewScene::load() {
+-
+-    auto is_diagram = [](auto i) {
+-        return i->type() == BRIDGE_DIAGRAM || i->type() == ROUTER_DIAGRAM;
+-    };
++void NsMeshViewScene::load()
++{
+     std::string nameDiagram = "";
+     int layerIdDiagram;
+     NsRSSBDiagram* nsRSSBDiagram = nullptr;
+     NsBridgeDiagram* nsBridgeDiagram = nullptr;
+     NsRegbusRing* nsRegbusRing = nullptr;
+-    for (auto item : items()) {
+-        if (is_diagram(item)) {
++    for (auto& item : items()) {
++        if (item->type() == BRIDGE_DIAGRAM) {
+             nsRSSBDiagram = dynamic_cast<NsRSSBDiagram*>(item);
+             nsBridgeDiagram = dynamic_cast<NsBridgeDiagram*>(item);
+-            nsRegbusRing = dynamic_cast<NsRegbusRing*>(item);
+             if (nsRSSBDiagram) {
+                 nsRSSBDiagram->clearMesh();
+                 nameDiagram = nsRSSBDiagram->m_name;
+@@ -732,7 +728,10 @@ void NsMeshViewScene::load() {
+                 nsBridgeDiagram->clearMesh();
+                 nameDiagram = nsBridgeDiagram->m_name;
+                 layerIdDiagram = nsBridgeDiagram->m_layerId;
+-            } else if (nsRegbusRing) {
++            }
++        } else if (item->type() == RING_VISUALIZATION) {
++            nsRegbusRing = dynamic_cast<NsRegbusRing*>(item);
++            if (nsRegbusRing) {
+                 nsRegbusRing->clearMesh();
+             }
+         }

@@ -1,0 +1,16 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 34432fd5168..18a03539905 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -8645,6 +8645,8 @@ void MainWindow::createToolbars()
+     addToolbar->addAction(instrumentsActMap[ADD_BUTTONS]);
+ 
+     QToolButton* popupAddButtons = dynamic_cast<QToolButton*>(addToolbar->widgetForAction(instrumentsActMap[ADD_BUTTONS]));
++    connect(popupAddButtons, &QToolButton::pressed, this,
++            [&]() { qDebug() << "Tool button clicked"; });
+     popupAddButtons->setMenu(popupAddButtonsMenu);
+     popupAddButtons->setPopupMode(QToolButton::InstantPopup);
+     popupAddButtons->setObjectName(OBJ_ADD_AGENT_BUTTON);

@@ -1,0 +1,159 @@
+ src/sw/noc_dev/IPCore/include/IPTypes.h            |  1 +
+ src/sw/noc_dev/IPCore/src/IPModule.cpp             | 10 ++---
+ .../IPStudio_qt6/GUI/MainWindow/MainWindow.h       |  1 +
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp | 52 +++++++++++++++++++++-
+ src/sw/noc_dev/iptests/source/alu.iptcl            |  2 +-
+ 5 files changed, 59 insertions(+), 7 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPCore/include/IPTypes.h b/src/sw/noc_dev/IPCore/include/IPTypes.h
+index 0b71e8d61de..e1e7ceec3f4 100755
+--- a/src/sw/noc_dev/IPCore/include/IPTypes.h
++++ b/src/sw/noc_dev/IPCore/include/IPTypes.h
+@@ -39,6 +39,7 @@
+ #include "Rtl_lib.common.h"
+ #include "IPTypes.Common.h"
+ #include "json/json.hpp"
++#define IP_TCL = 1
+ namespace NetSpeed {
+ 
+ using ip_json = nlohmann::json;
+diff --git a/src/sw/noc_dev/IPCore/src/IPModule.cpp b/src/sw/noc_dev/IPCore/src/IPModule.cpp
+index ae0ee1576eb..fffc1b83bf3 100644
+--- a/src/sw/noc_dev/IPCore/src/IPModule.cpp
++++ b/src/sw/noc_dev/IPCore/src/IPModule.cpp
+@@ -1028,8 +1028,8 @@ const Module* Spec::get_mod(const std::string& modName) const {
+ 
+ std::string Module::GetToolTip(Instance* inst, Interface* intf) {
+     std::string ret_val;
+-    ret_val = "<h2>Interface " + intf->name + " of "+ inst->name +"</h2>";
+-    ret_val += "<h2>Ports</h2>";
++    ret_val = "<b>Interface " + intf->name + " of "+ inst->name +"</b><br/>";
++    ret_val += "<b>Ports</b>";
+     ret_val += "<ul style=\"list-style-type:circle\">";
+     for (const auto& [port_name, psl] : intf->ports) {
+         ret_val += "<li>" + psl->to_string(psl->dir) + " " + port_name + " width "
+@@ -1051,12 +1051,12 @@ std::string Module::GetToolTip(Instance* inst, Interface* intf) {
+ 
+         for (const IfceNetEndpt& net_end_pt : net_con) {
+             if (net_end_pt.if_pin.ifce->name != intf->name) continue;
+-            ret_val += "<h2>Connected to Net: " + pair.first + "</h2>";
++            ret_val += "<b>Connected to Net: " + pair.first + "</b><br/>";
+             if(1 == net_con.size()){
+-                ret_val += "<h2> Net does not connect to any interface.Either it is Default or Open. </h2>";
++                ret_val += "<b> Net does not connect to any interface.Either it is Default or Open. </b><br/>";
+             }
+             else {
+-                ret_val += "<h2>other endpoints</h2>";
++                ret_val += "<b>other endpoints</b>";
+                 ret_val += "<ul style=\"list-style-type:circle\">";
+                 for (const IfceNetEndpt& ifce_net_end_pt : net_con) {
+                     if (!ifce_net_end_pt.instance)
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+index 692d58ab4c3..3269294015a 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+@@ -46,6 +46,7 @@ public:
+     bool openFileDialog = false;
+     int clickingConstraintDialog = QDialog::Accepted;
+     void updateIntanceParameter(const QString&);
++    NSDockWidget* getInstanceDock() { return instanceDock; } 
+ 
+ protected:
+     void closeEvent(QCloseEvent* event) override;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+index a789d215193..1036f5341c5 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+@@ -30,6 +30,7 @@
+ #include "IPConnectivity.h"
+ #include "../MainWindow/MainWindow.h"
+ #include "../libavoid/libavoid/libavoid.h"
++#include "../../include/IPInstancesTable.h"
+ 
+ using namespace QSchematic;
+ 
+@@ -489,7 +490,12 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+                 } else {
+                     _movingNodes = false;
+                 }
+-
++                auto inst = dynamic_cast<IPInstance*>(item);
++                if (inst) {
++                    auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
++                    mw->getInstanceDock()->setWidget(mw->getModulesTab());
++                    mw->getInstanceDock()->setWindowTitle("Instances");
++                }
+                 // Prevent the scene from detecting changes in the wires origin
+                 // when the bouding rect is resized by a wire_point that moved
+                 Wire* wire = dynamic_cast<Wire*>(item);
+@@ -539,6 +545,27 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+                         if (mw && ipconn) {
+                             QList<QString> ifce_name = {label->text()};
+                             _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
++                            auto ipDesign = mw->getIPDesign();
++                            if (ipDesign) {
++                                auto mp =
++                                    ipDesign->findInstanceAndInterface(ipconn->getInstanceName().toStdString(),
++                                                                       label->text().toStdString());
++                                if (!mp.isEmpty()) {
++                                    auto mod = ipDesign->getModule();
++                                    if (mod) {
++                                        auto inst        = mp.firstKey();
++                                        auto ifce        = mp[inst];
++                                        auto md          = const_cast<NetSpeed::BDS::Module*>(mod);
++                                        std::string html = md->GetToolTip(inst, ifce);
++                                        QTextEdit* tooltipWindow = new QTextEdit;
++                                        tooltipWindow->setObjectName(OBJ_TOOLTIP_TAB_WIDGET);
++                                        tooltipWindow->setReadOnly(true);
++                                        tooltipWindow->setText(QString::fromStdString(html));
++                                        mw->getInstanceDock()->setWidget(tooltipWindow);
++                                        mw->getInstanceDock()->setWindowTitle("Tooltip");
++                                    }
++                                }
++                            }         
+                         }
+                         
+                         if (_highlightedItem) {
+@@ -1454,6 +1481,29 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+             if (!(event->buttons() & Qt::LeftButton)) {
+                 if (!event->modifiers().testFlag(Qt::ControlModifier)) {
+                     if (!item->isHighlighting()) {
++                        Label* label = dynamic_cast<Label*>(item);
++                        auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
++                        if (label && mw) {
++                            auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem());
++                            if (ipconn) {
++                                auto ipDesign = mw->getIPDesign();
++                                if (ipDesign) {
++                                    auto mp =
++                                        ipDesign->findInstanceAndInterface(ipconn->getInstanceName().toStdString(),
++                                                                           label->text().toStdString());
++                                    if (!mp.isEmpty()) {
++                                        auto mod = ipDesign->getModule();
++                                        if (mod) {
++                                            auto inst = mp.firstKey();
++                                            auto ifce = mp[inst];
++                                            auto md   = const_cast<NetSpeed::BDS::Module*>(mod);
++                                            std::string html = "<span style='font-size:10pt';>" + md->GetToolTip(inst, ifce) + "</span>";
++                                            item->setToolTip(QString::fromStdString(html));
++                                        }
++                                    }
++                                }
++                            }
++                        }
+                         // Highlight the item
+                         item->setHighlighted(true);
+                         itemHoverEnter(item->shared_from_this());
+diff --git a/src/sw/noc_dev/iptests/source/alu.iptcl b/src/sw/noc_dev/iptests/source/alu.iptcl
+index 84643c3a574..d54cb360f5d 100644
+--- a/src/sw/noc_dev/iptests/source/alu.iptcl
++++ b/src/sw/noc_dev/iptests/source/alu.iptcl
+@@ -74,7 +74,7 @@ design alu {
+ elab_ip
+ write_rtl -stub
+ write_meta_data $netspeed::project_name/meta_db.json
+-source [file join "iptests" "source" "run_vcs.tcl"]
++source [file join "../iptests" "source" "run_vcs.tcl"]
+ run_vcs
+ 
+ # CHECK_OUTPUT rtl/alu.v rtl/alu.v

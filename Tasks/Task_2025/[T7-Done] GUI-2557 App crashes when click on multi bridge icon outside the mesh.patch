@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 2409c478d37..91c13f6440c 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1058,7 +1058,7 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ 
+     auto is_component = [&]() -> bool {
+         for (const auto& it : itemList) {
+-            if (is_diagram(it) || (NetSpeed::is_member(it->type(), {HOST, BRIDGE, ROUTER, MULTIPLE_BRIDGE, REGBUS_BRIDGE}))) {
++            if (is_diagram(it) || (NetSpeed::is_member(it->type(), {HOST, BRIDGE, ROUTER, PLUS, MULTIPLE_BRIDGE, REGBUS_BRIDGE}))) {
+                 return true;
+             }
+         }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index a9b51e7d24f..33ff0b331a1 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -1063,7 +1063,7 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+ 
+     auto is_component = [&]() -> bool {
+         for (const auto& it : itemList) {
+-            if (is_diagram(it) || (NetSpeed::is_member(it->type(), {HOST, BRIDGE, ROUTER, MULTIPLE_BRIDGE, REGBUS_BRIDGE}))) {
++            if (is_diagram(it) || (NetSpeed::is_member(it->type(), {HOST, BRIDGE, ROUTER, PLUS, MULTIPLE_BRIDGE, REGBUS_BRIDGE}))) {
+                 return true;
+             }
+         }

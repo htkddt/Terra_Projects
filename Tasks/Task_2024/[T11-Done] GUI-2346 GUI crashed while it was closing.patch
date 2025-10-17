@@ -1,0 +1,16 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 35a80ca4724..7189ae8f80f 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -2556,7 +2556,7 @@ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):
+ 
+ NsRSSBDiagram::~NsRSSBDiagram()
+ {
+-    if (mesh) mesh->setZValue(NsMeshViewScene::MESH_ORDER);
++    if (mesh && dynamic_cast<NsMeshViewScene*>(scene())) mesh->setZValue(NsMeshViewScene::MESH_ORDER);
+     if(auto parent = parentItem()){
+         if(auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+             host->setZValue(NsMeshViewScene::HOST_ORDER);

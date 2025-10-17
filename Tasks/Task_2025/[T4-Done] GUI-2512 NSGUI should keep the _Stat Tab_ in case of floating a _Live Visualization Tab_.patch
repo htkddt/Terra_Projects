@@ -1,0 +1,402 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp           |  8 +++++++-
+ src/sw/noc_dev/prototype/Gui/dialogs.h             |  3 ++-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        | 19 +++++++++++++++----
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 21 +++++++++++++++++----
+ src/sw/noc_dev/prototype/Gui/propertypanel.h       |  5 +++--
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp       |  8 +++++++-
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.h         |  3 ++-
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp    | 19 +++++++++++++++----
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 21 +++++++++++++++++----
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h   |  5 +++--
+ 10 files changed, 88 insertions(+), 24 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index b8247004381..a561fb0bcb7 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -3190,7 +3190,8 @@ ToolTipAppDialog::ToolTipAppDialog(QString content, QString name, int count)
+     setModal(false);
+ }
+ 
+-ToolTipAppDialog::ToolTipAppDialog(QWidget * w, QString name, int count)
++ToolTipAppDialog::ToolTipAppDialog(QWidget* w, QString name, int count, QWidget* parent)
++: QDialog(parent)
+ {
+     isTable = true;
+     unDocking = false;
+@@ -3233,8 +3234,10 @@ void ToolTipAppDialog::closeEvent(QCloseEvent * event)
+     if (!mainWindow) return;
+     mainWindow->orderFocusDialog.removeOne(this);
+     if ((mainWindow->getTooltipDialogs().empty()) || (mainWindow->orderFocusDialog.empty())) {
++        emit clicked();
+         mainWindow->activateWindow();
+     } else if (!mainWindow->orderFocusDialog.empty()) {
++        emit clicked(mainWindow->orderFocusDialog.first());
+         mainWindow->orderFocusDialog.first()->activateWindow();
+     }
+     event->accept();
+@@ -3276,6 +3279,9 @@ void ToolTipAppDialog::changeEvent(QEvent* event)
+             mainWindow->getInstrumentsActMap()[ZOOM_IN]->setEnabled(isEnabledZoom);
+             mainWindow->getInstrumentsActMap()[ZOOM_OUT]->setEnabled(isEnabledZoom);
+             mainWindow->getInstrumentsActMap()[ZOOM_FIT]->setEnabled(isEnabledZoom);
++            if (dynamic_cast<QScrollArea*>(getMainWidget())) {
++                emit clicked(getMainWidget());
++            }
+         }
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index 24890d36fd1..9d1299940a4 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -940,7 +940,7 @@ class ToolTipAppDialog : public QDialog
+     Q_OBJECT
+ public:
+     ToolTipAppDialog(QString infoToolTip, QString name, int count = 0);
+-    ToolTipAppDialog(QWidget* w, QString name, int count = 0);
++    ToolTipAppDialog(QWidget* w, QString name, int count = 0, QWidget* parent = nullptr);
+     void closeEvent(QCloseEvent*);
+     void changeEvent(QEvent*);
+     void setMainWindow(MainWindow* main) { mainWindow = main; }
+@@ -970,6 +970,7 @@ signals:
+     void b(QString, QString, int);
+     void closeTable(QString, QWidget*);
+     void unDockTable(QString, QWidget*, int);
++    void clicked(QWidget* widget = nullptr);
+ 
+ public slots:
+     void unDock();
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index c1ab0964d5f..8e1ce083f67 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -271,6 +271,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     /* Handle signals of displayPanel */
+     connect(displayPanel, SIGNAL(tabCloseRequested(int)), propPanel, SLOT(hideStattabIfVisualizationClosed(int)));
+     connect(displayPanel, SIGNAL(currentChanged(int)), propPanel, SLOT(updateStatDashboard()));
++    connect(displayPanel, SIGNAL(tabClicked(int)), propPanel, SLOT(updateStatDashboard()));
+     connect(displayPanel, &INITabWidget::currentChanged, this, [&](){ showDomainColorLegend(); });
+     connect(displayPanel, SIGNAL(tabDocked(int)), this, SLOT(floatingTab(int)));
+     connect(displayPanel, SIGNAL(closeThis()), this, SLOT(closeTab()));
+@@ -3919,7 +3920,7 @@ void MainWindow::setZoomTooltip()
+ 
+ void MainWindow::setVisiblePlot()
+ {
+-    auto w = displayPanel->currentWidget();
++    auto w = getPropertyPanel()->getCurrentStatWidget();
+     if (!w) return;
+ 
+     auto plotMap = tabPlotsMap.value(w);
+@@ -3947,7 +3948,7 @@ void MainWindow::setVisiblePlot()
+ 
+ void MainWindow::navigateToPlotSelected()
+ {
+-    auto w = displayPanel->currentWidget();
++    auto w = getPropertyPanel()->getCurrentStatWidget();
+     if (!w) return;
+ 
+     auto plotMap = tabPlotsMap.value(w);
+@@ -3957,7 +3958,7 @@ void MainWindow::navigateToPlotSelected()
+     auto customPlot = plotMap->value(seletedItem);
+     if (customPlot) {
+         if (customPlot->parentWidget()->isVisible()) {
+-            auto scroll = dynamic_cast<QScrollArea*>(displayPanel->currentWidget());
++            auto scroll = dynamic_cast<QScrollArea*>(w);
+             if (scroll) {
+                 scroll->ensureWidgetVisible(customPlot);
+             }
+@@ -4797,7 +4798,17 @@ bool MainWindow::floatingTab(int index)
+     if (isDisplayingMeshView() || isDisplayingSocView()) return false;
+ 
+     displayPanel->removeTab(index);
+-    ToolTipAppDialog * dialog = new ToolTipAppDialog(w, title);
++    ToolTipAppDialog * dialog = nullptr;
++
++    /* If the floating tab is Visualization, NSGUI will set flag Qt::WindowStaysOnTopHint for dialog */
++    if (dynamic_cast<QScrollArea*>(w)) {
++        dialog = new ToolTipAppDialog(w, title, 0, this);
++        dialog->resize(QSize(1550, 520));
++        connect(dialog, SIGNAL(clicked(QWidget*)), propPanel, SLOT(updateStatDashboard(QWidget*)));
++    } else {
++        dialog = new ToolTipAppDialog(w, title);
++    }
++
+     tooltipDialogs.append(dialog);
+     dialog->setMainWindow(this);
+     connect(dialog->zoom_fit, SIGNAL(activated()), this, SLOT(zoomAutoFitAct()));
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 14378b90589..22e551f5885 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -671,13 +671,26 @@ void PropertyPanel::hideStattabIfVisualizationClosed(int tab) {
+     return;
+ }
+ 
+-void PropertyPanel::updateStatDashboard()
++void PropertyPanel::updateStatDashboard(QWidget* widget)
+ {
+     if (!mw) return;
+     auto displayPanel = mw->getDisplayPanel();
+     if (!displayPanel) return;
+     auto statMap = mw->getTabStatTabMap();
+-    QSharedPointer<StatTab> st = statMap.value(displayPanel->currentWidget(), nullptr);
++    QSharedPointer<StatTab> st = nullptr;
++
++    if (!widget) {
++        st = statMap.value(displayPanel->currentWidget(), nullptr);
++        currentStatWidget = displayPanel->currentWidget();
++    } else {
++        st = statMap.value(widget, nullptr);
++        currentStatWidget = widget;
++        if (!st) {
++            st = statMap.value(displayPanel->currentWidget(), nullptr);
++            currentStatWidget = displayPanel->currentWidget();
++        }
++    }
++
+     if (!st) {
+         st = statMap.value(mw->getLiveWidget());
+         if (dockStat) dockStat->hide();
+@@ -3191,7 +3204,7 @@ void PropertyPanel::handleLegendClicked(QCPLegend* legend, QCPAbstractLegendItem
+     if (!customPlot) return;
+ 
+     // Find related evengroup
+-    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(getCurrentStatWidget(), nullptr);
+     if (!statTab) return;
+     auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
+     if (iter == statTab->plots.end()) return;
+@@ -3252,7 +3265,7 @@ void PropertyPanel::handleMousePress(QMouseEvent * event)
+     if (!customPlot) return;
+ 
+     // Find related evengroup
+-    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(getCurrentStatWidget(), nullptr);
+     if (!statTab) return;
+     auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
+     if (iter == statTab->plots.end()) return;
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.h b/src/sw/noc_dev/prototype/Gui/propertypanel.h
+index 604537c4955..d8d9f99f9f5 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.h
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.h
+@@ -263,6 +263,7 @@ public:
+     MainWindow* getMainWindow() const { return mw; }
+ 
+     inline QWidget* getSimDashBoard() { return simDashboard; }
++    QWidget* getCurrentStatWidget() { return currentStatWidget; }
+     /**
+      * @brief create a graph present latency histogram
+      * @param latency data points
+@@ -774,7 +775,7 @@ private:
+     QtTreePropertyBrowser * meshPropertyEditor = nullptr;
+     QtTreePropertyBrowser * waivePropertyEditor = nullptr;
+     WaiveDashBoard * waiveDashBoard = nullptr;
+-    QWidget * simDashboard = nullptr;
++    QWidget *simDashboard = nullptr, *currentStatWidget = nullptr;
+     NSDockWidget *dockSim = nullptr, *dockMesh = nullptr, *dockStat = nullptr, *dockLint = nullptr, *dockWaiver = nullptr;
+     
+     StatDashboard * statDashboard = nullptr;
+@@ -1194,7 +1195,7 @@ protected:
+     friend class Test_PropertyPanel;
+ 
+ public slots:
+-    void updateStatDashboard();
++    void updateStatDashboard(QWidget* widget = nullptr);
+     void wheelOnCustomPlot(QWheelEvent * event);
+     void raiseStatTab() { if (dockStat) dockStat->raise(); }
+     void raiseMeshTab() { if (dockMesh) dockMesh->raise(); }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index d5f199f56af..c954e1d59c0 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -3204,7 +3204,8 @@ ToolTipAppDialog::ToolTipAppDialog(QString content, QString name, int count)
+     setModal(false);
+ }
+ 
+-ToolTipAppDialog::ToolTipAppDialog(QWidget * w, QString name, int count)
++ToolTipAppDialog::ToolTipAppDialog(QWidget* w, QString name, int count, QWidget* parent)
++: QDialog(parent)
+ {
+     isTable = true;
+     unDocking = false;
+@@ -3247,8 +3248,10 @@ void ToolTipAppDialog::closeEvent(QCloseEvent * event)
+     if (!mainWindow) return;
+     mainWindow->orderFocusDialog.removeOne(this);
+     if ((mainWindow->getTooltipDialogs().empty()) || (mainWindow->orderFocusDialog.empty())) {
++        emit clicked();
+         mainWindow->activateWindow();
+     } else if (!mainWindow->orderFocusDialog.empty()) {
++        emit clicked(mainWindow->orderFocusDialog.first());
+         mainWindow->orderFocusDialog.first()->activateWindow();
+     }
+     event->accept();
+@@ -3290,6 +3293,9 @@ void ToolTipAppDialog::changeEvent(QEvent* event)
+             mainWindow->getInstrumentsActMap()[ZOOM_IN]->setEnabled(isEnabledZoom);
+             mainWindow->getInstrumentsActMap()[ZOOM_OUT]->setEnabled(isEnabledZoom);
+             mainWindow->getInstrumentsActMap()[ZOOM_FIT]->setEnabled(isEnabledZoom);
++            if (dynamic_cast<QScrollArea*>(getMainWidget())) {
++                emit clicked(getMainWidget());
++            }
+         }
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+index 10c7c77d56a..3efc204456f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+@@ -940,7 +940,7 @@ class ToolTipAppDialog : public QDialog
+     Q_OBJECT
+ public:
+     ToolTipAppDialog(QString infoToolTip, QString name, int count = 0);
+-    ToolTipAppDialog(QWidget* w, QString name, int count = 0);
++    ToolTipAppDialog(QWidget* w, QString name, int count = 0, QWidget* parent = nullptr);
+     void closeEvent(QCloseEvent*);
+     void changeEvent(QEvent*);
+     void setMainWindow(MainWindow* main) { mainWindow = main; }
+@@ -970,6 +970,7 @@ signals:
+     void b(QString, QString, int);
+     void closeTable(QString, QWidget*);
+     void unDockTable(QString, QWidget*, int);
++    void clicked(QWidget* widget = nullptr);
+ 
+ public slots:
+     void unDock();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index e8baf9b393b..6ff102426a7 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -271,6 +271,7 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     /* Handle signals of displayPanel */
+     connect(displayPanel, SIGNAL(tabCloseRequested(int)), propPanel, SLOT(hideStattabIfVisualizationClosed(int)));
+     connect(displayPanel, SIGNAL(currentChanged(int)), propPanel, SLOT(updateStatDashboard()));
++    connect(displayPanel, SIGNAL(tabClicked(int)), propPanel, SLOT(updateStatDashboard()));
+     connect(displayPanel, &INITabWidget::currentChanged, this, [&](){ showDomainColorLegend(); });
+     connect(displayPanel, SIGNAL(tabDocked(int)), this, SLOT(floatingTab(int)));
+     connect(displayPanel, SIGNAL(closeThis()), this, SLOT(closeTab()));
+@@ -3921,7 +3922,7 @@ void MainWindow::setZoomTooltip()
+ 
+ void MainWindow::setVisiblePlot()
+ {
+-    auto w = displayPanel->currentWidget();
++    auto w = getPropertyPanel()->getCurrentStatWidget();
+     if (!w) return;
+ 
+     auto plotMap = tabPlotsMap.value(w);
+@@ -3949,7 +3950,7 @@ void MainWindow::setVisiblePlot()
+ 
+ void MainWindow::navigateToPlotSelected()
+ {
+-    auto w = displayPanel->currentWidget();
++    auto w = getPropertyPanel()->getCurrentStatWidget();
+     if (!w) return;
+ 
+     auto plotMap = tabPlotsMap.value(w);
+@@ -3959,7 +3960,7 @@ void MainWindow::navigateToPlotSelected()
+     auto customPlot = plotMap->value(seletedItem);
+     if (customPlot) {
+         if (customPlot->parentWidget()->isVisible()) {
+-            auto scroll = dynamic_cast<QScrollArea*>(displayPanel->currentWidget());
++            auto scroll = dynamic_cast<QScrollArea*>(w);
+             if (scroll) {
+                 scroll->ensureWidgetVisible(customPlot);
+             }
+@@ -4799,7 +4800,17 @@ bool MainWindow::floatingTab(int index)
+     if (isDisplayingMeshView() || isDisplayingSocView()) return false;
+ 
+     displayPanel->removeTab(index);
+-    ToolTipAppDialog * dialog = new ToolTipAppDialog(w, title);
++    ToolTipAppDialog * dialog = nullptr;
++
++    /* If the floating tab is Visualization, NSGUI will set flag Qt::WindowStaysOnTopHint for dialog */
++    if (dynamic_cast<QScrollArea*>(w)) {
++        dialog = new ToolTipAppDialog(w, title, 0, this);
++        dialog->resize(QSize(1550, 520));
++        connect(dialog, SIGNAL(clicked(QWidget*)), propPanel, SLOT(updateStatDashboard(QWidget*)));
++    } else {
++        dialog = new ToolTipAppDialog(w, title);
++    }
++
+     tooltipDialogs.append(dialog);
+     dialog->setMainWindow(this);
+     connect(dialog->zoom_fit, SIGNAL(activated()), this, SLOT(zoomAutoFitAct()));
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 3644fcc093a..5c558da5ff1 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -671,13 +671,26 @@ void PropertyPanel::hideStattabIfVisualizationClosed(int tab) {
+     return;
+ }
+ 
+-void PropertyPanel::updateStatDashboard()
++void PropertyPanel::updateStatDashboard(QWidget* widget)
+ {
+     if (!mw) return;
+     auto displayPanel = mw->getDisplayPanel();
+     if (!displayPanel) return;
+     auto statMap = mw->getTabStatTabMap();
+-    QSharedPointer<StatTab> st = statMap.value(displayPanel->currentWidget(), nullptr);
++    QSharedPointer<StatTab> st = nullptr;
++
++    if (!widget) {
++        st = statMap.value(displayPanel->currentWidget(), nullptr);
++        currentStatWidget = displayPanel->currentWidget();
++    } else {
++        st = statMap.value(widget, nullptr);
++        currentStatWidget = widget;
++        if (!st) {
++            st = statMap.value(displayPanel->currentWidget(), nullptr);
++            currentStatWidget = displayPanel->currentWidget();
++        }
++    }
++
+     if (!st) {
+         st = statMap.value(mw->getLiveWidget());
+         if (dockStat) dockStat->hide();
+@@ -3191,7 +3204,7 @@ void PropertyPanel::handleLegendClicked(QCPLegend* legend, QCPAbstractLegendItem
+     if (!customPlot) return;
+ 
+     // Find related evengroup
+-    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(getCurrentStatWidget(), nullptr);
+     if (!statTab) return;
+     auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
+     if (iter == statTab->plots.end()) return;
+@@ -3252,7 +3265,7 @@ void PropertyPanel::handleMousePress(QMouseEvent * event)
+     if (!customPlot) return;
+ 
+     // Find related evengroup
+-    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(mw->getDisplayPanel()->currentWidget(), nullptr);
++    QSharedPointer<StatTab> statTab = mw->getTabStatTabMap().value(getCurrentStatWidget(), nullptr);
+     if (!statTab) return;
+     auto iter = statTab->plots.find(customPlot->getEventGroupName().toStdString());
+     if (iter == statTab->plots.end()) return;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+index e38d8df9e46..f0e07880df2 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+@@ -263,6 +263,7 @@ public:
+     MainWindow* getMainWindow() const { return mw; }
+ 
+     inline QWidget* getSimDashBoard() { return simDashboard; }
++    QWidget* getCurrentStatWidget() { return currentStatWidget; }
+     /**
+      * @brief create a graph present latency histogram
+      * @param latency data points
+@@ -774,7 +775,7 @@ private:
+     QtTreePropertyBrowser * meshPropertyEditor = nullptr;
+     QtTreePropertyBrowser * waivePropertyEditor = nullptr;
+     WaiveDashBoard * waiveDashBoard = nullptr;
+-    QWidget * simDashboard = nullptr;
++    QWidget *simDashboard = nullptr, *currentStatWidget = nullptr;
+     NSDockWidget *dockSim = nullptr, *dockMesh = nullptr, *dockStat = nullptr, *dockLint = nullptr, *dockWaiver = nullptr;
+     
+     StatDashboard * statDashboard = nullptr;
+@@ -1194,7 +1195,7 @@ protected:
+     friend class Test_PropertyPanel;
+ 
+ public slots:
+-    void updateStatDashboard();
++    void updateStatDashboard(QWidget* widget = nullptr);
+     void wheelOnCustomPlot(QWheelEvent * event);
+     void raiseStatTab() { if (dockStat) dockStat->raise(); }
+     void raiseMeshTab() { if (dockMesh) dockMesh->raise(); }

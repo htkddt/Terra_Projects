@@ -1,0 +1,176 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp | 37 +++++++++++++++++++++++---
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.h   | 17 +++++++-----
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp    | 12 +++++++--
+ src/sw/noc_dev/prototype/Gui/mainwindow.h      |  2 ++
+ 4 files changed, 56 insertions(+), 12 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 10041ed2136..01ddeabfb52 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -294,15 +294,15 @@ void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerNam
+ {
+     // Get the bounding rect of the item
+     QRectF itemRect  = item->boundingRect();
+-    QRectF sceneRect = itemRect.adjusted(-1, -1, 1, 1);
+     double aspectRatio = itemRect.width() / itemRect.height();
+-    int w = static_cast<int>(itemRect.width() * 0.55);
++    int w = static_cast<int>(itemRect.width() * 0.4);
+     int h = static_cast<int>(w/aspectRatio);
+ 
+     QGraphicsScene* scene = new QGraphicsScene();
+-    scene->setSceneRect(sceneRect);
++    scene->setSceneRect(itemRect);
+     scene->addItem(item);
+-    autoFitView* view = new autoFitView(scene, item);
++    auto mw = dynamic_cast<MainWindow*>(parent);
++    autoFitView* view = new autoFitView(scene, item, mw);
+ 
+     // Wrap view in aspect-ratio-enforcing widget
+     QWidget* aspectWrapper = new aspectRatioWidget(view, aspectRatio);
+@@ -321,6 +321,7 @@ void NsRouter::moveRouterDiagramToDialog(QGraphicsItem* item, QString& routerNam
+     dialog->setWindowTitle("Router Diagram " + routerName);
+     dialog->resize(w, h);
+     dialog->show();
++    dialog->activateWindow();
+ }
+ 
+ void customDialog::visibleUpdate()
+@@ -334,6 +335,34 @@ void customDialog::visibleUpdate()
+     }
+ }
+ 
++void autoFitView::zoom(double delta)
++{
++    double newScale = getZoomFactor() * (delta + 1);
++    if (newScale <= 0) return;
++    sceneScaleChanged(newScale);
++    triggerAutoFit(false);
++    auto p = getFocusPoint();
++    if (!p.isNull()) {
++        centerOn(p);
++    }
++}
++
++void autoFitView::mouseReleaseEvent(QMouseEvent* event)
++{
++    NsView::mouseReleaseEvent(event);
++}
++
++void autoFitView::wheelEvent(QWheelEvent* event)
++{
++    if (event->modifiers().testFlag(Qt::ControlModifier)) {
++        if (getFocusPoint() == QPointF()) {
++            setFocusPoint(mapToScene(event->posF().x(), event->posF().y()));
++        }
++        if (event->delta() > 0) mainWindow->zoomInAct();  // zoom in
++        if (event->delta() < 0) mainWindow->zoomOutAct();  // zoon out
++    }
++}
++
+ /**
+ * @brief to receive mouse press events for this item
+ * @param event of mouse
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+index 12a8a55d0a8..2a59dfb4bb7 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.h
+@@ -266,30 +266,35 @@ public slots:
+     void visibleUpdate();
+ };
+ 
+-class autoFitView : public QGraphicsView
++class autoFitView : public NsView
+ {
++    Q_OBJECT
+ public:
+-    autoFitView(QGraphicsScene* scene, QGraphicsItem* item, QWidget* parent = nullptr)
+-    : QGraphicsView(scene, parent), m_item(item) {
++    autoFitView(QGraphicsScene* scene, QGraphicsItem* item, MainWindow* parent = nullptr)
++    : NsView(parent), m_item(item) {
++        setScene(scene);
+         setFrameShape(QFrame::NoFrame);
+         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+         setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+     }
+     void updateItem(QGraphicsItem* newItem) { m_item = newItem; }
++    void zoom(double delta);
+ 
+ protected:
+     void resizeEvent(QResizeEvent* event) override {
+         QGraphicsView::resizeEvent(event);
+-        fitInView(m_item, Qt::KeepAspectRatio);
++        triggerAutoFit(true);
+     }
+ 
+     void showEvent(QShowEvent* event) override {
+         QGraphicsView::showEvent(event);
+-        fitInView(m_item, Qt::KeepAspectRatio);
+-        this->updateGeometry();
++        triggerAutoFit(true);
+     }
+ 
++    void wheelEvent(QWheelEvent* event) override;
++    void mouseReleaseEvent(QMouseEvent* event) override;
++
+ private:
+     QGraphicsItem* m_item;
+ };
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index e1eac34ebb4..a582981da46 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -3492,6 +3492,9 @@ void MainWindow::zoomInAct()
+         zoomDisplayingChipView(ZOOM_STEP);
+     } else if (isDisplayingSocView()) {
+         zoomDisplayingSocView(ZOOM_STEP);
++    } else if (auto viewHugeDialog = dynamic_cast<autoFitView*>(QApplication::focusWidget())) {
++        if (viewHugeDialog->isAutoFit()) viewHugeDialog->setAutoFit(false);
++        viewHugeDialog->zoom(ZOOM_STEP);
+     } else if (isDisplayingMeshView()) {
+         zoomDisplayingMeshView(ZOOM_STEP);
+     } else if (isDisplayingChopView()) {
+@@ -3541,6 +3544,9 @@ void MainWindow::zoomOutAct()
+         zoomDisplayingChipView(-ZOOM_STEP);
+     } else if (isDisplayingSocView()) {
+         zoomDisplayingSocView(-ZOOM_STEP);
++    } else if (auto viewHugeDialog = dynamic_cast<autoFitView*>(QApplication::focusWidget())) {
++        if (viewHugeDialog->isAutoFit()) viewHugeDialog->setAutoFit(false);
++        viewHugeDialog->zoom(-ZOOM_STEP);
+     } else if (isDisplayingMeshView()) {
+         zoomDisplayingMeshView(-ZOOM_STEP);
+     } else if (isDisplayingChopView()) {
+@@ -3663,8 +3669,10 @@ void MainWindow::zoomAutoFitAct()
+             }
+             socView->triggerAutoFit(true);
+         }
+-    }
+-    else if (nsWorkArea && isDisplayingMeshView()) {  // for gridview
++    } else if (auto viewHugeDialog = dynamic_cast<autoFitView*>(QApplication::focusWidget())) {
++        if (viewHugeDialog->isAutoFit()) return;
++        viewHugeDialog->triggerAutoFit(true);
++    } else if (nsWorkArea && isDisplayingMeshView()) {  // for gridview
+         if (nsWorkArea->isAutoFit()) {
+             return;
+         }
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index 3c60ee6fcd5..db14d867d89 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -29,6 +29,7 @@
+ #include "dialogs.h"
+ #include "NSDockWidget.h"
+ 
++#include "Gui/Item/NsRouter.h"
+ #include "Gui/View/NsChipView.h"
+ #include "Gui/View/NsSocView.h"
+ #include "Gui/View/NsLynxView.h"
+@@ -53,6 +54,7 @@ class INIConsole;
+ class StatsView;
+ class NsWorkArea;
+ class NsChopView;
++class autoFitView;
+ QT_END_NAMESPACE
+ 
+ class AbstractInstrument;

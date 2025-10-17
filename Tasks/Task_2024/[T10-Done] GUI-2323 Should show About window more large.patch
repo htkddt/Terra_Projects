@@ -1,0 +1,40 @@
+ src/sw/noc_dev/GUICore/genericdialog.cpp | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/GUICore/genericdialog.cpp b/src/sw/noc_dev/GUICore/genericdialog.cpp
+index 4ceb15b9631..26c4edb4ebe 100644
+--- a/src/sw/noc_dev/GUICore/genericdialog.cpp
++++ b/src/sw/noc_dev/GUICore/genericdialog.cpp
+@@ -91,13 +91,23 @@ AboutDialog::AboutDialog(const char* productName, const std::string& licenseTxt,
+         ++row;
+     }
+ 
++    QFont headerFont;
++    headerFont.setBold(true);
++    headerFont.setPointSize(12);
++
+     tableWidget->setHorizontalHeaderLabels({ "License", "Status" });
++    auto headerLicense = tableWidget->horizontalHeaderItem(0);
++    auto headerStatus = tableWidget->horizontalHeaderItem(1);
++    headerLicense->setFont(headerFont);
++    headerStatus->setFont(headerFont);
+     tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+     tableWidget->setSortingEnabled(true);
+     tableWidget->sortItems(0);
+     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
++    tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
++    tableWidget->horizontalScrollBar()->setSingleStep(1);
+     tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+-    tableWidget->setMinimumHeight(160);
++    tableWidget->setMinimumHeight(320);
+     tableWidget->resizeColumnsToContents();
+ 
+     QString licenseAckTxt =
+@@ -156,6 +166,7 @@ AboutDialog::AboutDialog(const char* productName, const std::string& licenseTxt,
+                    Qt::WindowMaximizeButtonHint | Qt::Window);
+     setWindowTitle("About");
+     setWindowIcon(QIcon(ICON_NOC_M1));
++    setMinimumWidth(850);
+ }
+ 
+ AboutDialog* AboutDialog::getAboutDialog(const char* productName, const std::string& licenseTxt, const char* licenseAck, QWidget* parent)

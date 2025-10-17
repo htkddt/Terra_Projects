@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp     | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index d7b05353935..b16197734a7 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -3527,7 +3527,7 @@ void INIConsole::preCommandDeclaration()
+         }
+         mainWindow->indexLayer = 0;
+         if (mainWindow->isSearching) mainWindow->isSearching = false;
+-        for (auto& dialog : mainWindow->findChildren<QDialog*>()) {
++        for (auto& dialog : mainWindow->findChildren<QDialog*>(Qt::FindDirectChildrenOnly)) {
+             if (dialog->windowTitle().contains(QString("Router Diagram"))) { /* huge dialog */
+                 dialog->close();
+             }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index de2d2f8a565..3b56afe2943 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -3509,7 +3509,7 @@ void INIConsole::preCommandDeclaration()
+         }
+         mainWindow->indexLayer = 0;
+         if (mainWindow->isSearching) mainWindow->isSearching = false;
+-        for (auto& dialog : mainWindow->findChildren<QDialog*>()) {
++        for (auto& dialog : mainWindow->findChildren<QDialog*>(Qt::FindDirectChildrenOnly)) {
+             if (dialog->windowTitle().contains(QString("Router Diagram"))) { /* huge dialog */
+                 dialog->close();
+             }

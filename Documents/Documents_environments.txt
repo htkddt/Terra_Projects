@@ -1,0 +1,20 @@
+#####################################################################################################################################################################################################################################
+Visual Studio:
+	- Source: Microsoft store
+	- Workloads: Desktop development with C++
+	- Installing
+#####################################################################################################################################################################################################################################
+Qt framework:
+	- Source: doc.qt.io
+	- Start qt-online-installer-windows-x64-4.10.0.exe
+	- At Qt version step, click 'Customize' checkbox --> Next
+	- Customize: --> If Qt 6.9.2 is checked, click on it to uncheck and check on Qt 6.7.3
+		+ MSVC 2019 64-bit
+		+ MSVC 2022 64-bit
+		+ Source
+		+ Qt 5 Compatibility Module
+		+ Qt Debug Information Files
+	- To add or remove libraries: Qt setting folder path --> Run MaintenaceTool --> Choose Add or Remove components --> Open follow Qt versions --> Check libraries you need --> Next --> Install
+#####################################################################################################################################################################################################################################
+Using Qt6 in Visual Studio 2022:
+	

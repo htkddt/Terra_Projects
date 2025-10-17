@@ -1,0 +1,59 @@
+ src/sw/noc_dev/GUICore_qt6/NsTypes.cpp | 42 ++++++++++++++++++++--------------
+ 1 file changed, 25 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+index a0448aaf216..c1cc6faba0b 100644
+--- a/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/NsTypes.cpp
+@@ -79,26 +79,34 @@ QString toolTip2Html(QString toolTipString, int dis)
+         } else {
+             QString newlist;
+             if (dis > 0) {
+-                QStringList row = alist.at(0).split("<tr>");
++                QStringList table = alist.at(0).split("</table>");
++                QStringList row;
++                if (table.size() < 2) row = table.at(0).split("<tr>");
++                else row = table.at(1).split("<tr>");
+                 if (row.size() > 1) {
+-                    QStringList colunm = row.at(1).split("<th>");
+-                    auto cols = dis / (colunm.size() * 0.75);
+-                    if (colunm.size() > cols) {
+-                        newlist.append(row.at(0) + "<tr>");
+-                        for (int i = 0; i < cols; ++i) {
+-                            newlist.append("<th>" + colunm.at(i));
++                    if (table.size() < 2) {
++                        QStringList colunm = row.at(1).split("<th>");
++                        auto cols = dis / (colunm.size() * 2);
++                        if (colunm.size() > cols) {
++                            newlist.append(row.at(0) + "<tr>");
++                            for (int i = 0; i < cols; ++i) {
++                                newlist.append("<th>" + colunm.at(i));
++                            }
++                            newlist.append("<th> ... </th> </tr>");
++                            newlist.append("<tr>" + row.at(2));
++                            for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
++                                newlist.append(alist.at(i) + "<br />");
++                            }
++                            newlist.append("...");
++                        } else {
++                            newlist.append(alist.at(0));
++                            for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
++                                newlist.append(alist.at(i) + "<br />");
++                            }
++                            newlist.append("...");
+                         }
+-                        newlist.append("<th> ... </th> </tr>");
+-                        newlist.append("<tr>" + row.at(2));
+-                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
+-                            newlist.append(alist.at(i) + "<br />");
+-                        }
+-                        newlist.append("...");
+                     } else {
+-                        newlist.append(alist.at(0));
+-                        for (int i = 1; i < NUM_LINES_TOOLTIP - 1; ++i) {
+-                            newlist.append(alist.at(i) + "<br />");
+-                        }
++                        newlist.append(table.at(0) + "</table>");
+                         newlist.append("...");
+                     }
+                 } else {

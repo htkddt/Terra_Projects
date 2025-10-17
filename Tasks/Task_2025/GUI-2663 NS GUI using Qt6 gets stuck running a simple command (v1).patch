@@ -1,0 +1,16 @@
+ src/sw/noc_dev/NocCore/src/Grid.show.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/NocCore/src/Grid.show.cpp b/src/sw/noc_dev/NocCore/src/Grid.show.cpp
+index 5976498d400..6e56d9fddbb 100644
+--- a/src/sw/noc_dev/NocCore/src/Grid.show.cpp
++++ b/src/sw/noc_dev/NocCore/src/Grid.show.cpp
+@@ -3243,7 +3243,7 @@ DataTable Grid::list_node_regbus_layers(bool show_only_nonempty, bool tcl_format
+         //    nd_layer  = "{" + nd_layer + "}";
+         //}
+         if(tcl_format) {
+-          dt.second.push_back({stringify(rbl_idx), h->name(), stringify(layer), "{" + join(elements_layer, "," ) + "}", "{" + join(nodes_layer, "," )+ "}"});
++          dt.second.push_back({stringify(rbl_idx), h->name(), stringify(layer), "{" + join(elements_layer, ", " ) + "}", "{" + join(nodes_layer, ", " )+ "}"});
+         } else {
+           dt.second.push_back({stringify(rbl_idx), h->name(), stringify(layer), join(elements_layer, ", "), join(nodes_layer, ", ")});
+         }

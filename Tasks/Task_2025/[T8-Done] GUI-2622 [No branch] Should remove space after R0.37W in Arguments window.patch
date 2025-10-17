@@ -1,0 +1,114 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 43 ++++++++++++++++------------
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 43 ++++++++++++++++------------
+ 2 files changed, 48 insertions(+), 38 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index bea41485982..9a4264293a4 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5532,26 +5532,31 @@ void chooseArgumentDialog::itemComboBoxChanged()
+         }
+     }
+     if (!list.isEmpty()) {
+-        QString currentText = QString();
+-        QFontMetrics metrics(textRouterDest->font());
+-        for (const auto& text : list) {
+-            if (textRouterDest->text().contains(text)) continue;
+-            if (text == list.first()) {
+-                textRouterDest->setText(textRouterDest->text() + text + " ");
+-                valueRouterDest += text + " ";
+-                continue;
+-            }
+-            currentText = textRouterDest->text();
+-            if (!currentText.contains("...")) {
+-                int textWidth = metrics.horizontalAdvance(currentText);
+-                int lineWidth = textRouterDest->width();
+-                if (textWidth < (lineWidth - 50)) {
+-                    if (text == list.last()) textRouterDest->setText(currentText + text);
+-                    else textRouterDest->setText(currentText + text + " ");
+-                } else textRouterDest->setText(currentText + "...");
++        if (list.size() == 1) {
++            textRouterDest->setText(list.at(0));
++            valueRouterDest = list.at(0);
++        } else {
++            QString currentText = QString();
++            QFontMetrics metrics(textRouterDest->font());
++            for (const auto& text : list) {
++                if (textRouterDest->text().contains(text)) continue;
++                if (text == list.first()) {
++                    textRouterDest->setText(textRouterDest->text() + text + " ");
++                    valueRouterDest += text + " ";
++                    continue;
++                }
++                currentText = textRouterDest->text();
++                if (!currentText.contains("...")) {
++                    int textWidth = metrics.horizontalAdvance(currentText);
++                    int lineWidth = textRouterDest->width();
++                    if (textWidth < (lineWidth - 50)) {
++                        if (text == list.last()) textRouterDest->setText(currentText + text);
++                        else textRouterDest->setText(currentText + text + " ");
++                    } else textRouterDest->setText(currentText + "...");
++                }
++                if (text == list.last()) valueRouterDest += text;
++                else valueRouterDest += text + " ";
+             }
+-            if (text == list.last()) valueRouterDest += text;
+-            else valueRouterDest += text + " ";
+         }
+         textRouterDest->setToolTip(valueRouterDest);
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index 99075284bba..96c236eb14e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5551,26 +5551,31 @@ void chooseArgumentDialog::itemComboBoxChanged()
+         }
+     }
+     if (!list.isEmpty()) {
+-        QString currentText = QString();
+-        QFontMetrics metrics(textRouterDest->font());
+-        for (const auto& text : list) {
+-            if (textRouterDest->text().contains(text)) continue;
+-            if (text == list.first()) {
+-                textRouterDest->setText(textRouterDest->text() + text + " ");
+-                valueRouterDest += text + " ";
+-                continue;
+-            }
+-            currentText = textRouterDest->text();
+-            if (!currentText.contains("...")) {
+-                int textWidth = metrics.horizontalAdvance(currentText);
+-                int lineWidth = textRouterDest->width();
+-                if (textWidth < (lineWidth - 50)) {
+-                    if (text == list.last()) textRouterDest->setText(currentText + text);
+-                    else textRouterDest->setText(currentText + text + " ");
+-                } else textRouterDest->setText(currentText + "...");
++        if (list.size() == 1) {
++            textRouterDest->setText(list.at(0));
++            valueRouterDest = list.at(0);
++        } else {
++            QString currentText = QString();
++            QFontMetrics metrics(textRouterDest->font());
++            for (const auto& text : list) {
++                if (textRouterDest->text().contains(text)) continue;
++                if (text == list.first()) {
++                    textRouterDest->setText(textRouterDest->text() + text + " ");
++                    valueRouterDest += text + " ";
++                    continue;
++                }
++                currentText = textRouterDest->text();
++                if (!currentText.contains("...")) {
++                    int textWidth = metrics.horizontalAdvance(currentText);
++                    int lineWidth = textRouterDest->width();
++                    if (textWidth < (lineWidth - 50)) {
++                        if (text == list.last()) textRouterDest->setText(currentText + text);
++                        else textRouterDest->setText(currentText + text + " ");
++                    } else textRouterDest->setText(currentText + "...");
++                }
++                if (text == list.last()) valueRouterDest += text;
++                else valueRouterDest += text + " ";
+             }
+-            if (text == list.last()) valueRouterDest += text;
+-            else valueRouterDest += text + " ";
+         }
+         textRouterDest->setToolTip(valueRouterDest);
+     }

@@ -1,0 +1,1447 @@
+#####################################################################################################################################################################################################################################
+Existing internal commits:
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Conflict code:
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Commits orders:
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+NocStudio.ini file path: /nfs/site/disks/home_user/tuanng4x/.NetSpeed/NocStudio.ini
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Souce code path: /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev
+#####################################################################################################################################################################################################################################
+NS-67794: 
+	- I would like to propose below solution. Please help me review it.
+		/nfs/site/proj/CFG/scratch0/tuanng4x/shared/NS-67794/NocStudio-GUI
+	- The default size of the router diagram is maxed out to use 1/4th of the display.
+	- Supported featured: zoom in, zoom out, zoom fit
+#####################################################################################################################################################################################################################################
+GUI-2486: 
+#0  __cxxabiv1::__dynamic_cast (src_ptr=0xa201f50, 
+    src_type=0x7ffff7f05df8 <typeinfo for QGraphicsItem>, 
+    dst_type=0x5fae588 <typeinfo for NsBridge>, src2dst=0)
+    at ../../.././libstdc++-v3/libsupc++/dyncast.cc:71
+#1  0x00000000011a5135 in NsCircleSetConnection::mousePressEvent (
+    this=<optimized out>, event=<optimized out>)
+    at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp:2137
+#2  0x00007ffff7cd2537 in QGraphicsItem::sceneEvent(QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#3  0x00007ffff7cf3295 in QGraphicsScenePrivate::sendMouseEvent(QGraphicsSceneMouseEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#4  0x00007ffff7d05489 in QGraphicsScenePrivate::mousePressEventHandler(QGraphicsSceneMouseEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#5  0x00000000011d51ee in NsMeshViewScene::mousePressEvent (
+    this=this@entry=0x68d5e10, event=event@entry=0x7fffffff9870)
+    at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp:2589
+#6  0x00000000011b7eef in NsNocViewScene::mousePressEvent (this=0x68d5e10, 
+    event=0x7fffffff9870)
+    at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp:1306
+#7  0x00007ffff7d094d2 in QGraphicsScene::event(QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#8  0x00000000011b9c48 in NsNocViewScene::event (this=0x68d5e10, 
+    event=0x7fffffff9870)
+    at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp:1423
+#9  0x00007ffff795edc1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#10 0x00007ffff6a109b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*)
+    () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+#11 0x00007ffff7d30248 in QGraphicsView::mousePressEvent(QMouseEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#12 0x00007ffff79b5368 in QWidget::event(QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#13 0x00007ffff7a40d22 in QFrame::event(QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#14 0x00007ffff6a1072a in QCoreApplicationPrivate::sendThroughObjectEventFilters(QObject*, QEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+#15 0x00007ffff795edb1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#16 0x00007ffff7967d4d in QApplication::notify(QObject*, QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#17 0x00007ffff6a109b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*)
+    () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+#18 0x00007ffff7966704 in QApplicationPrivate::sendMouseEvent(QWidget*, QMouseEvent*, QWidget*, QWidget*, QWidget**, QPointer<QWidget>&, bool, bool) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#19 0x00007ffff79c6f0a in QWidgetWindow::handleMouseEvent(QMouseEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#####################################################################################################################################################################################################################################
+GUI-2603:
+#0  __cxxabiv1::__dynamic_cast (src_ptr=0xa42e3b0, 
+    src_type=0x7ffff7f05df8 <typeinfo for QGraphicsItem>, 
+    dst_type=0x5faf508 <typeinfo for NsBridge>, src2dst=0)
+    at ../../.././libstdc++-v3/libsupc++/dyncast.cc:71
+#1  0x00000000011bab45 in NsNocViewScene::toggleAddDependencyRouterConn (
+    this=0x68d6e20, state=<optimized out>)
+    at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp:1638
+#2  0x00007ffff6a6dc1d in void doActivate<false>(QObject*, int, void**) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+#3  0x00007ffff7510b52 in QAction::triggered(bool) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+#4  0x00007ffff75136e9 in QAction::activate(QAction::ActionEvent) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+#5  0x00007ffff7b160b6 in QMenuPrivate::activateCausedStack(QList<QPointer<QWidget> > const&, QAction*, QAction::ActionEvent, bool) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#6  0x00007ffff7b1db01 in QMenuPrivate::activateAction(QAction*, QAction::ActionEvent, bool) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#7  0x00007ffff79b5368 in QWidget::event(QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#8  0x00007ffff795edc1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#9  0x00007ffff7967d4d in QApplication::notify(QObject*, QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#10 0x00007ffff6a109b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*)
+    () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+#11 0x00007ffff7966704 in QApplicationPrivate::sendMouseEvent(QWidget*, QMouseEvent*, QWidget*, QWidget*, QWidget**, QPointer<QWidget>&, bool, bool) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#12 0x00007ffff79c73c2 in QWidgetWindow::handleMouseEvent(QMouseEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#13 0x00007ffff79c99a0 in QWidgetWindow::event(QEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#14 0x00007ffff795edc1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+#15 0x00007ffff6a109b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*)
+    () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+#16 0x00007ffff713643b in QGuiApplicationPrivate::processMouseEvent(QWindowSystemInterfacePrivate::MouseEvent*) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+#17 0x00007ffff718f7dc in QWindowSystemInterface::sendWindowSystemEvents(QFlags<QEventLoop::ProcessEventsFlag>) ()
+   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+#18 0x00007ffff473da3a in xcbSourceDispatch(_GSource*, int (*)(void*), void*)
+    ()
+   from /nfs/site/itools/em64t_SLES15/pkgs/libqt/6.7.2/plugins/platforms/../../lib/libQt6XcbQpa.so.6
+#19 0x00007ffff572082b in g_main_context_dispatch ()
+   from /usr/lib64/libglib-2.0.so.0
+#20 0x00007ffff5720bd0 in ?? () from /usr/lib64/libglib-2.0.so.0
+#####################################################################################################################################################################################################################################
+GUI-2630:
+	- Related ticket: GUI-2548
+	- Comments: 
+	- Solution: Subclass tooltip from QPlainTextEdit or QFrame
+	- Debug:
+		"<b>Router name: R0.21</b>
+		<br>
+		Logical coordinate: X=1 Y=1
+		<br>
+		Links in: R0.21H.in (B0.21H.out) R0.21I.in (B0.21I.out) R0.21J.in (B0.21J.out) R0.21K.in (B0.21K.out) R0.21E.in (R0.28W.out) 
+		<br>
+		Links out: R0.21H.out (src3/req.rx0.in) R0.21I.out (src2/req.rx0.in) R0.21J.out (src0/req.rx0.in) R0.21K.out (src1/req.rx0.in) R0.21E.out (R0.28W.in) 
+		<br>
+		Link cost: 679, flop cost: 5989
+		<br>
+		Voltage domain: system, Power domain: system, Clock domain: noc
+		<br>
+		RTL Group: fabric
+		<br>
+		<br>
+		<b>Measured and Expected loads from each input VC to each output port:</b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> VC </th>
+				<th> H->src3/req </th>
+				<th> I->src2/req </th>
+				<th> J->src0/req </th>
+				<th> K->src1/req </th>
+				<th> E->R0.28 </th>
+				<td> &nbsp;&nbsp; </td>
+				<th> VC </th>
+				<th> H->src3/req </th>
+				<th> I->src2/req </th>
+				<th> J->src0/req </th>
+				<th> K->src1/req </th>
+				<th> E->R0.28 </th>
+			</tr>
+			<tr>
+				<td> R0.21E.9.in </td><td>  </td>\<td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td>  </td><td> </td>
+				<td> R0.21H.1.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td>
+			</tr>
+			<tr>
+				<td> R0.21E.8.in </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td>  </td><td> </td>
+				<td> R0.21H.2.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td>
+			</tr>
+			<tr>
+				<td> R0.21E.7.in </td><td>  </td>
+				<td> 6.66%/10.00% </td><td>  </td><td>  </td><td>  </td><td> </td>
+				<td> R0.21J.1.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td>
+			</tr>
+			<tr>
+				<td> R0.21K.3.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td> </td>
+				<td> R0.21J.0.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.67%/10.00% </td>
+			</tr>
+			<tr>
+				<td> R0.21K.0.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td> </td>
+				<td> R0.21J.2.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td>
+			</tr>
+			<tr>
+				<td> R0.21K.2.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td> </td>
+				<td> R0.21J.3.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td>
+			</tr>
+			<tr>
+				<td> R0.21K.1.in </td><td>  </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td> </td>
+				<td> R0.21E.10.in </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td>  </td>
+			</tr>
+			<tr>
+				<td> R0.21E.0.in </td>
+				<td> 6.69%/10.00% </td><td>  </td><td>  </td><td>  </td><td>  </td><td> </td>
+				<td> R0.21E.11.in </td><td>  </td><td>  </td><td>  </td>
+				<td> 6.68%/10.00% </td><td>  </td>
+			</tr>
+			<tr>
+				<td> R0.21E.1.in </td>
+				<td> 6.67%/10.00% </td><td>  </td><td>  </td><td>  </td><td>  </td><td> </td>
+				<td> R0.21E.12.in </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td><td>  </td><td>  </td>
+			</tr>
+			<tr>
+				<td> R0.21E.2.in </td>
+				<td> 6.67%/10.00% </td><td>  </td><td>  </td><td>  </td><td>  </td><td> </td>
+				<td> R0.21E.13.in </td><td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td><td>  </td><td>  </td></tr>
+			<tr>
+				<td> R0.21E.3.in </td>
+				<td> 6.67%/10.00% </td>
+				<td>  </td><td>  </td><td>  </td><td>  </td><td> </td>
+				<td> R0.21E.14.in </td>
+				<td>  </td><td>  </td>
+				<td> 6.66%/10.00% </td>
+				<td>  </td><td>  </td>
+			</tr>
+			<tr>
+				...
+			</tr>
+		</table>
+		<br>
+		<br>
+		<b>VCs:</b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> R0.21H.0.in </th>
+				<th> R0.21H.0.out </th>
+				<th> R0.21H.1.in </th>
+				<th> R0.21H.1.out </th>
+				<th> R0.21H.2.in </th>
+				<th> R0.21H.2.out </th>
+				<th> R0.21H.3.in </th>
+				<th> R0.21H.3.out </th>
+				<th> R0.21I.0.in </th>
+				<th> R0.21I.0.out </th>
+				<th> R0.21I.1.in </th>
+				<th> R0.21I.1.out </th>
+				<th> R0.21I.2.in </th>
+				<th> R0.21I.2.out </th>
+				<th> R0.21I.3.in </th>
+				<th> R0.21I.3.out </th>
+				<th> R0.21J.0.in </th>
+				<th> R0.21J.0.out </th>
+				<th> R0.21J.1.in </th>
+				<th> R0.21J.1.out </th>
+				<th> R0.21J.2.in </th>
+				<th> R0.21J.2.out </th>
+				<th> R0.21J.3.in </th>
+				<th> R0.21J.3.out </th>
+				<th> R0.21K.0.in </th>
+				<th> R0.21K.0.out </th>
+				<th> R0.21K.1.in </th>
+				<th> R0.21K.1.out </th>
+				<th> R0.21K.2.in </th>
+				<th> R0.21K.2.out </th>
+				<th> R0.21K.3.in </th>
+				<th> R0.21K.3.out </th>
+				<th> R0.21E.0.in </th>
+				<th> R0.28W.0.in </th>
+				<th> R0.21E.1.in </th>
+				<th> R0.28W.1.in </th>
+				<th> R0.21E.2.in </th>
+				<th> R0.28W.2.in </th>
+				<th> R0.21E.3.in </th>
+				<th> R0.28W.3.in </th>
+				<th> R0.21E.4.in </th>
+				<th> R0.28W.4.in </th>
+				<th> R0.21E.5.in </th>
+				<th> R0.28W.5.in </th>
+				<th> R0.21E.6.in </th>
+				<th> R0.28W.6.in </th>
+				<th> R0.21E.7.in </th>
+				<th> R0.28W.7.in </th>
+				<th> R0.21E.8.in </th>
+				<th> R0.28W.8.in </th>
+				<th> R0.21E.9.in </th>
+				<th> R0.28W.9.in </th>
+				<th> R0.21E.10.in </th>
+				<th> R0.28W.10.in </th>
+				<th> R0.21E.11.in </th>
+				<th> R0.28W.11.in </th>
+				<th> R0.21E.12.in </th>
+				<th> R0.28W.12.in </th>
+				<th> R0.21E.13.in </th>
+				<th> R0.28W.13.in </th>
+				<th> R0.21E.14.in </th>
+				<th> R0.28W.14.in </th>
+				<th> R0.21E.15.in </th>
+				<th> R0.28W.15.in </th>
+			</tr>
+			<tr>
+				<td> 
+				<b>VC name: R0.21H.0.in of link: R0.21H.in (B0.21H.out)</b>
+					\nVC qos: 15, width: 48, depth: 1 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: R0.28W.0.in(48 equal) \nRoutes from: src3/req.switch.p17.3.in(48) \nData (forward) path: src3/req.switch -> R0.21 (0)\nCredit return path: R0.21 -> src3/req.switch (0)\nDest credit loop: 2 cycles, fifo depth: 1\n<br>
+				<b>Throughput during sim: Average % </b> 
+					6.6762\n
+				<b>Occupancy during sim: Average % </b> 
+					83.8767
+				<b> Peak % </b>
+					100\n
+				<b>Latency during sim: Average (cycles)  </b>
+					24.8944
+				<b> Peak (cycles)  </b>
+					42\n
+				<b>Current tx credits: </b>
+					0\n
+				<b>Flits in Rx_VChannel buffer fifo:</b>
+					\n1. 
+					<font style=\"background-color: blue;\">Flit: </font>
+						bar SE bits:0-48E qos: 15 from:src3/req.b.nsip3.out pkt sent@11503 to:dest3/req.a.nsip3.in ch:15_0 Current Chan: R0.21H.0.in Next: R0.28W.0.in \n\n
+				<b>Power states: </b>
+					During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 0%<br>
+					Blocked cause to R0.28W.0.in:Active<br>
+					<br>
+				<b>Analysis of blocking causes during sim:</b>
+				<table border=1 cellspacing=1>
+					<tr> 
+						<th> Cause </th>
+						<th> % </th>
+					</tr>
+					<tr>
+						<td> Active </td>
+						<td> 
+							<font style=\"background-color:green; color:green\">_</font>
+							<font style=\"color:white\">___________________</font>   
+								6.68 
+						</td>
+					</tr>
+					<tr>
+						<td> Idle </td>
+						<td> 
+							<font style=\"background-color:grey; color:grey\"></font>
+							<font style=\"color:white\">____________________</font>   
+								0.97 
+						</td>
+					</tr>
+					<tr>
+						<td> Blocked_lost_arbitration </td>
+						<td> 
+							<font style=\"background-color:red; color:red\">__________________</font>
+							<font style=\"color:white\">__</font>   
+								92.35 
+						</td>
+					</tr>
+		</table>
+		<br>
+		<br>
+		<b>Transmitters over this link: </b>
+		src3/req.b.out
+		<br>
+		<b>Receivers over this link: </b>
+		dest3/req.a.in
+		<br>
+		<br>
+		<b>Table of flow rates by output port: </b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Output </th>
+				<th> Flow </th>
+				<th> Expected Load </th>
+				<th> Actual Load </th>
+				<th> Blocked causes >1% </th>
+			</tr>
+			<tr>
+				<td> east </td>
+				<td> src3/req.b.out->dest3/req.a.in </td>
+				<td> 10.00% </td>
+				<td> 6.68% </td>
+				<td> Contention:92% </td>
+			</tr>
+		</table>
+		Idle %:  0.97%
+		<br> </td>
+		<td> 
+			<b>VC name: R0.21H.0.out of link: src3/req.rx0.in (R0.21H.out)</b>
+				\nVC qos: 12, width: 48, depth: 3 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: src3/req.a.nsip0.in(48 equal) \nRoutes from: R0.21E.3.in(48) \nAssociated Interface: a\nData (forward) path: R0.21 -> src3/req (0)\nCredit return path: src3/req -> R0.21 (0)\nDest credit loop: 2 cycles, fifo depth: 3\n<br>
+			<b>Throughput: Average % </b>
+				6.6667\n
+			<b>Occupancy: Average % </b>
+				0
+			<b> Peak % </b>
+				0\n
+			<b>Latency: Average (cycles) </b>
+				1
+			<b> Peak (cycles) </b>
+				1\n
+			<b>Power states: </b>
+				During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 99%
+				<br>
+				<br>
+				<br>
+			<b>Transmitters over this link:\n</b>
+				dest3/req.b.out
+				<br>
+			<b>Receivers over this link: </b>
+			src3/req.a.in
+			<br> 
+		</td>
+		<td> 
+			<b>VC name: R0.21H.1.in of link: R0.21H.in (B0.21H.out)</b>
+				\nVC qos: 14, width: 48, depth: 1 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: R0.28W.1.in(48 equal) \nRoutes from: src3/req.switch.p17.2.in(48) \nData (forward) path: src3/req.switch -> R0.21 (0)\nCredit return path: R0.21 -> src3/req.switch (0)\nDest credit loop: 2 cycles, fifo depth: 1\n
+				<br>
+			<b>Throughput during sim: Average % </b> 
+				6.6571\n
+			<b>Occupancy during sim: Average % </b> 
+				54.2737
+			<b> Peak % </b>
+				100\n
+			<b>Latency during sim: Average (cycles)  </b>
+				15.2461
+			<b> Peak (cycles)  </b>
+				42\n
+			<b>Current tx credits: </b>
+				0\n
+			<b>Flits in Rx_VChannel buffer fifo:</b>
+				\n1. 
+				<font style=\"background-color: blue;\">Flit: </font>
+					SE bits:0-48E qos: 14 from:src3/req.b.nsip2.out pkt sent@11488 to:dest3/req.a.nsip2.in ch:14_0 Current Chan: R0.21H.1.in Next: R0.28W.1.in \n2. 
+				<font style=\"background-color: blue;\">Flit: </font>
+					SE bits:0-48E qos: 14 from:src3/req.b.nsip2.out pkt sent@11502 to:dest3/req.a.nsip2.in ch:14_0 Current Chan: R0.21H.1.in Next: R0.28W.1.in \n\n
+			<b>Power states: </b>
+				During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 0%
+				<br>
+				Blocked cause to R0.28W.1.in:Active
+				<br>
+				<br>
+				<b>Analysis of blocking causes during sim:</b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Cause </th>
+				<th> % </th>
+			</tr>
+			<tr>
+				<td> Active </td>
+				<td> 
+					<font style=\"background-color:green; color:green\">_</font>
+					<font style=\"color:white\">___________________</font>   
+						6.66 
+				</td>
+			</tr>
+			<tr>
+				<td> Idle </td>
+				<td> 
+					<font style=\"background-color:grey; color:grey\">_</font>
+					<font style=\"color:white\">___________________</font>   
+						6.18 
+				</td>
+			</tr>
+			<tr>
+				<td> Blocked_lost_arbitration </td>
+				<td> 
+					<font style=\"background-color:red; color:red\">_________________</font>
+					<font style=\"color:white\">___</font>   
+						87.16 
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<b>Transmitters over this link: </b>
+		src3/req.b.out
+		<br>
+		<b>Receivers over this link: </b>
+		dest3/req.a.in
+		<br>
+		<br>
+		<b>Table of flow rates by output port: </b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Output </th>
+				<th> Flow </th>
+				<th> Expected Load </th>
+				<th> Actual Load </th>
+				<th> Blocked causes >1% </th>
+			</tr>
+			<tr>
+				<td> east </td>
+				<td> src3/req.b.out->dest3/req.a.in </td>
+				<td> 10.00% </td>
+				<td> 6.66% </td>
+				<td> Contention:87% </td>
+			</tr>
+		</table>
+		Idle %:  6.18%
+		<br> </td>
+		<td> 
+			<b>VC name: R0.21H.1.out of link: src3/req.rx0.in (R0.21H.out)</b>
+				\nVC qos: 13, width: 48, depth: 3 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: src3/req.a.nsip1.in(48 equal) \nRoutes from: R0.21E.2.in(48) \nAssociated Interface: a\nData (forward) path: R0.21 -> src3/req (0)\nCredit return path: src3/req -> R0.21 (0)\nDest credit loop: 2 cycles, fifo depth: 3\n
+				<br>
+			<b>Throughput: Average % </b>
+				6.6667\n
+			<b>Occupancy: Average % </b>
+				0
+			<b> Peak % </b>
+				0\n
+			<b>Latency: Average (cycles) </b>
+				1
+			<b> Peak (cycles) </b>
+				1\n
+			<b>Power states: </b>
+				During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 99%
+				<br>
+				<br>
+				<br>
+			<b>Transmitters over this link:\n</b>
+				dest3/req.b.out
+				<br>
+			<b>Receivers over this link: </b>
+				src3/req.a.in
+				<br> 
+		</td>
+		<td> 
+			<b>VC name: R0.21H.2.in of link: R0.21H.in (B0.21H.out)</b>
+				\nVC qos: 13, width: 48, depth: 1 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: R0.28W.2.in(48 equal) \nRoutes from: src3/req.switch.p17.1.in(48) \nData (forward) path: src3/req.switch -> R0.21 (0)\nCredit return path: R0.21 -> src3/req.switch (0)\nDest credit loop: 2 cycles, fifo depth: 1\n
+				<br>
+			<b>Throughput during sim: Average % </b> 
+				6.6571\n
+			<b>Occupancy during sim: Average % </b> 
+				54.9231
+			<b> Peak % </b>
+				100\n
+			<b>Latency during sim: Average (cycles)  </b>
+				16.3391
+			<b> Peak (cycles)  </b>
+				42\n
+			<b>Current tx credits: </b>
+				0\n
+			<b>Flits in Rx_VChannel buffer fifo:</b>
+				\n1. 
+				<font style=\"background-color: blue;\">Flit: </font>
+					SE bits:0-48E qos: 13 from:src3/req.b.nsip1.out pkt sent@11516 to:dest3/req.a.nsip1.in ch:13_0 Current Chan: R0.21H.2.in Next: R0.28W.2.in \n\n
+					<b>Power states: </b>
+						During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 0%
+						<br>
+						Blocked cause to R0.28W.2.in:Active
+						<br>
+						<br>
+					<b>Analysis of blocking causes during sim:</b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Cause </th>
+				<th> % </th>
+			</tr>
+			<tr>
+				<td> Active </td>
+				<td> 
+					<font style=\"background-color:green; color:green\">_</font>
+					<font style=\"color:white\">___________________</font>   
+						6.66 
+				</td>
+			</tr>
+			<tr>
+				<td> Idle </td>
+				<td> 
+					<font style=\"background-color:grey; color:grey\"></font>
+					<font style=\"color:white\">____________________</font>   
+						0.95 
+				</td>
+			</tr>
+			<tr>
+				<td> Blocked_lost_arbitration </td>
+				<td> 
+					<font style=\"background-color:red; color:red\">__________________</font>
+					<font style=\"color:white\">__</font>   
+						92.39 
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<b>Transmitters over this link: </b>
+		src3/req.b.out
+		<br>
+		<b>Receivers over this link: </b>
+		dest3/req.a.in
+		<br>
+		<br>
+		<b>Table of flow rates by output port: </b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Output </th>
+				<th> Flow </th>
+				<th> Expected Load </th>
+				<th> Actual Load </th>
+				<th> Blocked causes >1% </th>
+			</tr>
+			<tr>
+				<td> east </td>
+				<td> src3/req.b.out->dest3/req.a.in </td>
+				<td> 10.00% </td><td> 6.66% </td>
+				<td> Contention:92% </td>
+			</tr>
+		</table>
+		Idle %:  0.95%
+		<br> </td>
+		<td> 
+			<b>VC name: R0.21H.2.out of link: src3/req.rx0.in (R0.21H.out)</b>
+				\nVC qos: 14, width: 48, depth: 3 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: src3/req.a.nsip2.in(48 equal) \nRoutes from: R0.21E.1.in(48) \nAssociated Interface: a\nData (forward) path: R0.21 -> src3/req (0)\nCredit return path: src3/req -> R0.21 (0)\nDest credit loop: 2 cycles, fifo depth: 3\n
+				<br>
+			<b>Throughput: Average % </b>6.6667\n<b>Occupancy: Average % </b>
+				0
+			<b> Peak % </b>
+				0\n
+			<b>Latency: Average (cycles) </b>
+				1
+			<b> Peak (cycles) </b>
+				1\n
+			<b>Power states: </b>
+				During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 99%
+				<br>
+				<br>
+				<br>
+			<b>Transmitters over this link:\n</b>
+				dest3/req.b.out
+				<br>
+			<b>Receivers over this link: </b>
+				src3/req.a.in
+				<br> 
+		</td>
+		<td> 
+			<b>VC name: R0.21H.3.in of link: R0.21H.in (B0.21H.out)</b>
+				\nVC qos: 12, width: 48, depth: 1 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: R0.28W.3.in(48 equal) \nRoutes from: src3/req.switch.p17.0.in(48) \nData (forward) path: src3/req.switch -> R0.21 (0)\nCredit return path: R0.21 -> src3/req.switch (0)\nDest credit loop: 2 cycles, fifo depth: 1\n
+				<br>
+			<b>Throughput during sim: Average % </b> 
+				6.6667\n
+			<b>Occupancy during sim: Average % </b> 
+				51.4669
+			<b> Peak % </b>
+				100\n
+			<b>Latency during sim: Average (cycles)  </b>
+				14.4971
+			<b> Peak (cycles)  </b>
+				42\n
+			<b>Current tx credits: </b>
+				0\n
+			<b>Flits in Rx_VChannel buffer fifo:</b>
+				\n1. 
+				<font style=\"background-color: blue;\">Flit: </font>
+					SE bits:0-48E qos: 12 from:src3/req.b.nsip0.out pkt sent@11518 to:dest3/req.a.nsip0.in ch:12_0 Current Chan: R0.21H.3.in Next: R0.28W.3.in \n\n
+			<b>Power states: </b>
+				During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 0%
+				<br>
+				Blocked cause to R0.28W.3.in:Active
+				<br>
+				<br>
+			<b>Analysis of blocking causes during sim:</b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Cause </th>
+				<th> % </th>
+			</tr>
+			<tr>
+				<td> Active </td>
+				<td> 
+					<font style=\"background-color:green; color:green\">_</font>
+					<font style=\"color:white\">___________________</font>   
+						6.67 
+				</td>
+			</tr>
+			<tr>
+				<td> Idle </td>
+				<td> 
+					<font style=\"background-color:grey; color:grey\">_</font>
+					<font style=\"color:white\">___________________</font>   
+						6.18 
+				</td>
+			</tr>
+			<tr>
+				<td> Blocked_lost_arbitration </td>
+				<td> 
+					<font style=\"background-color:red; color:red\">_________________</font>
+					<font style=\"color:white\">___</font>   
+						87.15 
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<b>Transmitters over this link: </b>
+			src3/req.b.out
+			<br>
+		<b>Receivers over this link: </b>
+			dest3/req.a.in
+			<br>
+			<br>
+		<b>Table of flow rates by output port: </b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Output </th>
+				<th> Flow </th>
+				<th> Expected Load </th>
+				<th> Actual Load </th>
+				<th> Blocked causes >1% </th>
+			</tr>
+			<tr>
+				<td> east </td>
+				<td> src3/req.b.out->dest3/req.a.in </td>
+				<td> 10.00% </td>
+				<td> 6.67% </td>
+				<td> Contention:87% </td>
+			</tr>
+		</table>
+		Idle %:  6.18%
+		<br> </td>
+		<td> 
+			<b>VC name: R0.21H.3.out of link: src3/req.rx0.in (R0.21H.out)</b>
+				\nVC qos: 15, width: 48, depth: 3 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: src3/req.a.nsip3.in(48 equal) \nRoutes from: R0.21E.0.in(48) \nAssociated Interface: a\nData (forward) path: R0.21 -> src3/req (0)\nCredit return path: src3/req -> R0.21 (0)\nDest credit loop: 2 cycles, fifo depth: 3\n
+				<br>
+			<b>Throughput: Average % </b>
+				6.6857\n
+			<b>Occupancy: Average % </b>
+				0
+			<b> Peak % </b>
+				0\n
+			<b>Latency: Average (cycles) </b>
+				1
+			<b> Peak (cycles) </b>
+				1\n
+			<b>Power states: </b>
+				During last 11550 cycles,  active: 26%, idle: 73%, clock gated: 99%
+				<br>
+				<br>
+				<br>
+			<b>Transmitters over this link:\n</b>
+				dest3/req.b.out
+				<br>
+			<b>Receivers over this link: </b>
+				src3/req.a.in
+				<br> 
+			</td>
+			<td> 
+				<b>VC name: R0.21I.0.in of link: R0.21I.in (B0.21I.out)</b>
+					\nVC qos: 11, width: 48, depth: 1 MaxPktSize: 48\nPayloads(size): {MultiPayload(48)}\nPayloads enabled: {1}, Total Payload width: 48\nLanes width: {48}, Multiplier: 1\nRoutes to: R0.28W.4.in(48 equal) \nRoutes from: src2/req.switch.p17.3.in(48) \nData (forward) path: src2/req.switch -> R0.21 (0)\nCredit return path: R0.21 -> src2/req.switch (0)\nDest credit loop: 2 cycles, fifo depth: 1\n
+					<br>
+				<b>Throughput during sim: Average % </b> 
+					0\n
+				<b>Occupancy during sim: Average % </b> 
+					100
+				<b> Peak % </b>
+					100\n
+				<b>Latency during sim: Average (cycles)  </b>
+					0
+				<b> Peak (cycles)  </b>
+					0\n
+				<b>Current tx credits: </b>
+					0\n
+				<b>Flits in Rx_VChannel buffer fifo:</b>
+					\n1. 
+					<font style=\"background-color: blue;\">Flit: </font>
+						SE bits:0-48E qos: 11 from:src2/req.b.nsip3.out pkt sent@2 to:dest2/req.a.nsip3.in ch:11_0 Current Chan: R0.21I.0.in Next: R0.28W.4.in \n2. 
+					<font style=\"background-color: blue;\">Flit: </font>
+						SE bits:0-48E qos: 11 from:src2/req.b.nsip3.out pkt sent@13 to:dest2/req.a.nsip3.in ch:11_0 Current Chan: R0.21I.0.in Next: R0.28W.4.in \n\n
+				<b>Flits in link:</b>
+					\n0. 
+					<font style=\"background-color: blue;\">Flit: </font>
+						SE bits:0-48E qos: 8 from:src2/req.b.nsip0.out pkt sent@11521 to:dest2/req.a.nsip0.in ch:8_0 Current Chan: R0.21I.3.in Next: R0.28W.7.in \n\n
+				<b>Power states: </b>
+					During last 11550 cycles,  active: 20%, idle: 79%, clock gated: 0%
+					<br>
+					Blocked cause to R0.28W.4.in:Active
+					<br>
+					<br>
+				<b>Analysis of blocking causes during sim:</b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Cause </th>
+				<th> % </th>
+			</tr>
+			<tr>
+				<td> Blocked_lost_arbitration </td>
+				<td> 
+					<font style=\"background-color:red; color:red\">____________________</font>
+					<font style=\"color:white\"></font>   
+						100 
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<b>Transmitters over this link: </b>
+		src2/req.b.out<br><b>Receivers over this link: </b>
+		dest2/req.a.in
+		<br>
+		<br>
+		<b>Table of flow rates by output port: </b>
+		<table border=1 cellspacing=1>
+			<tr> 
+				.....
+			</tr>
+		</table>
+		<table border=1 cellspacing=1>
+			<tr> 
+				<th> Output </th>
+				<th> Flow </th>
+				<th> Expected Load </th>
+				<th> Actual Load </th>
+				<th> Blocked causes >1% </th>
+			</tr>
+			<tr>
+				<td> host3 </td>
+				<td> src1/req.b.out->dest1/req.a.in </td>
+				<td> 10.00% </td>
+				<td> 6.68% </td>
+				<td> None </td>
+			</tr>
+		</table>
+		.....
+		<table border=1 cellspacing=1>
+			<tr>
+				.....
+			</tr>
+		</table>"
+#####################################################################################################################################################################################################################################
+GUI-2258:
+- Before source:
+	+ Docked:
+		console->hasFocus(): true
+		console->hasFocus(): false
+		console->hasFocus(): false
+		console->hasFocus(): false
+		------------------------------------------------------------------
+		sender(): QShortcut
+		sender()->parent(): INITabWidget
+		------------------------------------------------------------------
+		this->focusWidget(): INIConsole
+		this->focusWidget()->parentWidget(): QListView
+		this->focusWidget()->parentWidget()->parentWidget(): QStackedWidget
+		------------------------------------------------------------------
+	+ Floating:
+		console->hasFocus(): true
+		console->hasFocus(): false
+		console->hasFocus(): false
+		console->hasFocus(): false
+		------------------------------------------------------------------
+		sender(): QShortcut
+		sender()->parent(): INITabWidget
+		------------------------------------------------------------------
+		this->focusWidget(): QTextEdit
+		this->focusWidget()->parentWidget(): NSDockWidget
+		this->focusWidget()->parentWidget()->parentWidget(): MainWindow
+		------------------------------------------------------------------
+- After source:
+	+ Floating:
+		console->hasFocus(): true
+		console->hasFocus(): false
+		console->hasFocus(): false
+		console->hasFocus(): false
+		------------------------------------------------------------------
+		sender(): QShortcut
+		sender()->parent(): INITabWidget
+		------------------------------------------------------------------
+		this->focusWidget(): QMainWindowTabBar
+		this->focusWidget()->parentWidget(): MainWindow
+		------------------------------------------------------------------
+	+ Redocked:
+		console->hasFocus(): true
+		console->hasFocus(): false
+		console->hasFocus(): false
+		console->hasFocus(): false
+		------------------------------------------------------------------
+		sender(): QShortcut
+		sender()->parent(): INITabWidget
+		------------------------------------------------------------------
+		this->focusWidget(): INIConsole
+		this->focusWidget()->parentWidget(): QListView
+		this->focusWidget()->parentWidget()->parentWidget(): QStackedWidget
+		------------------------------------------------------------------
+	+ Refloating:
+		console->hasFocus(): true
+		console->hasFocus(): false
+		console->hasFocus(): false
+		console->hasFocus(): false
+		------------------------------------------------------------------
+		sender(): QShortcut
+		sender()->parent(): INITabWidget
+		------------------------------------------------------------------
+		this->focusWidget(): QPlainTextEdit
+		this->focusWidget()->parentWidget(): NSDockWidget
+		this->focusWidget()->parentWidget()->parentWidget(): MainWindow
+		------------------------------------------------------------------
+#####################################################################################################################################################################################################################################
+GUI-2640:
+	- Root cause: The maximum of Block smaller than the line limit
+	- Other Problems:
+		+ Text at mouse press:
+			auto cursorText = cursorForPosition(e->pos());
+			cursorText.select(QTextCursor::LineUnderCursor);
+			QString clickedText = cursorText.selectedText();	-->		ERROR [1404]:  Unknown command 'cxbcvxb'
+		+ Text in processFindLink() function:  
+			auto block = document()->findBlockByNumber(link.toString().toULongLong() - deletedBlockCnt);
+			if (!block.isValid()) return;
+			block.text()										-->		ERROR [1404]:  Unknown command 'cxbcvxb'
+
+	- Solution: clickedText.replace(QChar(0x00A0), ' ')
+	- Explain:
+		+ Steps:
+			1. Run app
+			2. Right click at console --> Choose set line limit option --> Typing 1000 --> Click Ok
+			3. Run script: multi_bridge.txt
+			4. Run cmd: ashdfjhjdsfab
+			5. Check on Open Performance Statistics tab
+			6. Run 2 times
+			7. Click on Err tab at Console --> Click error message
+		+ Actual results: No action
+		+ Comments: The error message has been removed on all tab because the number of commands generated exceeds the line limit of the console.
+
+	- Problems of this solution on Qt5: 
+		+ QObject::connect: Cannot queue arguments of type 'QTextBlock'. (Make sure 'QTextBlock' is registered using qRegisterMetaType().)
+		+ Root cause:
+			** On Qt6 version, Qt has moved to AUTOMATIC METATYPE REGISTRATION (Q_DECLARE_META TYPE and NEW MOC BUILD SYSTEM).
+			** On Qt5 version, App must MANUAL METATYPE REGISTRATION by qRegisterMetaType<>(), if app want to pass Signal/Slot of type QueuedConnection in object's contructor.
+				--> Ex: qRegisterMetaType<QTextBlock>("QTextBlock")
+	- Issue:
+		+ Steps:
+			1. Run app
+			2. Right click at console --> Choose set line limit option --> Typing 1000 --> Click Ok
+			3. Run script: multi_bridge.txt
+			4. Run cmd: ashdfjhjdsfab
+			5. Check on Open Performance Statistics tab
+			6. Click run button 2 times
+			7. Run cmd: 53465112
+			8. Click run button
+			9. Click on Err tab at Console --> Click error "ERROR [1404]:  Unknown command '53465112'"
+		+ Expected results: Can navigate to "ERROR [1404]:  Unknown command '53465112'"
+		+ Actual results: Can not navigate to "ERROR [1404]:  Unknown command '53465112'" although it still existing in console.
+	- This solution causes an issue related to running app including script problem when cleaning console after run new_mesh command or source command. Explain: NocStudio-GUI <script_path>.txt
+#####################################################################################################################################################################################################################################
+GUI-2642:
+	- Related ticket: NS-50578
+	- Solution: Comment the 'updateImage()' line at 275 in genericdialog.cpp
+	- Debug:
+		+ Current text: 
+			"It is a hash function to achieve non power of 2 hashing. mod3_hash gives 2 bits to select destination so, along with other (power of 2) hash functions, it can support power of 2 mutliplied by 3 destinations (e.x 3, 6, 12, 24)\n\n
+			Example:\n\n\tInteraction between mod3_hash(ns_mod3) and a hash function for system with 6 destinaitons.\n\n\t\thash_func = 0x1300\n
+			\t\tincoming address = 0x182B8\n\n\t\tStep 1:  modulo3 = > 0x182B8 % 3 = 2'b00\n
+			\t\t\tdiv3 = > 0x182B8 / 3 = 0x80E8 = > compr_addr_by_3\n\n
+			\t\tStep 2:  pow of 2 hash = > ^ {compr_addr_by_3& hash_func} = > ^ {0x80E8 & 0x1300} = > 1'b0\n
+			\t\t\tcompression = > drop bit 8 (set LSB bit in hash_func) from compr_addr_by_3 = > 0x40E8\n\n
+			\t\tOutput: dest_id = > {modulo3, pow_of_2_hash} = > {2'b00, 1'b0} = > to destination 0\n
+			\t\t\tcompressed address = > 0x40E8\n\n\n￼"
+		+ Current html:
+			"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n
+			<html>
+				<head><meta name=\"qrichtext\" content=\"1\" />
+					<meta charset=\"utf-8\" />
+					<style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style>
+				</head>
+				<body style=\" font-family:'Consolas'; font-size:10pt; font-weight:400; font-style:normal;\">\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						It is a hash function to achieve non power of 2 hashing. mod3_hash gives 2 bits to select destination so, along with other (power of 2) hash functions, it can support power of 2 mutliplied by 3 destinations (e.x 3, 6, 12, 24)
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						Example:
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\tInteraction between mod3_hash(ns_mod3) and a hash function for system with 6 destinaitons.
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\thash_func = 0x1300
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\tincoming address = 0x182B8
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\tStep 1:  modulo3 = &gt; 0x182B8 % 3 = 2'b00
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\t\tdiv3 = &gt; 0x182B8 / 3 = 0x80E8 = &gt; compr_addr_by_3
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\tStep 2:  pow of 2 hash = &gt; ^ {compr_addr_by_3&amp; hash_func} = &gt; ^ {0x80E8 &amp; 0x1300} = &gt; 1'b0
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\t\tcompression = &gt; drop bit 8 (set LSB bit in hash_func) from compr_addr_by_3 = &gt; 0x40E8
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\tOutput: dest_id = &gt; {modulo3, pow_of_2_hash} = &gt; {2'b00, 1'b0} = &gt; to destination 0
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						\t\t\tcompressed address = &gt; 0x40E8
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<br />
+					</p>
+					\n
+					<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">
+						<img src=\"://../noc_help_images/mod3_hash.png\" />
+					</p>
+				</body>
+			</html>"
+####################################################################################################################################################################################################################################
+GUI-2644:
+	- Steps:
+		1. Open Noc App
+		2. Run config: NS_67794.txt
+		3. Right click on bridge m0/p → Right click on VC name R0.6H.0.in inside the bridge diagram
+		4. Left click on VC name R0.6H.0.in inside the link diagram
+		5. Click on X icon
+		6. Right click again on VC name R0.6H.0.in inside the bridge diagram
+	- Expected results: NS GUI not crashed
+	- Actual result: NS GUI crash
+####################################################################################################################################################################################################################################
+GUI-2658:
+	- Can’t change the font of the window title of dialogs and app because they were managed by OS
+	- Text into the about dialog not affect by this solution.
+####################################################################################################################################################################################################################################
+GUI-2663:
+	- Related ticket: NS-67372 --> Solution: feature -set cost_debug yes
+	- Config:
+		feature -set cost_debug yes
+		new_mesh 30 30 21 tb_list_node_regbus_layers_test
+		prop_default router_registers_enabled all
+		#### ADD RBC #### 
+		add_regbus_controller rbc0 pos 453 size 2 1 bridge m regbusm bridge s0 iosfsbm L149BGHIJK35CED72
+		list_node_regbus_layers -tcl
+	- Cmd occurs stuck in GUI: list_node_regbus_layers -tcl
+	- Debug:
+		"Regbus Layer   RBC/Regbus Master Name   NoC Layer   Elements                                                                           Nodes\n
+		0              rbc0                     21          R0.0, R0.1, R0.10, R0.100, R0.101, R0.102, R0.103, R0.104, R0.105, R0.106,         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,\n
+                                                    R0.107, R0.108, R0.109, R0.11, R0.110, R0.111, R0.112, R0.113, R0.114, R0.115,     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,\n
+                                                    R0.116, R0.117, R0.118, R0.119, R0.12, R0.120, R0.121, R0.122, R0.123, R0.124,     42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,\n
+                                                    R0.125, R0.126, R0.127, R0.128, R0.129, R0.13, R0.130, R0.131, R0.132, R0.133,     62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81,\n
+                                                    R0.134, R0.135, R0.136, R0.137, R0.138, R0.139, R0.14, R0.140, R0.141, R0.142,     82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,\n
+                                                    R0.143, R0.144, R0.145, R0.146, R0.147, R0.148, R0.149, R0.15, R0.150, R0.151,     101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,\n
+                                                    R0.152, R0.153, R0.154, R0.155, R0.156, R0.157, R0.158, R0.159, R0.16, R0.160,     117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132,\n
+                                                    R0.161, R0.162, R0.163, R0.164, R0.165, R0.166, R0.167, R0.168, R0.169, R0.17,     133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148,\n
+                                                    R0.170, R0.171, R0.172, R0.173, R0.174, R0.175, R0.176, R0.177, R0.178, R0.179,    149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164,\n
+                                                    R0.18, R0.180, R0.181, R0.182, R0.183, R0.184, R0.185, R0.186, R0.187, R0.188,     165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180,\n
+                                                    R0.189, R0.19, R0.190, R0.191, R0.192, R0.193, R0.194, R0.195, R0.196, R0.197,     181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196,\n
+                                                    R0.198, R0.199, R0.2, R0.20, R0.200, R0.201, R0.202, R0.203, R0.204, R0.205,       197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212,\n
+                                                    R0.206, R0.207, R0.208, R0.209, R0.21, R0.210, R0.211, R0.212, R0.213, R0.214,     213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228,\n
+                                                    R0.215, R0.216, R0.217, R0.218, R0.219, R0.22, R0.220, R0.221, R0.222, R0.223,     229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244,\n
+                                                    R0.224, R0.225, R0.226, R0.227, R0.228, R0.229, R0.23, R0.230, R0.231, R0.232,     245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260,\n
+                                                    R0.233, R0.234, R0.235, R0.236, R0.237, R0.238, R0.239, R0.24, R0.240, R0.241,     261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276,\n
+                                                    R0.242, R0.243, R0.244, R0.245, R0.246, R0.247, R0.248, R0.249, R0.25, R0.250,     277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292,\n
+                                                    R0.251, R0.252, R0.253, R0.254, R0.255, R0.256, R0.257, R0.258, R0.259, R0.26,     293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 307, 308,\n
+                                                    R0.260, R0.261, R0.262, R0.263, R0.264, R0.265, R0.266, R0.267, R0.268, R0.269,    309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324,\n
+                                                    R0.27, R0.270, R0.271, R0.272, R0.273, R0.274, R0.275, R0.276, R0.277, R0.278,     325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340,\n
+                                                    R0.279, R0.28, R0.280, R0.281, R0.282, R0.283, R0.284, R0.285, R0.286, R0.287,     341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356,\n
+                                                    R0.288, R0.289, R0.29, R0.290, R0.291, R0.292, R0.293, R0.294, R0.295, R0.296,     357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372,\n
+                                                    R0.297, R0.298, R0.299, R0.3, R0.30, R0.300, R0.301, R0.302, R0.303, R0.304,       373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388,\n
+                                                    R0.305, R0.306, R0.307, R0.308, R0.309, R0.31, R0.310, R0.311, R0.312, R0.313,     389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404,\n
+                                                    R0.314, R0.315, R0.316, R0.317, R0.318, R0.319, R0.32, R0.320, R0.321, R0.322,     405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420,\n
+                                                    R0.323, R0.324, R0.325, R0.326, R0.327, R0.328, R0.329, R0.33, R0.330, R0.331,     421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436,\n
+                                                    R0.332, R0.333, R0.334, R0.335, R0.336, R0.337, R0.338, R0.339, R0.34, R0.340,     437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452,\n
+                                                    R0.341, R0.342, R0.343, R0.344, R0.345, R0.346, R0.347, R0.348, R0.349, R0.35,     453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468,\n 
+													R0.350, R0.351, R0.352, R0.353, R0.354, R0.355, R0.356, R0.357, R0.358, R0.359,    469, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484,\n
+													R0.36, R0.360, R0.361, R0.362, R0.363, R0.364, R0.365, R0.366, R0.367, R0.368,     485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500,\n     
+													R0.369, R0.37, R0.370, R0.371, R0.372, R0.373, R0.374, R0.375, R0.376, R0.377,     501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516,\n
+													R0.378, R0.379, R0.38, R0.380, R0.381, R0.382, R0.383, R0.384, R0.385, R0.386,     517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532,\n
+													R0.387, R0.388, R0.389, R0.39, R0.390, R0.391, R0.392, R0.393, R0.394, R0.395,     533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548,\n
+													R0.396, R0.397, R0.398, R0.399, R0.4, R0.40, R0.400, R0.401, R0.402, R0.403,       549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564,\n
+													R0.404, R0.405, R0.406, R0.407, R0.408, R0.409, R0.41, R0.410, R0.411, R0.412,     565, 566, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580,\n
+													R0.413, R0.414, R0.415, R0.416, R0.417, R0.418, R0.419, R0.42, R0.420, R0.421,     581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 593, 594, 595, 596,\n
+													R0.422, R0.423, R0.424, R0.425, R0.426, R0.427, R0.428, R0.429, R0.43, R0.430,     597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612,\n
+													R0.431, R0.432, R0.433, R0.434, R0.435, R0.436, R0.437, R0.438, R0.439, R0.44,     613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624, 625, 626, 627, 628,\n
+                                                    R0.440, R0.441, R0.442, R0.443, R0.444, R0.445, R0.446, R0.447, R0.448, R0.449,    629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644,\n
+                                                    R0.45, R0.450, R0.451, R0.452, R0.453, R0.454, R0.455, R0.456, R0.457, R0.458,     645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660,\n
+                                                    R0.459, R0.46, R0.460, R0.461, R0.462, R0.463, R0.464, R0.465, R0.466, R0.467,     661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 673, 674, 675, 676,\n
+                                                    R0.468, R0.469, R0.47, R0.470, R0.471, R0.472, R0.473, R0.474, R0.475, R0.476,     677, 678, 679, 680, 681, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692,\n
+                                                    R0.477, R0.478, R0.479, R0.48, R0.480, R0.481, R0.482, R0.483, R0.484, R0.485,     693, 694, 695, 696, 697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708,\n
+                                                    R0.486, R0.487, R0.488, R0.489, R0.49, R0.490, R0.491, R0.492, R0.493, R0.494,     709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720, 721, 722, 723, 724,\n
+                                                    R0.495, R0.496, R0.497, R0.498, R0.499, R0.5, R0.50, R0.500, R0.501, R0.502,       725, 726, 727, 728, 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740,\n
+                                                    R0.503, R0.504, R0.505, R0.506, R0.507, R0.508, R0.509, R0.51, R0.510, R0.511,     741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756,\n
+                                                    R0.512, R0.513, R0.514, R0.515, R0.516, R0.517, R0.518, R0.519, R0.52, R0.520,     757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772,\n
+                                                    R0.521, R0.522, R0.523, R0.524, R0.525, R0.526, R0.527, R0.528, R0.529, R0.53,     773, 774, 775, 776, 777, 778, 779, 780, 781, 782, 783, 784, 785, 786, 787, 788,\n
+                                                    R0.530, R0.531, R0.532, R0.533, R0.534, R0.535, R0.536, R0.537, R0.538, R0.539,    789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804,\n
+                                                    R0.54, R0.540, R0.541, R0.542, R0.543, R0.544, R0.545, R0.546, R0.547, R0.548,     805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816, 817, 818, 819, 820,\n
+                                                    R0.549, R0.55, R0.550, R0.551, R0.552, R0.553, R0.554, R0.555, R0.556, R0.557,     821, 822, 823, 824, 825, 826, 827, 828, 829, 830, 831, 832, 833, 834, 835, 836,\n
+                                                    R0.558, R0.559, R0.56, R0.560, R0.561, R0.562, R0.563, R0.564, R0.565, R0.566,     837, 838, 839, 840, 841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852,\n
+                                                    R0.567, R0.568, R0.569, R0.57, R0.570, R0.571, R0.572, R0.573, R0.574, R0.575,     853, 854, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864, 865, 866, 867, 868,\n
+                                                    R0.576, R0.577, R0.578, R0.579, R0.58, R0.580, R0.581, R0.582, R0.583, R0.584,     869, 870, 871, 872, 873, 874, 875, 876, 877, 878, 879, 880, 881, 882, 883, 884,\n
+                                                    R0.585, R0.586, R0.587, R0.588, R0.589, R0.59, R0.590, R0.591, R0.592, R0.593,     885, 886, 887, 888, 889, 890, 891, 892, 893, 894, 895, 896, 897, 898, 899\n
+                                                    R0.594, R0.595, R0.596, R0.597, R0.598, R0.599, R0.6, R0.60, R0.600, R0.601,          \n
+                                                    R0.602, R0.603, R0.604, R0.605, R0.606, R0.607, R0.608, R0.609, R0.61, R0.610,        \n
+                                                    R0.611, R0.612, R0.613, R0.614, R0.615, R0.616, R0.617, R0.618, R0.619, R0.62,        \n
+                                                    R0.620, R0.621, R0.622, R0.623, R0.624, R0.625, R0.626, R0.627, R0.628, R0.629,       \n
+                                                    R0.63, R0.630, R0.631, R0.632, R0.633, R0.634, R0.635, R0.636, R0.637, R0.638,        \n
+                                                    R0.639, R0.64, R0.640, R0.641, R0.642, R0.643, R0.644, R0.645, R0.646, R0.647,        \n
+                                                    .............................................................................,        \n
+                                                    R9.95, R9.96, R9.97, R9.98, R9.99, rbc0, rbc0/m, rbc0/m.switch, rbc0/s0.switch        \n"
+
+	- Solution: genericconsole.h:241
+		+ Dynamic:
+			QStringList splitText;
+			int numberOfChar = 10000, index = 0;
+			if (text.size() > numberOfChar) {
+				qDebug() << text;
+				qDebug() << "text.size() =" << text.size();
+				//splitText = splitText.left(100000);
+				//splitText = splitText.simplified();
+				//qDebug() << "splitText.size() =" << splitText.size();
+				while ((index + numberOfChar) <= text.size()) {
+					 splitText.append(text.mid(index, numberOfChar));
+					 index += numberOfChar;
+				}
+				if (index < text.size()) {
+					 splitText.append(text.mid(index));
+				}
+				qDebug() << "splitText.size() =" << splitText.size();
+				for (const auto& txt : splitText) {
+					 insertText(textColor, txt, this);
+					 setBeginOfCurrentTyping();
+				}
+			} else {
+				qDebug() << "text.size() =" << text.size();
+				insertText(textColor, text, this);
+				setBeginOfCurrentTyping();
+			}
+			//qDebug() << "text.size() =" << text.size();
+			//insertText(textColor, splitText, this);
+			//setBeginOfCurrentTyping();
+		+ Simplified:
+			splitText.size() = 147087
+			text.size() = 294156
+	- Colunm width:
+		pad.size() =5
+		------------------
+		col[0]=12
+		col[1]=22
+		col[2]=9
+		col[3]=147022
+		col[4]=3491
+		------------------
+	- Stuck:
+		#0  0x00007ffff7450d0c in QTextLine::layout_helper(int) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#1  0x00007ffff7b56e67 in QPlainTextDocumentLayout::layoutBlock(QTextBlock const&) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#2  0x00007ffff7b5721b in QPlainTextDocumentLayout::blockBoundingRect(QTextBlock const&) const () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#3  0x00007ffff7b56404 in QPlainTextEditControl::blockBoundingRect(QTextBlock const&) const
+			() from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#4  0x00007ffff7b826d0 in QWidgetTextControlPrivate::rectForPosition(int) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#5  0x00007ffff7b83135 in QWidgetTextControl::cursorRect(QTextCursor const&) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#6  0x00007ffff7b59769 in QPlainTextEdit::cursorRect() const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#7  0x00007ffff7b5ae6b in QPlainTextEditPrivate::ensureCursorVisible(bool) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#8  0x00000000036fa4f7 in MainConsole::printOutput (this=0x8480d50, message=...)
+			at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp:377
+		#9  0x00007ffff6a5cfc3 in QObject::event(QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#10 0x00007ffff7a3cd22 in QFrame::event(QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#11 0x00007ffff795adc1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#12 0x00007ffff6a0c9b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#13 0x00007ffff6a0fda0 in QCoreApplicationPrivate::sendPostedEvents(QObject*, int, QThreadData*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#14 0x00007ffff6cc1873 in postEventSourceDispatch(_GSource*, int (*)(void*), void*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#15 0x00007ffff572082b in g_main_context_dispatch () from /usr/lib64/libglib-2.0.so.0
+		#16 0x00007ffff5720bd0 in ?? () from /usr/lib64/libglib-2.0.so.0
+		#17 0x00007ffff5720c5c in g_main_context_iteration () from /usr/lib64/libglib-2.0.so.0
+		#18 0x00007ffff6cc118c in QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#19 0x00007ffff6a17ef3 in QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#20 0x00007ffff6a148c4 in QCoreApplication::exec() ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+	------------------------------------------------------------------------------------------------------------------------------	   
+		#0  0x00007ffff7450cbb in QTextLine::layout_helper(int) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#1  0x00007ffff7b56e67 in QPlainTextDocumentLayout::layoutBlock(QTextBlock const&) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#2  0x00007ffff7b5721b in QPlainTextDocumentLayout::blockBoundingRect(QTextBlock const&) const () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#3  0x00007ffff7b56404 in QPlainTextEditControl::blockBoundingRect(QTextBlock const&) const
+			() from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#4  0x00007ffff7b826d0 in QWidgetTextControlPrivate::rectForPosition(int) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#5  0x00007ffff7b83e0d in QWidgetTextControlPrivate::cursorRectPlusUnicodeDirectionMarkers(QTextCursor const&) const () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#6  0x00007ffff7b84e24 in QWidgetTextControlPrivate::updateCursorBlinking() ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#7  0x00007ffff7b84e97 in QWidgetTextControlPrivate::setCursorVisible(bool) [clone .part.0]
+			() from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#8  0x00007ffff7b5df18 in QPlainTextEdit::setReadOnly(bool) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#9  0x000000000128cebc in INIConsole::complete (this=this@entry=0x84833b0, stop=false, 
+			cmd=..., res=true)
+			at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp:950
+		#10 0x0000000001069281 in INIConsole::qt_static_metacall (_o=0x84833b0, _c=<optimized out>, 
+			_id=<optimized out>, _a=<optimized out>)
+			at /tmp/build-gcc13-tuanng4x/nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/prototype_qt6/NocStudio-GUI-Qt6_autogen/EHIEGSSRCT/moc_myconsole.cpp:552
+		#11 0x00007ffff6a5cfc3 in QObject::event(QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#12 0x00007ffff7a3cd22 in QFrame::event(QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#13 0x00007ffff795adc1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#14 0x00007ffff6a0c9b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#15 0x00007ffff6a0fda0 in QCoreApplicationPrivate::sendPostedEvents(QObject*, int, QThreadData*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#16 0x00007ffff6cc1873 in postEventSourceDispatch(_GSource*, int (*)(void*), void*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#17 0x00007ffff572082b in g_main_context_dispatch () from /usr/lib64/libglib-2.0.so.0
+		#18 0x00007ffff5720bd0 in ?? () from /usr/lib64/libglib-2.0.so.0
+		#19 0x00007ffff5720c5c in g_main_context_iteration () from /usr/lib64/libglib-2.0.so.0
+		#20 0x00007ffff6cc118c in QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#21 0x00007ffff6a17ef3 in QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#22 0x00007ffff6a148c4 in QCoreApplication::exec() ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+	------------------------------------------------------------------------------------------------------------------------------
+		#0  0x00007ffff74581d1 in QTextBlock::position() const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#1  0x00007ffff741d093 in QTextEngine::formatIndex(QScriptItem const*) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#2  0x00007ffff741d186 in QTextEngine::format(QScriptItem const*) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#3  0x00007ffff741d483 in QTextEngine::fontEngine(QScriptItem const&, QFixed*, QFixed*, QFixed*) const () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#4  0x00007ffff744fc17 in QTextLine::layout_helper(int) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Gui.so.6
+		#5  0x00007ffff7b56e67 in QPlainTextDocumentLayout::layoutBlock(QTextBlock const&) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#6  0x00007ffff7b5721b in QPlainTextDocumentLayout::blockBoundingRect(QTextBlock const&) const () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#7  0x00007ffff7b56404 in QPlainTextEditControl::blockBoundingRect(QTextBlock const&) const
+			() from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#8  0x00007ffff7b826d0 in QWidgetTextControlPrivate::rectForPosition(int) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#9  0x00007ffff7b83135 in QWidgetTextControl::cursorRect(QTextCursor const&) const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#10 0x00007ffff7b59769 in QPlainTextEdit::cursorRect() const ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#11 0x00007ffff7b5ae6b in QPlainTextEditPrivate::ensureCursorVisible(bool) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#12 0x00000000036fa63a in MainConsole::printOutput (this=0x84832c0, message=...)
+			at /nfs/site/proj/CFG/scratch0/tuanng4x/cfg-netspeed/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp:379
+		#13 0x00007ffff6a5cfc3 in QObject::event(QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#14 0x00007ffff7a3cd22 in QFrame::event(QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#15 0x00007ffff795adc1 in QApplicationPrivate::notify_helper(QObject*, QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Widgets.so.6
+		#16 0x00007ffff6a0c9b8 in QCoreApplication::notifyInternal2(QObject*, QEvent*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#17 0x00007ffff6a0fda0 in QCoreApplicationPrivate::sendPostedEvents(QObject*, int, QThreadData*) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#18 0x00007ffff6cc1873 in postEventSourceDispatch(_GSource*, int (*)(void*), void*) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#19 0x00007ffff572082b in g_main_context_dispatch () from /usr/lib64/libglib-2.0.so.0
+		#20 0x00007ffff5720bd0 in ?? () from /usr/lib64/libglib-2.0.so.0
+		#21 0x00007ffff5720c5c in g_main_context_iteration () from /usr/lib64/libglib-2.0.so.0
+		#22 0x00007ffff6cc118c in QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#23 0x00007ffff6a17ef3 in QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>) ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+		#24 0x00007ffff6a148c4 in QCoreApplication::exec() ()
+		   from /usr/intel/pkgs/libqt/6.7.2/lib/libQt6Core.so.6
+	- Config:
+		prop_default max_num_regbus_layers {3}
+		prop_default router_registers_enabled all
+		new_mesh 8 8 2 tb_simple_ace
+		add_host m1 bridge m acem
+		add_host s1 bridge s acels
+		add_ccc ccc0 size 2 1 bridge m cccm bridge s cccs
+
+		add_ccc_group -name ccc_group0 -slice_bits 0x0 -members ccc0
+		add_regbus_controller rbc1 bridge m regbusm bridge m2 iosfsbm
+		add_regbus_controller rbc2 bridge m regbusm bridge m2 iosfsbm
+
+		bridge_prop m1/m cc_cache_capacity 1
+		host_prop ccc0 cc_directory_capacity 1
+
+		add_range s1/s mem_range0 0x00_0000_0000-0x1f_ffff_ffff ccc_group0
+
+		setup_coherency
+
+		map
+		list_node_regbus_layers -tcl
+	- Other problem:
+		"Regbus Layer   RBC/Regbus Master Name   NoC Layer   Elements                                                                      Nodes\n
+		0              rbc1                     2           {__rbs_h_0/rbs, __rbs_h_1/rbs, __rbs_h_2/rbs, __rbs_h_3/rbs, __rbs_h_4/rbs,   {0, 1, 2, 3, 4}\n 
+															ccc0, ccc0/m, ccc0/s, m1/m, rbc1, rbc1/m, s1/s}                                  \n
+		1              rbc2                     3           {__rbs_h_5/rbs, rbc2, rbc2/m}                                                 {5}\n"
+		
+		"Regbus Layer   RBC/Regbus Master Name   NoC Layer   Elements                                                                                                           Nodes\n
+		0              rbc1                     2           {__rbs_h_0/rbs,__rbs_h_1/rbs,__rbs_h_2/rbs,__rbs_h_3/rbs,__rbs_h_4/rbs,ccc0,ccc0/m,ccc0/s,m1/m,rbc1,rbc1/m,s1/s}   {0,1,2,3,4}\n
+		1              rbc2                     3           {__rbs_h_5/rbs,rbc2,rbc2/m}                                                                                        {5}\n"
+		
+		"Regbus Layer   RBC/Regbus Master Name   NoC Layer   Elements   Nodes\n
+		0              rbc1                     2           {__rbs_h_0/rbs, __rbs_h_1/rbs, __rbs_h_2/rbs, __rbs_h_3/rbs, __rbs_h_4/rbs,\n
+															ccc0, ccc0/m, ccc0/s, m1/m, rbc1, rbc1/m, s1/s}{0, 1, 2, 3, 4}\n
+		1              rbc2                     3           {__rbs_h_5/rbs, rbc2, rbc2/m}{5}\n"
+
+		"Regbus Layer   RBC/Regbus Master Name   NoC Layer   Elements                                                                      Nodes\n
+		0              rbc1                     2           {__rbs_h_0/rbs, __rbs_h_1/rbs, __rbs_h_2/rbs, __rbs_h_3/rbs, __rbs_h_4/rbs,   {,  *}\n
+															ccc0, ccc0/m, ccc0/s, m1/m, rbc1, rbc1/m, s1/s,}                                 \n
+		1              rbc2                     3           {__rbs_h_5/rbs, rbc2, rbc2/m,}                                                {} \n"
+	- Explaination:
+		+ The root cause of this ticket is due to missing whitespace between elements when running list_node_regbus_layers -tcl.
+		+ Before GUI prints output in the console, data will be processed in the to_formatted_stream() function at /noc_dev/Infra/src/G.cpp:1488
+		+ In the to_formatted_stream() function, data will be cut from a long line into many short lines by the transpose_move() function.
+		+ The transpose_move() function will return a vector which contains the short lines. If data is missed whitespace, that function will return a vector with the size of vector is 1. That means GUI will print a very long 
+		line in the console which will get stuck.
+		+ If add the whitespace between elements when running list_node_regbus_layers -tcl, the output in the console will be similar when running that command without the -tcl option. That is also the problem of Yashwanth C S.
+		
+		
+		From this point, there will two options according to @Yashwanth C S requirement
+			1# The console will display similar the new format. (Recommend)
+			2# If you want the console display similar the old format, GUI will be stuck with a large number of elements.
+	- Research:
+		+ Qt5:
+			# Giai đoạn 1: tìm khoảng trắng gần nhất.
+			# Giai đoạn 2 (fallback): nếu không có, ngắt luôn mà không cần phân tích glyph.
+			# Qt5 coi mỗi ký tự là một đơn vị fixed width, rất nhanh.
+			# Kết quả:
+				*** Text hiển thị cực nhanh, dù có hàng chục nghìn khoảng trắng hoặc {}.
+				*** Không chính xác tuyệt đối về glyph width, nhưng đủ tốt.
+		+ Qt6:
+			# Qt6 thay đổi hoàn toàn cơ chế này vì Harfbuzz Unicode Line Breaking (UAX#14).
+			# Khi WrapAtWordBoundaryOrAnywhere, engine phân tích toàn bộ chuỗi theo luật Unicode line-breaking để:
+				*** Xác định mọi điểm có thể ngắt hợp lệ,
+				*** Cân nhắc width từng glyph để wrap chính xác.
+		+ Vấn đề:
+			# Nếu chuỗi rất dài (hàng trăm nghìn ký tự),
+			# Có nhiều khoảng trắng hoặc ký tự {}, _, hoặc emoji, Qt6 sẽ phải duyệt toàn bộ buffer, tạo danh sách break opportunities, rồi reflow layout lại nhiều lần.
+			# Tức là độ phức tạp O(N^2) trong trường hợp cực đoan.
+####################################################################################################################################################################################################################################
+NS-69237:
+	- Cmd: 
+		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/source/siso.iptcl}
+		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/tutorials/example3_parameters_run.iptcl}
+	- Distance between the pins is 20
+	- Hover:
+		Src:  QPointF(180,75.9883)
+		Des:  QPointF(1060,75.9883)
+		Topleft:  QPointF(179.25,69.25)
+		Bottomright:  QPointF(1292.25,312.25)
+		TopOffset =  -3
+		BottomOffset =  226			
+	- Select:
+		"dff0"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(99.25,99.25)
+		hugeInstance->isSelected() = false
+		hugeInstanceTopLeft: QPointF(-0.75,-0.75)
+		------------------------------------------------------------------
+		"dff0"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(99.25,99.25)
+		hugeInstance->isSelected() = false
+		hugeInstanceTopLeft: QPointF(-0.75,-0.75)
+		------------------------------------------------------------------
+		...
+		------------------------------------------------------------------
+		"dff2"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(669.25,99.25)
+		hugeInstance->isSelected() = false
+		hugeInstanceTopLeft: QPointF(-0.75,-0.75)
+		------------------------------------------------------------------
+		"dff2"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(669.25,99.25)
+		hugeInstance->isSelected() = false
+		hugeInstanceTopLeft: QPointF(-0.75,-0.75)
+		------------------------------------------------------------------
+*******************************************************************************************************************************
+		"dff0"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(99.25,99.25)
+		hugeInstance->isSelected() = true
+		hugeInstanceTopLeft: QPointF(-10,-28)
+		------------------------------------------------------------------
+		"dff0"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(99.25,99.25)
+		hugeInstance->isSelected() = true
+		hugeInstanceTopLeft: QPointF(-10,-28)
+		------------------------------------------------------------------
+		...
+		------------------------------------------------------------------
+		"dff2"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(669.25,99.25)
+		hugeInstance->isSelected() = true
+		hugeInstanceTopLeft: QPointF(-10,-28)
+		------------------------------------------------------------------
+		"dff2"
+		subInstance->isSelected() = false
+		subInstanceTopLeft: QPointF(669.25,99.25)
+		hugeInstance->isSelected() = true
+		hugeInstanceTopLeft: QPointF(-10,-28)
+		------------------------------------------------------------------
+	- Change size:
+		Src:  QPointF(850,75.9883)
+		Des:  QPointF(1110,75.9883)
+		Topleft:  QPointF(840,42)
+		Bottomright:  QPointF(2070,420)
+		TopOffset =  23
+		BottomOffset =  334
+	
+	- Debug:
+		Name: "sin"  --- prePos: QPointF(26.7383,48.8125)  --- pos: QPointF(26.7383,48.8125)
+		Name: "if0top0"  --- prePos: QPointF(46.7383,17.8281)  --- pos: QPointF(46.7383,17.8281)
+		Name: "if0top1"  --- prePos: QPointF(66.7383,21.9844)  --- pos: QPointF(66.7383,21.9844)
+		Name: "sout"  --- prePos: QPointF(86.7383,37.4219)  --- pos: QPointF(86.7383,37.4219)
+		
+		Name: "sin"  --- prePos: QPointF(26.7383,48.8125)  --- pos: QPointF(31.6908,48.8125)
+		Name: "if0top0"  --- prePos: QPointF(46.7383,17.8281)  --- pos: QPointF(54.9925,17.8281)
+		Name: "if0top1"  --- prePos: QPointF(66.7383,21.9844)  --- pos: QPointF(78.2942,21.9844)
+		Name: "sout"  --- prePos: QPointF(86.7383,37.4219)  --- pos: QPointF(101.596,37.4219)
+		
+		hugeInstanceTopLeft = QPointF(-91.5,-91.5)
+		-------------------------------------------------------------
+		subSrcInstanceTopLeft = QPointF(1010.75,-0.75)
+		
+		hugeInstanceTopLeft = QPointF(-110.75,-118.75)
+		-------------------------------------------------------------
+		subSrcInstanceTopLeft = QPointF(1010.75,-0.75)
+		
+		hugeInstanceTopLeft = QPointF(-120.75,-118.75)
+		-------------------------------------------------------------
+		subSrcInstanceTopLeft = QPointF(1010.75,-0.75)
+	
+####################################################################################################################################################################################################################################

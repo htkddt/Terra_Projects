@@ -1,0 +1,54 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 10 +++++++++-
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp         |  4 ++++
+ src/sw/noc_dev/prototype/Gui/View/NsScene.h           |  1 +
+ 3 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 54471db9692..a25cd5ac609 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -605,8 +605,16 @@ void NsCloseSymbol::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+     QGraphicsItem::hoverEnterEvent(event);
+ }
+ 
+-void NsCloseSymbol::mousePressEvent(QGraphicsSceneMouseEvent* event) {
++void NsCloseSymbol::mousePressEvent(QGraphicsSceneMouseEvent* event)
++{
+     Q_UNUSED(event);
++    if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
++        if (auto nsWorkArea = mw->getNsWorkArea()) {
++            if (auto meshScene = nsWorkArea->getMeshViewScene()) {
++                meshScene->clickedNsCloseSymbol = true;
++            }
++        }
++    }
+     emit clicked();
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index ef182303a48..1fbceaeed98 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -2590,6 +2590,10 @@ void NsMeshViewScene::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+         if (event->button() == Qt::LeftButton) {
+             auto isMatched = [&](QGraphicsItem* item) -> bool {
+                 if ((item->type() == MULTIPLE_BRIDGE) || (item->type() == PLUS) || (item->type() == RING_VISUALIZATION)) return true;
++                if (clickedNsCloseSymbol) {
++                    clickedNsCloseSymbol = false;
++                    return true;
++                }
+                 return false;
+             };
+             auto itemList = items(event->scenePos());
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.h b/src/sw/noc_dev/prototype/Gui/View/NsScene.h
+index ccd543cc4ad..1223549a05e 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.h
+@@ -424,6 +424,7 @@ public:
+     NsInstrumentMediator* instrumentMediator = nullptr;
+     std::vector<NsChopViewBoundingBox*> getChopViews() const { return chopViews; }
+     void openRtlGroupsDialog();
++    bool clickedNsCloseSymbol = false;
+ 
+ public slots:
+     void assignDomainSlot();

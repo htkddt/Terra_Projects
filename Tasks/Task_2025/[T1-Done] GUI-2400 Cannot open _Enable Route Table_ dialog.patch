@@ -1,0 +1,41 @@
+ src/sw/noc_dev/prototype/Gui/Models/propertytablemodel.h | 1 +
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp              | 7 +++----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Models/propertytablemodel.h b/src/sw/noc_dev/prototype/Gui/Models/propertytablemodel.h
+index 5935873acc8..74875c267d9 100644
+--- a/src/sw/noc_dev/prototype/Gui/Models/propertytablemodel.h
++++ b/src/sw/noc_dev/prototype/Gui/Models/propertytablemodel.h
+@@ -21,6 +21,7 @@ public:
+     bool load();
+     const MODEL_DATA_CACHE& getModelDataCache() const;
+     bool needToCache(const NetSpeed::allowed_t&) const;
++    NetSpeed::PropTbl* getPropTbl() { return m_propTbl; }
+ 
+     // Gets index of a row by its name
+     int getIndexFromRowName(QString rowName) const;
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 2cc13b4e0b4..db3341c068d 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -3722,10 +3722,6 @@ QWidget* MainWindow::createPropTable(QString propName, string cate)
+         return nullptr;
+     }
+ 
+-    if ((ns_propTbl->row_names.size() == 0) && (ns_propTbl->col_names.size() == 0)) {
+-        return nullptr;
+-    }
+-
+     //    QString tabName = QString::fromStdString(propTbl->p->table_name);
+     QString tabName = QString::fromStdString(ns_propTbl->table_name);
+     if (!cate.empty() && cate != ALL_PROP) {
+@@ -3755,6 +3751,9 @@ QWidget* MainWindow::createPropTable(QString propName, string cate)
+     tblView2DTable->setModel(proxy);
+ 
+     model->load();
++    if ((model->getPropTbl()->row_names.size() == 0) && (model->getPropTbl()->col_names.size() == 0)) {
++        return nullptr;
++    }
+ 
+     // Must be loaded after model loading.
+     PropertyTableItemDelegate* delegate = new PropertyTableItemDelegate;

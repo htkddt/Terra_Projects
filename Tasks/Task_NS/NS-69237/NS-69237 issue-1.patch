@@ -1,0 +1,88 @@
+ src/sw/noc_dev/IPCore/include/IPTypes.h                   |  1 +
+ src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp | 15 +++++++++++----
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp        |  4 +++-
+ 3 files changed, 15 insertions(+), 5 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPCore/include/IPTypes.h b/src/sw/noc_dev/IPCore/include/IPTypes.h
+index 0b71e8d61de..e1e7ceec3f4 100755
+--- a/src/sw/noc_dev/IPCore/include/IPTypes.h
++++ b/src/sw/noc_dev/IPCore/include/IPTypes.h
+@@ -39,6 +39,7 @@
+ #include "Rtl_lib.common.h"
+ #include "IPTypes.Common.h"
+ #include "json/json.hpp"
++#define IP_TCL = 1
+ namespace NetSpeed {
+ 
+ using ip_json = nlohmann::json;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+index 777f3c4942c..c61b4ba393f 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+@@ -415,6 +415,7 @@ void IPMainWindow::createMenu()
+     connect(saveAsLayoutMenu, &QAction::triggered, this, [this]() {
+         QString filename = fileDialog(QFileDialog::AcceptMode::AcceptSave, TITLE_FILE_OF_TYPES_LAYOUT);
+         if (!filename.isEmpty()) {
++            if (!filename.contains(".json")) filename = filename + ".json";
+             emit saveLayoutAs(filename, this);
+             printMsg("Saved layout as " + filename + "\n");
+             printMsg("> ");
+@@ -758,6 +759,10 @@ void IPMainWindow::refresh()
+     auto const& container = console->get_container();
+     auto const& spec = (container.full_design_spec.designs.empty()) ? container.basic_design_spec :
+                                                                       container.full_design_spec;
++    if (spec.designs.empty()) {
++        loadLayoutMenu->setEnabled(false);
++        saveAsLayoutMenu->setEnabled(false);
++    }
+     auto resizeDialog = FontResizeDialog::getFontResizeDialog(this);
+     int fsize = resizeDialog->getPropertyPanelSlider()->value();
+     resizeDialog->getPropertyPanelSlider()->setEnabled(true);
+@@ -887,8 +892,9 @@ void IPMainWindow::loadLayout(const QString& fn)
+         QJsonObject rootObj = d.object();
+ 
+         /* Parse signature */
++        QString proj_name = rootObj.value(QString("project_name")).toString();
+         QString signature = rootObj.value(QString("Signature")).toString();
+-        if (signature.indexOf("IPStudio") == -1) {
++        if (signature.indexOf("IPStudio") == -1 || proj_name != getProjectName()) {
+             QString title = "Cannot open file";
+             QString msg = "There are some errors in parsing this file content.\n";
+             QMessageBox::information(this, title, msg, QMessageBox::Accepted);
+@@ -968,12 +974,13 @@ void IPMainWindow::loadLayout(const QString& fn)
+             return;
+         }
+         QTextStream stream(&file);
+-        stream << content;          
++        stream << content;
+ 
+         openFileDialog = true;
+-
++        clickingConstraintDialog = QDialog::Accepted;
++        emit guiConsole->triggerRefresh();
+         /* Source file */
+-        guiConsole->applyCmd("source {" + fileToSource + "}");        
++       //guiConsole->applyCmd("source {" + fileToSource + "}");
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+index a789d215193..6faed3e506e 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+@@ -1957,12 +1957,14 @@ void Scene::saveLayoutAs(QString filename, QWidget* parent)
+     QJsonObject obj = QJsonObject();                /* Empty obj */
+     QJsonArray arr = QJsonArray();                  /* Empty arr */
+     QJsonObject pinsCoordinates = QJsonObject();    /* Empty pinsCoordinates */
+-
++    QString proj_name = "Untitled";
+     content.insert(QString("Signature"), QString("IPStudio"));
+ 
+     /* Get config values*/
+     IPMainWindow* mw = dynamic_cast<IPMainWindow*>(parent);
+     if (mw) {
++        proj_name = mw->getProjectName();
++        content.insert(QString("project_name"), proj_name);
+         QString moduleFile = mw->getModuleFile();
+         QString archFile = mw->getArchFile();
+         auto cfg = QJsonObject();

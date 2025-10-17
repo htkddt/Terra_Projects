@@ -1,0 +1,428 @@
+ src/sw/noc_dev/GUICore/genericdialog.cpp        | 74 +++++++++++++++++++----
+ src/sw/noc_dev/GUICore/genericdialog.h          | 20 +++++--
+ src/sw/noc_dev/GUICore_qt6/genericdialog.cpp    | 78 +++++++++++++++++++++----
+ src/sw/noc_dev/GUICore_qt6/genericdialog.h      | 20 +++++--
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     |  6 +-
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp      |  9 +--
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp |  6 +-
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp  |  9 +--
+ 8 files changed, 180 insertions(+), 42 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/genericdialog.cpp b/src/sw/noc_dev/GUICore/genericdialog.cpp
+index b40fe6d1135..add9efa4837 100644
+--- a/src/sw/noc_dev/GUICore/genericdialog.cpp
++++ b/src/sw/noc_dev/GUICore/genericdialog.cpp
+@@ -509,7 +509,7 @@ CloseAppDialog::CloseAppDialog(QWidget* parent) : QDialog(parent)
+     setWindowIcon(QIcon(ICON_NOC_M1));
+ }
+ 
+-NewFeature::NewFeature(QWidget* parent) : QDialog(parent)
++NeedHelp::NeedHelp(QWidget* parent) : QDialog(parent)
+ {
+     QLabel* image = new QLabel;
+     image->setPixmap(QPixmap(ICON_ABOUT));
+@@ -526,27 +526,39 @@ NewFeature::NewFeature(QWidget* parent) : QDialog(parent)
+                         "<b>GUI Features Video Instruction</b>";
+     title->setText(titleText);
+ 
+-    customTableWidget* tableWidget = new customTableWidget(this);
++    tableWidget = new customTableWidget(this);
+     tableWidget->setHorizontalHeaderLabels({ "Feature", "Video" });
+     tableWidget->setRowCount(videoInstruction.size());
++    tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
++    tableWidget->horizontalScrollBar()->setSingleStep(1);
+     int row = 0;
+     for (auto it = videoInstruction.begin(); it != videoInstruction.end(); ++it) {
+         QTableWidgetItem* feature = new QTableWidgetItem(it.key());
+         tableWidget->setItem(row, 0, feature);
+ 
+         QWidget* pWidget = new QWidget();
+-        customQPushButton* btn = new customQPushButton(this);
+-        btn->setText("Open Video");
+-        btn->url = it.value();
+-        connect(btn, SIGNAL(clicked()), parent, SLOT(openVideo()));
+         QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+-        pLayout->addWidget(btn);
++        if (!showVideo) {
++            customQPushButton* btn = new customQPushButton(this);
++            btn->setText("Open Video");
++            btn->url = it.value();
++            connect(btn, SIGNAL(clicked()), parent, SLOT(openVideo()));
++            pLayout->addWidget(btn);
++        } else {
++            QUrl linkVideo = it.value();
++            QLabel* lbLink = new QLabel;
++            lbLink->setText("<a href=\"" + linkVideo.toString() + "\">" + linkVideo.toString() + "</a>");
++            lbLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
++            lbLink->setOpenExternalLinks(true);
++            pLayout->addWidget(lbLink, Qt::AlignLeft);
++        }
+         pLayout->setAlignment(Qt::AlignCenter);
+-        pLayout->setContentsMargins(47, 0, 47, 0);
++        pLayout->setContentsMargins(10, 0, 10, 0);
+         pWidget->setLayout(pLayout);
+         tableWidget->setCellWidget(row, 1, pWidget);
+         ++row;
+     }
++    tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+     tableWidget->resizeColumnsToContents();
+     QVBoxLayout* l = new QVBoxLayout(this);
+     l->addWidget(image);
+@@ -558,18 +570,60 @@ NewFeature::NewFeature(QWidget* parent) : QDialog(parent)
+                    Qt::WindowMaximizeButtonHint | Qt::Window);
+     setWindowTitle("Need help?");
+     setWindowIcon(QIcon(ICON_NOC_M1));
++
++    connect(this, SIGNAL(updateContents(QWidget*)), this, SLOT(updatedVideoLinkContents(QWidget*)));
+ }
+ 
+-NewFeature::~NewFeature()
++NeedHelp::~NeedHelp()
+ {
+ }
+ 
+-void NewFeature::closeEvent(QCloseEvent* event)
++void NeedHelp::showEvent(QShowEvent* event)
++{
++    if (isMaximized()) showNormal();
++    event->accept();
++}
++
++void NeedHelp::closeEvent(QCloseEvent* event)
+ {
+     hide();
+     event->ignore();
+ }
+ 
++void NeedHelp::updatedVideoLinkContents(QWidget* parent)
++{
++    if (!tableWidget) return;
++    tableWidget->clearContents();
++    int row = 0;
++    for (auto it = videoInstruction.begin(); it != videoInstruction.end(); ++it) {
++        QTableWidgetItem* feature = new QTableWidgetItem(it.key());
++        tableWidget->setItem(row, 0, feature);
++
++        QWidget* pWidget = new QWidget();
++        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
++        if (!showVideo) {
++            customQPushButton* btn = new customQPushButton(this);
++            btn->setText("Open Video");
++            btn->url = it.value();
++            connect(btn, SIGNAL(clicked()), parent, SLOT(openVideo()));
++            pLayout->addWidget(btn);
++        } else {
++            QUrl linkVideo = it.value();
++            QLabel* lbLink = new QLabel;
++            lbLink->setText("<a href=\"" + linkVideo.toString() + "\">" + linkVideo.toString() + "</a>");
++            lbLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
++            lbLink->setOpenExternalLinks(true);
++            pLayout->addWidget(lbLink, Qt::AlignLeft);
++        }
++        pLayout->setAlignment(Qt::AlignCenter);
++        pLayout->setContentsMargins(10, 0, 10, 0);
++        pWidget->setLayout(pLayout);
++        tableWidget->setCellWidget(row, 1, pWidget);
++        ++row;
++    }
++    tableWidget->resizeColumnsToContents();
++}
++
+ customTableWidget::customTableWidget(QWidget* parent) : QTableWidget(parent) {
+     setColumnCount(2);
+     setEditTriggers(QAbstractItemView::NoEditTriggers);
+diff --git a/src/sw/noc_dev/GUICore/genericdialog.h b/src/sw/noc_dev/GUICore/genericdialog.h
+index 1a79ea266f5..7754d6f2f16 100644
+--- a/src/sw/noc_dev/GUICore/genericdialog.h
++++ b/src/sw/noc_dev/GUICore/genericdialog.h
+@@ -111,13 +111,24 @@ public:
+     QString url;
+ };
+ 
+-class NewFeature : public QDialog
++class NeedHelp : public QDialog
+ {
++    Q_OBJECT
+ public:
+-    NewFeature(QWidget* parent);
+-    ~NewFeature();
++    NeedHelp(QWidget* parent);
++    ~NeedHelp();
++    void showVideoLink(bool val) { showVideo = val; }
++
++signals:
++    void updateContents(QWidget* parent);
++
++public slots:
++    void updatedVideoLinkContents(QWidget* parent);
++
+ private:
+-QMap<QString, QString> videoInstruction = { {"Create new project", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Create%20new%20mesh%20project.mp4"},
++    bool showVideo = false;
++    customTableWidget* tableWidget;
++    QMap<QString, QString> videoInstruction = { {"Create new project", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Create%20new%20mesh%20project.mp4"},
+                                             {"Add host", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/add_host.mp4"},
+                                             {"Delete domain", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Delete%20clock%20power%20voltage.mp4"},
+                                             {"Delete blockage", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Delete%20blockage%20domain.mp4"},
+@@ -178,6 +189,7 @@ QMap<QString, QString> videoInstruction = { {"Create new project", "https://inte
+                                             {"Generate images", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Generate%20Noc%20image.mp4"}
+                                             };
+ protected:
++    void showEvent(QShowEvent* event) override;
+     void closeEvent(QCloseEvent* event) override;
+ };
+ 
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp b/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp
+index c13f08f5e52..a0c5d036271 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/genericdialog.cpp
+@@ -506,7 +506,7 @@ CloseAppDialog::CloseAppDialog(QWidget* parent) : QDialog(parent)
+     setWindowIcon(QIcon(ICON_NOC_M1));
+ }
+ 
+-NewFeature::NewFeature(QWidget* parent) : QDialog(parent)
++NeedHelp::NeedHelp(QWidget* parent) : QDialog(parent)
+ {
+     QLabel* image = new QLabel;
+     image->setPixmap(QPixmap(ICON_ABOUT));
+@@ -523,27 +523,39 @@ NewFeature::NewFeature(QWidget* parent) : QDialog(parent)
+                         "<b>GUI Features Video Instruction</b>";
+     title->setText(titleText);
+ 
+-    customTableWidget* tableWidget = new customTableWidget(this);
++    tableWidget = new customTableWidget(this);
+     tableWidget->setHorizontalHeaderLabels({ "Feature", "Video" });
+     tableWidget->setRowCount(videoInstruction.size());
++    tableWidget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
++    tableWidget->horizontalScrollBar()->setSingleStep(1);
+     int row = 0;
+     for (auto it = videoInstruction.begin(); it != videoInstruction.end(); ++it) {
+         QTableWidgetItem* feature = new QTableWidgetItem(it.key());
+         tableWidget->setItem(row, 0, feature);
+ 
+         QWidget* pWidget = new QWidget();
+-        customQPushButton* btn = new customQPushButton(this);
+-        btn->setText("Open Video");
+-        btn->url = it.value();
+-        connect(btn, SIGNAL(clicked()), parent, SLOT(openVideo()));
+         QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+-        pLayout->addWidget(btn);
++        if (!showVideo) {
++            customQPushButton* btn = new customQPushButton(this);
++            btn->setText("Open Video");
++            btn->url = it.value();
++            connect(btn, SIGNAL(clicked()), parent, SLOT(openVideo()));
++            pLayout->addWidget(btn);
++        } else {
++            QUrl linkVideo = it.value();
++            QLabel* lbLink = new QLabel;
++            lbLink->setText("<a href=\"" + linkVideo.toString() + "\">" + linkVideo.toString() + "</a>");
++            lbLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
++            lbLink->setOpenExternalLinks(true);
++            pLayout->addWidget(lbLink, Qt::AlignLeft);
++        }
+         pLayout->setAlignment(Qt::AlignCenter);
+-        pLayout->setContentsMargins(47, 0, 47, 0);
++        pLayout->setContentsMargins(10, 0, 10, 0);
+         pWidget->setLayout(pLayout);
+         tableWidget->setCellWidget(row, 1, pWidget);
+         ++row;
+     }
++    tableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+     tableWidget->resizeColumnsToContents();
+     QVBoxLayout* l = new QVBoxLayout(this);
+     l->addWidget(image);
+@@ -555,18 +567,64 @@ NewFeature::NewFeature(QWidget* parent) : QDialog(parent)
+                    Qt::WindowMaximizeButtonHint | Qt::Window);
+     setWindowTitle("Need help?");
+     setWindowIcon(QIcon(ICON_NOC_M1));
++
++    connect(this, SIGNAL(updateContents(QWidget*)), this, SLOT(updatedVideoLinkContents(QWidget*)));
+ }
+ 
+-NewFeature::~NewFeature()
++NeedHelp::~NeedHelp()
+ {
+ }
+ 
+-void NewFeature::closeEvent(QCloseEvent* event)
++void NeedHelp::showEvent(QShowEvent* event)
++{
++    if (isMaximized()) showNormal();
++    auto widget = parentWidget();
++    int x = widget->screen()->availableGeometry().center().x() - width() / 2;
++    int y = widget->screen()->availableGeometry().center().y() - height() / 2;
++    move(x, y);
++    event->accept();
++}
++
++void NeedHelp::closeEvent(QCloseEvent* event)
+ {
+     hide();
+     event->ignore();
+ }
+ 
++void NeedHelp::updatedVideoLinkContents(QWidget* parent)
++{
++    if (!tableWidget) return;
++    tableWidget->clearContents();
++    int row = 0;
++    for (auto it = videoInstruction.begin(); it != videoInstruction.end(); ++it) {
++        QTableWidgetItem* feature = new QTableWidgetItem(it.key());
++        tableWidget->setItem(row, 0, feature);
++
++        QWidget* pWidget = new QWidget();
++        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
++        if (!showVideo) {
++            customQPushButton* btn = new customQPushButton(this);
++            btn->setText("Open Video");
++            btn->url = it.value();
++            connect(btn, SIGNAL(clicked()), parent, SLOT(openVideo()));
++            pLayout->addWidget(btn);
++        } else {
++            QUrl linkVideo = it.value();
++            QLabel* lbLink = new QLabel;
++            lbLink->setText("<a href=\"" + linkVideo.toString() + "\">" + linkVideo.toString() + "</a>");
++            lbLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
++            lbLink->setOpenExternalLinks(true);
++            pLayout->addWidget(lbLink, Qt::AlignLeft);
++        }
++        pLayout->setAlignment(Qt::AlignCenter);
++        pLayout->setContentsMargins(10, 0, 10, 0);
++        pWidget->setLayout(pLayout);
++        tableWidget->setCellWidget(row, 1, pWidget);
++        ++row;
++    }
++    tableWidget->resizeColumnsToContents();
++}
++
+ customTableWidget::customTableWidget(QWidget* parent) : QTableWidget(parent) {
+     setColumnCount(2);
+     setEditTriggers(QAbstractItemView::NoEditTriggers);
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericdialog.h b/src/sw/noc_dev/GUICore_qt6/genericdialog.h
+index b3f009dcc5a..e21803756d1 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericdialog.h
++++ b/src/sw/noc_dev/GUICore_qt6/genericdialog.h
+@@ -112,13 +112,24 @@ public:
+     QString url;
+ };
+ 
+-class NewFeature : public QDialog
++class NeedHelp : public QDialog
+ {
++    Q_OBJECT
+ public:
+-    NewFeature(QWidget* parent);
+-    ~NewFeature();
++    NeedHelp(QWidget* parent);
++    ~NeedHelp();
++    void showVideoLink(bool val) { showVideo = val; }
++
++signals:
++    void updateContents(QWidget* parent);
++
++public slots:
++    void updatedVideoLinkContents(QWidget* parent);
++
+ private:
+-QMap<QString, QString> videoInstruction = { {"Create new project", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Create%20new%20mesh%20project.mp4"},
++    bool showVideo = false;
++    customTableWidget* tableWidget;
++    QMap<QString, QString> videoInstruction = { {"Create new project", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Create%20new%20mesh%20project.mp4"},
+                                             {"Add host", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/add_host.mp4"},
+                                             {"Delete domain", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Delete%20clock%20power%20voltage.mp4"},
+                                             {"Delete blockage", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Delete%20blockage%20domain.mp4"},
+@@ -179,6 +190,7 @@ QMap<QString, QString> videoInstruction = { {"Create new project", "https://inte
+                                             {"Generate images", "https://intel.sharepoint.com/:v:/r/sites/CICGSISGCFG/Shared%20Documents/NOC/4_Software/NS%20GUI/Instruction/Generate%20Noc%20image.mp4"}
+                                             };
+ protected:
++    void showEvent(QShowEvent* event) override;
+     void closeEvent(QCloseEvent* event) override;
+ };
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a1ac85a1e9e..a5d830ff49c 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -9438,9 +9438,9 @@ void MainWindow::createToolbars()
+         animation->setEasingCurve(QEasingCurve::InBack);
+         animation->start(QPropertyAnimation::DeleteWhenStopped);
+ 
+-        auto newFeatureDialog = new NewFeature(this);
+-        newFeatureDialog->hide();
+-        connect(question, &QPushButton::clicked, newFeatureDialog, &QDialog::show);
++        auto dialog = new NeedHelp(this);
++        dialog->hide();
++        connect(question, &QPushButton::clicked, dialog, &QDialog::show);
+ 
+         tooltipToolbar = new QToolBar(tr(TOOLBAR_TOOLTIP), this);
+         tooltipToolbar->setObjectName(TOOLBAR_TOOLTIP_OBJECT_NAME);
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index 880fc13240e..02c0ad95d62 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -3305,16 +3305,17 @@ void INIConsole::registerGuiCommands()
+                 const string& sid = args[0];
+                 if (NetSpeed::is_true_or_false(sid)) {
+                     for (auto w : QApplication::topLevelWidgets()) {
+-                        if (auto dialog = dynamic_cast<HelpAppDialog*>(w)) {
++                        if (auto dialog = dynamic_cast<NeedHelp*>(w)) {
+                             dialog->showVideoLink(NetSpeed::is_true(sid));
+-                            emit dialog->updateCurrentItem();
++                            emit dialog->updateContents(mainWindow);
+                         }
+                     }
+                 } else {
+                     NetSpeed::LOG_ERROR("1429") << "Don't know how to handle argument: " << sid << std::endl;
++                    NetSpeed::ConsoleParsing::usage(cmd.info);
++                    return false;
+                 }
+-                NetSpeed::ConsoleParsing::usage(cmd.info);
+-                return false;
++                return true;
+         };
+ 
+         NetSpeed::NocConsole::add_command(NetSpeed::Command_idx(CMD_SHOW_VIDEO_LINK),
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 4d5580739ff..b04f040bf06 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -9411,9 +9411,9 @@ void MainWindow::createToolbars()
+         animation->setEasingCurve(QEasingCurve::InBack);
+         animation->start(QPropertyAnimation::DeleteWhenStopped);
+ 
+-        auto newFeatureDialog = new NewFeature(this);
+-        newFeatureDialog->hide();
+-        connect(question, &QPushButton::clicked, newFeatureDialog, &QDialog::show);
++        auto dialog = new NeedHelp(this);
++        dialog->hide();
++        connect(question, &QPushButton::clicked, dialog, &QDialog::show);
+ 
+         tooltipToolbar = new QToolBar(tr(TOOLBAR_TOOLTIP), this);
+         tooltipToolbar->setObjectName(TOOLBAR_TOOLTIP_OBJECT_NAME);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 3d5baef6b95..f1a52ee2d61 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -3296,16 +3296,17 @@ void INIConsole::registerGuiCommands()
+                 const string& sid = args[0];
+                 if (NetSpeed::is_true_or_false(sid)) {
+                     for (auto w : QApplication::topLevelWidgets()) {
+-                        if (auto dialog = dynamic_cast<HelpAppDialog*>(w)) {
++                        if (auto dialog = dynamic_cast<NeedHelp*>(w)) {
+                             dialog->showVideoLink(NetSpeed::is_true(sid));
+-                            emit dialog->updateCurrentItem();
++                            emit dialog->updateContents(mainWindow);
+                         }
+                     }
+                 } else {
+                     NetSpeed::LOG_ERROR("1429") << "Don't know how to handle argument: " << sid << std::endl;
++                    NetSpeed::ConsoleParsing::usage(cmd.info);
++                    return false;
+                 }
+-                NetSpeed::ConsoleParsing::usage(cmd.info);
+-                return false;
++                return true;
+         };
+ 
+         NetSpeed::NocConsole::add_command(NetSpeed::Command_idx(CMD_SHOW_VIDEO_LINK),

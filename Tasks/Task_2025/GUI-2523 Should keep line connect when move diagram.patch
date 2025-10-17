@@ -1,0 +1,101 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp     | 12 ++++++++++--
+ src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h       |  2 ++
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp | 10 +++++++++-
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h   |  2 ++
+ 4 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index ed79e4953c6..a071eb8ae32 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -1442,7 +1442,7 @@ void NsRouterDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ 
+ void NsRouterDiagram::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+ {
+-    if (!(isDragging && (pos() != startPos))) {
++    if (!(isDragging || (pos() != startPos))) {
+         hideFlowData();
+     }
+     isDragging = false;
+@@ -3698,10 +3698,18 @@ void NsRSSBDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+             item->setSelected(false);
+         }
+     }
+-    hideFlowData();
++    startPos = pos();
+     event->accept();
+ }
+ 
++void NsRSSBDiagram::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
++{
++    if (pos() == startPos) {
++        hideFlowData();
++    }
++    QGraphicsPathItem::mouseReleaseEvent(event);
++}
++
+ void NsRSSBDiagram::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+ {
+     event->accept();
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index bcfff10eefa..e4187d42d1c 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -494,12 +494,14 @@ private:
+     QGraphicsOpacityEffect* m_brRectEff = nullptr;
+     bool m_isRSSBRectBlur = false;
+     bool m_isBrRectBlur = false;
++    QPointF startPos;
+ 
+ protected:
+     friend class Test_NsBridgeDiagram;
+     int type() const override { return BRIDGE_DIAGRAM; }
+     void advance(int phase) override;
+     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
++    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp
+index aad4c15804f..09f0c773167 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp
+@@ -3602,10 +3602,18 @@ void NsRSSBDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+             item->setSelected(false);
+         }
+     }
+-    hideFlowData();
++    startPos = pos();
+     event->accept();
+ }
+ 
++void NsRSSBDiagram::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
++{
++    if (pos() == startPos) {
++        hideFlowData();
++    }
++    QGraphicsPathItem::mouseReleaseEvent(event);
++}
++
+ void NsRSSBDiagram::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+ {
+     event->accept();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h
+index 60f1f2f61b3..76fe33fd027 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.h
+@@ -483,12 +483,14 @@ private:
+     QGraphicsOpacityEffect* m_brRectEff = nullptr;
+     bool m_isRSSBRectBlur = false;
+     bool m_isBrRectBlur = false;
++    QPointF startPos;
+ 
+ protected:
+     friend class Test_NsBridgeDiagram;
+     int type() const override { return BRIDGE_DIAGRAM; }
+     void advance(int phase) override;
+     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
++    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
+     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+ 

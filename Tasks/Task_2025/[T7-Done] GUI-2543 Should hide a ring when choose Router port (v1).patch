@@ -1,0 +1,134 @@
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 35 ++++++++++++----------
+ .../prototype_qt6/Gui/View/NsNocViewScene.cpp      | 35 ++++++++++++----------
+ 2 files changed, 38 insertions(+), 32 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index ebf705ed617..4cb0fe6d6b2 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -2536,6 +2536,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+         }
+         emit console->processCommandSlot(command);
+     } else if (nocScene->getInsType() == ADD_CONNECT) {
++        selected_port = true;
+         if (nocScene->instrumentMediator) {
+             nocScene->instrumentMediator->setData(USER_DATA, true);  // Detect update arrow path
+             int type_item = nocScene->instrumentMediator->data(ITEM_TYPE).toInt();
+@@ -2616,9 +2617,11 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+             default:
+                 break;
+             }
++            selected_port = false;
++            setBrush(Qt::transparent);
++            update();
+         } else {
+             auto propPanel = mw->getPropertyPanel();
+-            selected_port = true;
+             nocScene->instrumentMediator = new NsInstrumentMediator();
+             nocScene->instrumentMediator->setData(ITEM_TYPE, QVariant(connection_type));
+             nocScene->instrumentMediator->setData(ITEM_NAME, m_router);
+@@ -2662,24 +2665,24 @@ void NsPortDrawingSetConnection::hoverEnterEvent(QGraphicsSceneHoverEvent * even
+ 
+ void NsPortDrawingSetConnection::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    auto nocScene = dynamic_cast<NsNocViewScene*>(scene());
+-    if (nocScene && nocScene->instrumentMediator) {
+-        auto mesh = getFirst<NsMesh>(nocScene->items(event->scenePos()), MESH);
+-        if (mesh) {
+-            auto nodeId = pointToNodeID(mesh, event->scenePos());
+-            for (const auto& item : mesh->scene()->items()) {
+-                if (item->type() != ROUTER_CONNECTION) continue;
+-                if (auto nsRouterConnection = dynamic_cast<NsRouterSetConnection*>(item)) {
+-                    auto circle = nsRouterConnection->getCircle();
+-                    if (!circle) continue;
+-                    if (nsRouterConnection->getNodeId() != nodeId) continue;
+-                    circle->setVisible(true);
++    if (!isNsPortEnabled) return;
++    if (!selected_port) {
++        auto nocScene = dynamic_cast<NsNocViewScene*>(scene());
++        if (nocScene && nocScene->instrumentMediator) {
++            auto mesh = getFirst<NsMesh>(nocScene->items(event->scenePos()), MESH);
++            if (mesh) {
++                auto nodeId = pointToNodeID(mesh, event->scenePos());
++                for (const auto& item : mesh->scene()->items()) {
++                    if (item->type() != ROUTER_CONNECTION) continue;
++                    if (auto nsRouterConnection = dynamic_cast<NsRouterSetConnection*>(item)) {
++                        auto circle = nsRouterConnection->getCircle();
++                        if (!circle) continue;
++                        if (nsRouterConnection->getNodeId() != nodeId) continue;
++                        circle->setVisible(true);
++                    }
+                 }
+             }
+         }
+-    }
+-    if (!isNsPortEnabled) return;
+-    if (!selected_port) {
+         setBrush(Qt::transparent);
+         if (connection_type == TYPE_ITEM::ROUTER) {
+             if (routerID) {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 9ce874d6942..1ae1662619e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -2496,6 +2496,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+         }
+         emit console->processCommandSlot(command);
+     } else if (nocScene->getInsType() == ADD_CONNECT) {
++        selected_port = true;
+         if (nocScene->instrumentMediator) {
+             nocScene->instrumentMediator->setData(USER_DATA, true);  // Detect update arrow path
+             int type_item = nocScene->instrumentMediator->data(ITEM_TYPE).toInt();
+@@ -2570,9 +2571,11 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+             default:
+                 break;
+             }
++            selected_port = false;
++            setBrush(Qt::transparent);
++            update();
+         } else {
+             auto propPanel = mw->getPropertyPanel();
+-            selected_port = true;
+             nocScene->instrumentMediator = new NsInstrumentMediator();
+             nocScene->instrumentMediator->setData(ITEM_TYPE, QVariant(connection_type));
+             nocScene->instrumentMediator->setData(ITEM_NAME, m_router);
+@@ -2615,24 +2618,24 @@ void NsPortDrawingSetConnection::hoverEnterEvent(QGraphicsSceneHoverEvent * even
+ 
+ void NsPortDrawingSetConnection::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
+ {
+-    auto nocScene = dynamic_cast<NsNocViewScene*>(scene());
+-    if (nocScene && nocScene->instrumentMediator) {
+-        auto mesh = getFirst<NsMesh>(nocScene->items(event->scenePos()), MESH);
+-        if (mesh) {
+-            auto nodeId = pointToNodeID(mesh, event->scenePos());
+-            for (const auto& item : mesh->scene()->items()) {
+-                if (item->type() != ROUTER_CONNECTION) continue;
+-                if (auto nsRouterConnection = dynamic_cast<NsRouterSetConnection*>(item)) {
+-                    auto circle = nsRouterConnection->getCircle();
+-                    if (!circle) continue;
+-                    if (nsRouterConnection->getNodeId() != nodeId) continue;
+-                    circle->setVisible(true);
++    if (!isNsPortEnabled) return;
++    if (!selected_port) {
++        auto nocScene = dynamic_cast<NsNocViewScene*>(scene());
++        if (nocScene && nocScene->instrumentMediator) {
++            auto mesh = getFirst<NsMesh>(nocScene->items(event->scenePos()), MESH);
++            if (mesh) {
++                auto nodeId = pointToNodeID(mesh, event->scenePos());
++                for (const auto& item : mesh->scene()->items()) {
++                    if (item->type() != ROUTER_CONNECTION) continue;
++                    if (auto nsRouterConnection = dynamic_cast<NsRouterSetConnection*>(item)) {
++                        auto circle = nsRouterConnection->getCircle();
++                        if (!circle) continue;
++                        if (nsRouterConnection->getNodeId() != nodeId) continue;
++                        circle->setVisible(true);
++                    }
+                 }
+             }
+         }
+-    }
+-    if (!isNsPortEnabled) return;
+-    if (!selected_port) {
+         setBrush(Qt::transparent);
+         if (connection_type == TYPE_ITEM::ROUTER) {
+             if (routerID) {

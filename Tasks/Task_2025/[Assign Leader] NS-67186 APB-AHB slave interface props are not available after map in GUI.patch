@@ -1,0 +1,84 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 18 +++++++++++++-----
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 18 +++++++++++++-----
+ 2 files changed, 26 insertions(+), 10 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index d6ebbc3d5b1..1b83fe843ba 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -5663,12 +5663,16 @@ void PropertyPanel::updateBridgePropertyAfterCommand(NetSpeed::Bridge * b)
+     }
+     for (auto& it : NetSpeed::Property::bridge_props)
+         processPropertyUpdate(it.second.get(), b, selectionPropertyEditor, bridgeProps);
++
++    bool typeBridge = is_apb_br(b->get_type()) | is_ahb_br(b->get_type());
+     for (auto ifce : b->get_all_ifs()) {
+-        if (ifce->show_in_gui()) {
+-            updateIntefacePropertyAfterCommand(ifce, false);
+-            auto it = findPropertyIt(ifceProps, propIs(IFCE_PROP, ifce->if_name().c_str()));
+-            if (it != ifceProps.constEnd()) ifceProps.erase(toMutableIterator(ifceProps, it));
++        if (!ifce) continue;
++        if (!typeBridge) {
++            if (!ifce->show_in_gui()) continue;
+         }
++        updateIntefacePropertyAfterCommand(ifce, false);
++        auto it = findPropertyIt(ifceProps, propIs(IFCE_PROP, ifce->if_name().c_str()));
++        if (it != ifceProps.constEnd()) ifceProps.erase(toMutableIterator(ifceProps, it));
+     }
+     for (auto p : ifceProps)
+         selectionPropertyEditor->removeProperty(p);
+@@ -6456,9 +6460,13 @@ void PropertyPanel::createBridgePropertyItems(const NetSpeed::Bridge * b, QtTree
+     // Add all props to selection property tab
+     createPropertyItems(NetSpeed::Property::bridge_props, b, selectionPropertyEditor);
+ 
++    bool typeBridge = is_apb_br(b->get_type()) | is_ahb_br(b->get_type());
+     /* Interface properties */
+     for (const auto ifce : b->get_all_ifs()) {
+-        if (!ifce || !ifce->show_in_gui()) continue;
++        if (!ifce) continue;
++        if (!typeBridge) {
++            if (!ifce->show_in_gui()) continue;
++        }
+         auto propertyItem = readonlyManager->addProperty(IFCE_PROP);
+         ifce->recompute_cached_name();
+         readonlyManager->setValue(propertyItem, QString::fromStdString(ifce->if_name()));
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 7ea4cb1fa2d..e1d23675834 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -5661,12 +5661,16 @@ void PropertyPanel::updateBridgePropertyAfterCommand(NetSpeed::Bridge * b)
+     }
+     for (auto& it : NetSpeed::Property::bridge_props)
+         processPropertyUpdate(it.second.get(), b, selectionPropertyEditor, bridgeProps);
++
++    bool typeBridge = is_apb_br(b->get_type()) | is_ahb_br(b->get_type());
+     for (auto ifce : b->get_all_ifs()) {
+-        if (ifce->show_in_gui()) {
+-            updateIntefacePropertyAfterCommand(ifce, false);
+-            auto it = findPropertyIt(ifceProps, propIs(IFCE_PROP, ifce->if_name().c_str()));
+-            if (it != ifceProps.constEnd()) ifceProps.erase(toMutableIterator(ifceProps, it));
++        if (!ifce) continue;
++        if (!typeBridge) {
++            if (!ifce->show_in_gui()) continue;
+         }
++        updateIntefacePropertyAfterCommand(ifce, false);
++        auto it = findPropertyIt(ifceProps, propIs(IFCE_PROP, ifce->if_name().c_str()));
++        if (it != ifceProps.constEnd()) ifceProps.erase(toMutableIterator(ifceProps, it));
+     }
+     for (auto p : ifceProps)
+         selectionPropertyEditor->removeProperty(p);
+@@ -6454,9 +6458,13 @@ void PropertyPanel::createBridgePropertyItems(const NetSpeed::Bridge * b, QtTree
+     // Add all props to selection property tab
+     createPropertyItems(NetSpeed::Property::bridge_props, b, selectionPropertyEditor);
+ 
++    bool typeBridge = is_apb_br(b->get_type()) | is_ahb_br(b->get_type());
+     /* Interface properties */
+     for (const auto ifce : b->get_all_ifs()) {
+-        if (!ifce || !ifce->show_in_gui()) continue;
++        if (!ifce) continue;
++        if (!typeBridge) {
++            if (!ifce->show_in_gui()) continue;
++        }
+         auto propertyItem = readonlyManager->addProperty(IFCE_PROP);
+         ifce->recompute_cached_name();
+         readonlyManager->setValue(propertyItem, QString::fromStdString(ifce->if_name()));

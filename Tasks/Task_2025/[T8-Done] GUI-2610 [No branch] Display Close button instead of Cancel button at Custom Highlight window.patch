@@ -1,0 +1,34 @@
+ src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp     | 4 ++--
+ src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+index da20b465337..a695d3f5141 100644
+--- a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -194,8 +194,8 @@ CustomHighLightDialog::CustomHighLightDialog(QWidget* parent, const NetSpeed::Gr
+     highlightButton = new QPushButton("Highlight");
+     highlightButton->setToolTip("Highlight");
+     highlightButton->setFixedHeight(1.2 * highlightButton->sizeHint().height());
+-    cancelButton = new QPushButton("Cancel");
+-    cancelButton->setToolTip("Cancel");
++    cancelButton = new QPushButton("Close");
++    cancelButton->setToolTip("Close");
+     cancelButton->setFixedHeight(1.2 * cancelButton->sizeHint().height());
+     connect(highlightButton, SIGNAL(clicked()), this, SLOT(runCmd()));
+     connect(clearButton, SIGNAL(clicked()), this, SLOT(clearButtonSlot()));
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+index 6c17469f707..66d2947fa49 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -195,8 +195,8 @@ CustomHighLightDialog::CustomHighLightDialog(QWidget* parent, const NetSpeed::Gr
+     highlightButton = new QPushButton("Highlight");
+     highlightButton->setToolTip("Highlight");
+     highlightButton->setFixedHeight(1.2 * highlightButton->sizeHint().height());
+-    cancelButton = new QPushButton("Cancel");
+-    cancelButton->setToolTip("Cancel");
++    cancelButton = new QPushButton("Close");
++    cancelButton->setToolTip("Close");
+     cancelButton->setFixedHeight(1.2 * cancelButton->sizeHint().height());
+     connect(highlightButton, SIGNAL(clicked()), this, SLOT(runCmd()));
+     connect(clearButton, SIGNAL(clicked()), this, SLOT(clearButtonSlot()));

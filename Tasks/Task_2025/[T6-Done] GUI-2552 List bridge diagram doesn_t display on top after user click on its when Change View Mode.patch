@@ -1,0 +1,146 @@
+ .../prototype/Gui/Item/NsMultipleBridges.cpp       | 30 +++++++++++++++++-----
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  |  4 +--
+ .../prototype_qt6/Gui/Item/NsMultipleBridges.cpp   | 30 +++++++++++++++++-----
+ .../prototype_qt6/Gui/View/NsNocViewScene.cpp      |  4 +--
+ 4 files changed, 48 insertions(+), 20 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index 96392fb5f3d..d2d64d4dd81 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -401,7 +401,12 @@ void NsMultipleBridgesDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+         for (auto& item : meshScene->selectedItems()) {
+             item->setSelected(false);
+         }
+-            }
++    }
++    if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
++        if (mulBris) {
++            mw->updateZValueOfListDiagrams(mulBris);
++        }
++    }
+     event->accept();
+ }
+ 
+@@ -556,12 +561,6 @@ void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         return nullptr;
+     };
+ 
+-    if (auto nsScene = dynamic_cast<NsScene*>(scene())) {
+-        if (nsScene->isDomainView()) {
+-            event->accept();
+-            return;
+-        }
+-    }
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+     if (!mw) {
+         auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(parentItem());
+@@ -575,6 +574,23 @@ void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event)
+             }
+         }
+     }
++
++    if (auto nsScene = dynamic_cast<NsScene*>(scene())) {
++        if (mw) {
++            if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                    if (auto mulBris = diagram->getMulBris()) {
++                        mw->updateZValueOfListDiagrams(mulBris);
++                    }
++                }
++            }
++        }
++        if (nsScene->isDomainView()) {
++            event->accept();
++            return;
++        }
++    }
++
+     if (mw) {
+         auto proPanel = mw->getPropertyPanel();
+         proPanel->updateBridgeProperties(bridge, true);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index d450e03706f..ebf705ed617 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -983,9 +983,7 @@ void NsNocViewScene::setDiagramOnTop(QPointF pos)
+     auto clickedItem = itemAt(pos, QTransform());
+     if ((!clickedItem)  || (mw->getListDiagrams().size() == 0)) return;
+ 
+-    if (auto multiBridge = dynamic_cast<NsMultipleBridgesDiagram*>(clickedItem)) {
+-        mw->updateZValueOfListDiagrams(multiBridge->parentItem());
+-    } else if (auto nsRouterDiagramVC = dynamic_cast<NsRouterDiagramVC*>(clickedItem)) {
++    if (auto nsRouterDiagramVC = dynamic_cast<NsRouterDiagramVC*>(clickedItem)) {
+         if (auto routerDiagram = dynamic_cast<NsRouterDiagram*>(nsRouterDiagramVC->parentItem())) {
+             mw->updateZValueOfListDiagrams(routerDiagram);
+         }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
+index 983f38c541f..c39a51fa3fa 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
+@@ -401,7 +401,12 @@ void NsMultipleBridgesDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+         for (auto& item : meshScene->selectedItems()) {
+             item->setSelected(false);
+         }
+-            }
++    }
++    if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
++        if (mulBris) {
++            mw->updateZValueOfListDiagrams(mulBris);
++        }
++    }
+     event->accept();
+ }
+ 
+@@ -556,12 +561,6 @@ void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         return nullptr;
+     };
+ 
+-    if (auto nsScene = dynamic_cast<NsScene*>(scene())) {
+-        if (nsScene->isDomainView()) {
+-            event->accept();
+-            return;
+-        }
+-    }
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
+     if (!mw) {
+         auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(parentItem());
+@@ -575,6 +574,23 @@ void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event)
+             }
+         }
+     }
++
++    if (auto nsScene = dynamic_cast<NsScene*>(scene())) {
++        if (mw) {
++            if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                    if (auto mulBris = diagram->getMulBris()) {
++                        mw->updateZValueOfListDiagrams(mulBris);
++                    }
++                }
++            }
++        }
++        if (nsScene->isDomainView()) {
++            event->accept();
++            return;
++        }
++    }
++
+     if (mw) {
+         auto proPanel = mw->getPropertyPanel();
+         proPanel->updateBridgeProperties(bridge, true);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index bc170686e28..c232b95b7e6 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -988,9 +988,7 @@ void NsNocViewScene::setDiagramOnTop(QPointF pos)
+     auto clickedItem = itemAt(pos, QTransform());
+     if ((!clickedItem)  || (mw->getListDiagrams().size() == 0)) return;
+ 
+-    if (auto multiBridge = dynamic_cast<NsMultipleBridgesDiagram*>(clickedItem)) {
+-        mw->updateZValueOfListDiagrams(multiBridge->parentItem());
+-    } else if (auto nsRouterDiagramVC = dynamic_cast<NsRouterDiagramVC*>(clickedItem)) {
++    if (auto nsRouterDiagramVC = dynamic_cast<NsRouterDiagramVC*>(clickedItem)) {
+         if (auto routerDiagram = dynamic_cast<NsRouterDiagram*>(nsRouterDiagramVC->parentItem())) {
+             mw->updateZValueOfListDiagrams(routerDiagram);
+         }

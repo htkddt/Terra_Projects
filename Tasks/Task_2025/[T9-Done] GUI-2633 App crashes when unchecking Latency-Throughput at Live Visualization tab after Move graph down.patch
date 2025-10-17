@@ -1,0 +1,268 @@
+ src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp       | 10 ++++++
+ src/sw/noc_dev/GUICore/Utils/qcustomplot.h         |  1 +
+ src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.cpp   | 10 ++++++
+ src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h     |  1 +
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 38 +++++-----------------
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 38 +++++-----------------
+ 6 files changed, 40 insertions(+), 58 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp b/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp
+index 24a29e47851..258ead4f812 100644
+--- a/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp
++++ b/src/sw/noc_dev/GUICore/Utils/qcustomplot.cpp
+@@ -9241,6 +9241,16 @@ QCustomPlot::~QCustomPlot()
+     mLayers.clear();
+ }
+ 
++void QCustomPlot::initMagnifyingFrame()
++{
++    magnifyingFrame = new QLabel(this);
++    magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
++    magnifyingFrame->setStyleSheet("QLabel {"
++                                   "border: 1px solid gray;"
++                                   "}");
++    magnifyingFrame->setVisible(false);
++}
++
+ void QCustomPlot::initVerticalLine()
+ {
+     verticalLine = new QCPItemLine(this);
+diff --git a/src/sw/noc_dev/GUICore/Utils/qcustomplot.h b/src/sw/noc_dev/GUICore/Utils/qcustomplot.h
+index a66137b349c..ed9f69f3b67 100644
+--- a/src/sw/noc_dev/GUICore/Utils/qcustomplot.h
++++ b/src/sw/noc_dev/GUICore/Utils/qcustomplot.h
+@@ -1768,6 +1768,7 @@ public:
+     virtual ~QCustomPlot();
+ 
+     void initVerticalLine();
++    void initMagnifyingFrame();
+     void handleLegendTable(float minDataSize, float maxDataSize, float aveDataSize,
+                            float minLatency, float maxLatency, float aveLatency,
+                            float minThroughput, float maxThroughput, float aveThroughput);
+diff --git a/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.cpp b/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.cpp
+index 2e114ba518c..55acdce877d 100644
+--- a/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.cpp
+@@ -9248,6 +9248,16 @@ QCustomPlot::~QCustomPlot()
+     mLayers.clear();
+ }
+ 
++void QCustomPlot::initMagnifyingFrame()
++{
++    magnifyingFrame = new QLabel(this);
++    magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
++    magnifyingFrame->setStyleSheet("QLabel {"
++                                   "border: 1px solid gray;"
++                                   "}");
++    magnifyingFrame->setVisible(false);
++}
++
+ void QCustomPlot::initVerticalLine()
+ {
+     verticalLine = new QCPItemLine(this);
+diff --git a/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h b/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h
+index 1985f692928..dcc2c121163 100644
+--- a/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h
++++ b/src/sw/noc_dev/GUICore_qt6/Utils/qcustomplot.h
+@@ -1769,6 +1769,7 @@ public:
+     virtual ~QCustomPlot();
+ 
+     void initVerticalLine();
++    void initMagnifyingFrame();
+     void handleLegendTable(float minDataSize, float maxDataSize, float aveDataSize,
+                            float minLatency, float maxLatency, float aveLatency,
+                            float minThroughput, float maxThroughput, float aveThroughput);
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 0352dec8340..1e7d9b0f65a 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3037,16 +3037,10 @@ QWidget* PropertyPanel::createStatTabLayout(QSharedPointer<StatTab> statTab, QMa
+         // Create widget which include buttons and plot
+         auto plotSplitter = createButtonPlotWidget(customPlot, gl, name);
+         customPlot->initVerticalLine();
++        customPlot->initMagnifyingFrame();
+         customPlot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
+             g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
+             g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+-
+-        customPlot->magnifyingFrame = new QLabel(customPlot);
+-        customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-        customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                   "border: 1px solid gray;"
+-                                                   "}");
+-        customPlot->magnifyingFrame->setVisible(false);
+         // Add to main layout
+         graphsSplitter->addWidget(plotSplitter);
+         updateNormalPlot(statTab, g, customPlot, reopenLiveTab);
+@@ -3074,13 +3068,7 @@ QWidget* PropertyPanel::createStatTabLayout(QSharedPointer<StatTab> statTab, QMa
+         // Create widget which include buttons and plot
+         auto plotSplitter = createComparisonPlotWidget(customPlot, cl);
+         customPlot->initVerticalLine();
+-
+-        customPlot->magnifyingFrame = new QLabel(customPlot);
+-        customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-        customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                   "border: 1px solid gray;"
+-                                                   "}");
+-        customPlot->magnifyingFrame->setVisible(false);
++        customPlot->initMagnifyingFrame();
+         // Add to main layout
+         graphsSplitter->addWidget(plotSplitter);
+         updateComparisonPlot(statTab, p, name, customPlot);
+@@ -3659,13 +3647,6 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+ 
+             // Create widget which include buttons and plot
+             auto* plotSplitter = createButtonPlotWidget(customPlot, gl, name, statTab);
+-
+-            customPlot->magnifyingFrame = new QLabel(customPlot);
+-            customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-            customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                       "border: 1px solid gray;"
+-                                                       "}");
+-            customPlot->magnifyingFrame->setVisible(false);
+             splitter->layout()->addWidget(plotSplitter);
+ 
+             init = true;
+@@ -3678,6 +3659,7 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+ 
+         if (init) {
+             customPlot->initVerticalLine();
++            customPlot->initMagnifyingFrame();
+             customPlot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
+                 g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
+                 g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+@@ -3728,17 +3710,11 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+                     this, SLOT(handleLegendClicked(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+             // Create widget which include buttons and plot
+             auto plotSplitter = createComparisonPlotWidget(customPlot, cl, "", statTab);
+-
+-            customPlot->magnifyingFrame = new QLabel(customPlot);
+-            customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-            customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                       "border: 1px solid gray;"
+-                                                       "}");
+-            customPlot->magnifyingFrame->setVisible(false);
++            customPlot->initVerticalLine();
++            customPlot->initMagnifyingFrame();
+             // Add to bottom of main layout
+             splitter->layout()->addWidget(plotSplitter);
+             customPlot->setToolTip(wrapTextForTooltip(QString::fromStdString(p.name), plotTooltipWrap));
+-            customPlot->initVerticalLine();
+         }
+         updateComparisonPlot(statTab, p, name, customPlot);
+     }
+@@ -4568,6 +4544,8 @@ void PropertyPanel::movePlotUp()
+ 
+         //Create a new plot
+         auto plot = generateNormalPlot(gname);
++        plot->initVerticalLine();
++        plot->initMagnifyingFrame();
+         plotMap->insert(gname, plot);
+         plotMap->insert(QString::fromStdString(beforeidx.name), plotAbove);
+         auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+@@ -4671,6 +4649,8 @@ void PropertyPanel::movePlotDown()
+ 
+         //Create a new plot
+         auto plot = generateNormalPlot(gname);
++        plot->initVerticalLine();
++        plot->initMagnifyingFrame();
+         plotMap->insert(QString::fromStdString(afteridx.name), plotBelow);
+         plotMap->insert(gname, plot);
+         auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 985e3588532..5bff60fd43b 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3040,16 +3040,10 @@ QWidget* PropertyPanel::createStatTabLayout(QSharedPointer<StatTab> statTab, QMa
+         // Create widget which include buttons and plot
+         auto plotSplitter = createButtonPlotWidget(customPlot, gl, name);
+         customPlot->initVerticalLine();
++        customPlot->initMagnifyingFrame();
+         customPlot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
+             g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
+             g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+-
+-        customPlot->magnifyingFrame = new QLabel(customPlot);
+-        customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-        customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                   "border: 1px solid gray;"
+-                                                   "}");
+-        customPlot->magnifyingFrame->setVisible(false);
+         // Add to main layout
+         graphsSplitter->addWidget(plotSplitter);
+         updateNormalPlot(statTab, g, customPlot, reopenLiveTab);
+@@ -3077,13 +3071,7 @@ QWidget* PropertyPanel::createStatTabLayout(QSharedPointer<StatTab> statTab, QMa
+         // Create widget which include buttons and plot
+         auto plotSplitter = createComparisonPlotWidget(customPlot, cl);
+         customPlot->initVerticalLine();
+-
+-        customPlot->magnifyingFrame = new QLabel(customPlot);
+-        customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-        customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                   "border: 1px solid gray;"
+-                                                   "}");
+-        customPlot->magnifyingFrame->setVisible(false);
++        customPlot->initMagnifyingFrame();
+         // Add to main layout
+         graphsSplitter->addWidget(plotSplitter);
+         updateComparisonPlot(statTab, p, name, customPlot);
+@@ -3662,13 +3650,6 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+ 
+             // Create widget which include buttons and plot
+             auto* plotSplitter = createButtonPlotWidget(customPlot, gl, name, statTab);
+-
+-            customPlot->magnifyingFrame = new QLabel(customPlot);
+-            customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-            customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                       "border: 1px solid gray;"
+-                                                       "}");
+-            customPlot->magnifyingFrame->setVisible(false);
+             splitter->layout()->addWidget(plotSplitter);
+ 
+             init = true;
+@@ -3681,6 +3662,7 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+ 
+         if (init) {
+             customPlot->initVerticalLine();
++            customPlot->initMagnifyingFrame();
+             customPlot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
+                 g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
+                 g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+@@ -3731,17 +3713,11 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+                     this, SLOT(handleLegendClicked(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+             // Create widget which include buttons and plot
+             auto plotSplitter = createComparisonPlotWidget(customPlot, cl, "", statTab);
+-
+-            customPlot->magnifyingFrame = new QLabel(customPlot);
+-            customPlot->magnifyingFrame->setAttribute(Qt::WA_TransparentForMouseEvents);
+-            customPlot->magnifyingFrame->setStyleSheet("QLabel {"
+-                                                       "border: 1px solid gray;"
+-                                                       "}");
+-            customPlot->magnifyingFrame->setVisible(false);
++            customPlot->initVerticalLine();
++            customPlot->initMagnifyingFrame();
+             // Add to bottom of main layout
+             splitter->layout()->addWidget(plotSplitter);
+             customPlot->setToolTip(wrapTextForTooltip(QString::fromStdString(p.name), plotTooltipWrap));
+-            customPlot->initVerticalLine();
+         }
+         updateComparisonPlot(statTab, p, name, customPlot);
+     }
+@@ -4572,6 +4548,8 @@ void PropertyPanel::movePlotUp()
+ 
+         //Create a new plot
+         auto plot = generateNormalPlot(gname);
++        plot->initVerticalLine();
++        plot->initMagnifyingFrame();
+         plotMap->insert(gname, plot);
+         plotMap->insert(QString::fromStdString(beforeidx.name), plotAbove);
+         auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+@@ -4675,6 +4653,8 @@ void PropertyPanel::movePlotDown()
+ 
+         //Create a new plot
+         auto plot = generateNormalPlot(gname);
++        plot->initVerticalLine();
++        plot->initMagnifyingFrame();
+         plotMap->insert(QString::fromStdString(afteridx.name), plotBelow);
+         plotMap->insert(gname, plot);
+         auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);

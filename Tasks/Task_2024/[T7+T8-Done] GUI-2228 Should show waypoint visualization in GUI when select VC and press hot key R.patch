@@ -1,0 +1,18 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp
+index c64d1aa09a6..cc0703f28b2 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsVC.cpp
+@@ -263,8 +263,8 @@ NsVC::NsVC(NetSpeed::VC* vc, NetSpeed::Node_id in, NetSpeed::Node_id out, NetSpe
+     : vc(vc), grid(grid), in(in), out(out)
+ {
+     setZValue(NsMeshViewScene::VC_ORDER);
+-    setFlags(QGraphicsItem::ItemIsFocusable);
+-    setFlags(QGraphicsItem::ItemIsSelectable);
++    setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable);
++
+     /* Set flag to enable tooltip */
+     setAcceptHoverEvents(true);
+     initData();

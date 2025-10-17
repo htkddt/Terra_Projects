@@ -1,0 +1,272 @@
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 43 +++++++++++-----------
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h |  2 +-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        |  5 ++-
+ .../prototype_qt6/Gui/View/NsNocViewScene.cpp      | 43 +++++++++++-----------
+ .../prototype_qt6/Gui/View/NsNocViewScene.h        |  2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp    |  5 ++-
+ 6 files changed, 52 insertions(+), 48 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 2a4d8059003..239943b71fe 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -310,7 +310,7 @@ void NsNocViewScene::instrumentMediatorDestroyed(QObject* object)
+ 
+ bool NsNocViewScene::zoomOn(QString compName, QString color)
+ {
+-    deleteAllDiagram();
++    deleteAllDiagrams();
+ 
+     colorZoomon = color;
+     bool ok = false;
+@@ -639,7 +639,7 @@ QList<QGraphicsItem*> NsNocViewScene::findOnChop(QString textSearch, std::vector
+ 
+ bool NsNocViewScene::findOn(QString compName, int layId)
+ {
+-    deleteAllDiagram();
++    deleteAllDiagrams();
+ 
+     bool ret = false;
+     if (!console) return false;
+@@ -1501,8 +1501,19 @@ void NsNocViewScene::toggleAddRouter2RouterConn()
+ 
+ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+ {
+-    auto is_diagram = [](QGraphicsItem* item) -> bool {
+-        return (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION}));
++    auto togglePlusItem = [&]() -> void {
++        whenMatched(items(), {PLUS}, [this](QGraphicsItem* item) {
++            auto plus = dynamic_cast<NsPlusItem*>(item);
++            if (plus) {
++                if (!plus->isChecked()) return;
++                plus->toggleChecked();
++                emit plus->triggered(false);
++                item->update();
++                if (plus->getMulBr()) {
++                    mw->removeDiagramItem(plus->getMulBr());
++                }
++            }
++        });
+     };
+ 
+     auto action = sender();
+@@ -1623,14 +1634,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+     switch (type) {
+         case ADD_CONNECT:
+         {
+-            vector<QGraphicsItem*> to_be_deleted;
+-            for (auto& item : items()) {
+-                if (is_diagram(item)) {
+-                    to_be_deleted.push_back(item);
+-                    mw->removeDiagramItem(item);
+-                }
+-            }
+-            qDeleteAll(to_be_deleted);
++            deleteAllDiagrams();
++            togglePlusItem();
+             propPanel->showButtonsAddConnection(state, false);          
+             QMapIterator<int, QGraphicsItem*> i(getLayers());
+             while (i.hasNext()) {
+@@ -1650,14 +1655,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+ 
+         case ADD_ROUTER_CONN:
+         {
+-            vector<QGraphicsItem*> to_be_deleted;
+-            for (auto& item : items()) {
+-                if (is_diagram(item)) {
+-                    to_be_deleted.push_back(item);
+-                    mw->removeDiagramItem(item);
+-                }
+-            }
+-            qDeleteAll(to_be_deleted);
++            deleteAllDiagrams();
++            togglePlusItem();
+             propPanel->showButtonsAddConnection(true, false);
+             auto gItem = action->property(TITLE_BRIDGE_DATA_TYPE).value<QGraphicsItem*>();
+             if (!gItem) return;
+@@ -1703,6 +1702,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+         }
+         case ADD_DEPENDENCY:
+         {
++            deleteAllDiagrams();
++            togglePlusItem();
+             propPanel->addDependency(state);
+             propPanel->showAddDependencyInstruction();
+             break;
+@@ -2076,7 +2077,7 @@ bool NsNocViewScene::filterVC(NetSpeed::VC& vc, NetSpeed::Node_id in, NetSpeed::
+     return valid;
+ }
+ 
+-void NsNocViewScene::deleteAllDiagram()
++void NsNocViewScene::deleteAllDiagrams()
+ {
+     vector<QGraphicsItem*> to_be_deleted;
+     NsMultipleBridgesDiagram* diagram = nullptr;
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+index fabaac463e0..8ba87b35724 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+@@ -166,6 +166,7 @@ public:
+     bool findOn(QString compName, int layerId);
+     void setFocusName(QString focusName);
+     void setDiagramOnTop(QPointF pos);
++    void deleteAllDiagrams();
+     std::vector<NsPortDrawingSetConnection*> portDrawingItemsStoreTmp;
+     NetSpeed::Node_id nodeIdTracking;
+ 
+@@ -213,7 +214,6 @@ private:
+ 
+     bool applyCmd(QPointF scenePos) override;
+     bool filterVC(NetSpeed::VC& vc, NetSpeed::Node_id in, NetSpeed::Node_id out, NetSpeed::Grid* grid);
+-    void deleteAllDiagram();
+     QString getFocusName() {return m_focusName;}
+ 
+     QString colorZoomon;
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 96e8a52290a..4ccac411b0c 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -6125,8 +6125,9 @@ void MainWindow::toggleAddHost(bool state) {
+         instrumentsActMap[NEW_MESH_CUSTOM]->setEnabled(true);
+ 
+         if (nsWorkArea) {
+-            if (auto currentScene = nsWorkArea->scene()) {
+-                whenMatched(currentScene->items(), {PLUS}, [this](QGraphicsItem* item) {
++            if (auto nocScene = dynamic_cast<NsNocViewScene*>(nsWorkArea->scene())) {
++                nocScene->deleteAllDiagrams();
++                whenMatched(nocScene->items(), {PLUS}, [this](QGraphicsItem* item) {
+                     auto plus = dynamic_cast<NsPlusItem*>(item);
+                     if (plus) {
+                         if (!plus->isChecked()) return;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 164d4797bd5..600dca0416e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -311,7 +311,7 @@ void NsNocViewScene::instrumentMediatorDestroyed(QObject* object)
+ 
+ bool NsNocViewScene::zoomOn(QString compName, QString color)
+ {
+-    deleteAllDiagram();
++    deleteAllDiagrams();
+ 
+     colorZoomon = color;
+     bool ok = false;
+@@ -640,7 +640,7 @@ QList<QGraphicsItem*> NsNocViewScene::findOnChop(QString textSearch, std::vector
+ 
+ bool NsNocViewScene::findOn(QString compName, int layId)
+ {
+-    deleteAllDiagram();
++    deleteAllDiagrams();
+ 
+     bool ret = false;
+     if (!console) return false;
+@@ -1504,8 +1504,19 @@ void NsNocViewScene::toggleAddRouter2RouterConn()
+ 
+ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+ {
+-    auto is_diagram = [](QGraphicsItem* item) -> bool {
+-        return (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION}));
++    auto togglePlusItem = [&]() -> void {
++        whenMatched(items(), {PLUS}, [this](QGraphicsItem* item) {
++            auto plus = dynamic_cast<NsPlusItem*>(item);
++            if (plus) {
++                if (!plus->isChecked()) return;
++                plus->toggleChecked();
++                emit plus->triggered(false);
++                item->update();
++                if (plus->getMulBr()) {
++                    mw->removeDiagramItem(plus->getMulBr());
++                }
++            }
++        });
+     };
+ 
+     auto action = sender();
+@@ -1589,14 +1600,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+     switch (type) {
+         case ADD_CONNECT:
+         {
+-            vector<QGraphicsItem*> to_be_deleted;
+-            for (auto& item : items()) {
+-                if (is_diagram(item)) {
+-                    to_be_deleted.push_back(item);
+-                    mw->removeDiagramItem(item);
+-                }
+-            }
+-            qDeleteAll(to_be_deleted);
++            deleteAllDiagrams();
++            togglePlusItem();
+             propPanel->showButtonsAddConnection(state, false);
+             auto g = console->get_container().get_grid();
+             if (!g) return;
+@@ -1614,14 +1619,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+ 
+         case ADD_ROUTER_CONN:
+         {
+-            vector<QGraphicsItem*> to_be_deleted;
+-            for (auto& item : items()) {
+-                if (is_diagram(item)) {
+-                    to_be_deleted.push_back(item);
+-                    mw->removeDiagramItem(item);
+-                }
+-            }
+-            qDeleteAll(to_be_deleted);
++            deleteAllDiagrams();
++            togglePlusItem();
+             propPanel->showButtonsAddConnection(true, false);
+             auto g = console->get_container().get_grid();
+             if (!g) return;
+@@ -1665,6 +1664,8 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+         }
+         case ADD_DEPENDENCY:
+         {
++            deleteAllDiagrams();
++            togglePlusItem();
+             propPanel->addDependency(state);
+             propPanel->showAddDependencyInstruction();
+             break;
+@@ -2038,7 +2039,7 @@ bool NsNocViewScene::filterVC(NetSpeed::VC& vc, NetSpeed::Node_id in, NetSpeed::
+     return valid;
+ }
+ 
+-void NsNocViewScene::deleteAllDiagram()
++void NsNocViewScene::deleteAllDiagrams()
+ {
+     vector<QGraphicsItem*> to_be_deleted;
+     NsMultipleBridgesDiagram* diagram = nullptr;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.h b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.h
+index 812f9b14f0e..f9116d5b89a 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.h
+@@ -166,6 +166,7 @@ public:
+     bool findOn(QString compName, int layerId);
+     void setFocusName(QString focusName);
+     void setDiagramOnTop(QPointF pos);
++    void deleteAllDiagrams();
+     std::vector<NsPortDrawingSetConnection*> portDrawingItemsStoreTmp;
+     NetSpeed::Node_id nodeIdTracking;
+ 
+@@ -213,7 +214,6 @@ private:
+ 
+     bool applyCmd(QPointF scenePos) override;
+     bool filterVC(NetSpeed::VC& vc, NetSpeed::Node_id in, NetSpeed::Node_id out, NetSpeed::Grid* grid);
+-    void deleteAllDiagram();
+     QString getFocusName() {return m_focusName;}
+ 
+     QString colorZoomon;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 8dcadeed00c..2e9588626d7 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -6118,8 +6118,9 @@ void MainWindow::toggleAddHost(bool state) {
+         instrumentsActMap[NEW_MESH_CUSTOM]->setEnabled(true);
+ 
+         if (nsWorkArea) {
+-            if (auto currentScene = nsWorkArea->scene()) {
+-                whenMatched(currentScene->items(), {PLUS}, [this](QGraphicsItem* item) {
++            if (auto nocScene = dynamic_cast<NsNocViewScene*>(nsWorkArea->scene())) {
++                nocScene->deleteAllDiagrams();
++                whenMatched(nocScene->items(), {PLUS}, [this](QGraphicsItem* item) {
+                     auto plus = dynamic_cast<NsPlusItem*>(item);
+                     if (plus) {
+                         if (!plus->isChecked()) return;

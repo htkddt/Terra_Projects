@@ -1,0 +1,107 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp |  3 +--
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp |  2 +-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp    | 22 +++++++++++++++++-----
+ 3 files changed, 19 insertions(+), 8 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 53708effe49..adc745c952a 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -57,7 +57,7 @@ NsNormalBridge::NsNormalBridge(NetSpeed::Bridge* pBridge, NetSpeed::Layer_id lID
+ void NsNormalBridge::paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
+ {
+     auto meshScene = dynamic_cast<NsMeshViewScene*>(scene());
+-    if (isSelected() && meshScene && !isDomainView(meshScene->viewMode())) {
++    if (isSelected() && meshScene && meshScene->isViewMode(NsScene::NOC)) {
+         setPen(highlightItem(3));
+     } else if (isSearchingItems(portName) || isSearchingItems(bridgeName)) {
+         setPen(highlightItem(ITEMS_SEARCH_PENWIDTH));
+@@ -419,7 +419,6 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event) {
+ void NsNormalBridge::disableBridgeActionInViewMode()
+ {
+     setFlag(QGraphicsItem::ItemIsMovable, false);
+-    setFlag(QGraphicsItem::ItemIsSelectable, false);
+ }
+ 
+ /**
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index eeb8a2e6042..69572616500 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -290,6 +290,7 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+     meshScene->clearSelection();
+     if (meshScene->isDomainView()) {
+         disableRouterActionInViewMode();
++        event->ignore();
+     }
+     else {
+         auto wA = meshScene->getNsWorkArea();
+@@ -319,7 +320,6 @@ void NsRouter::contextMenuEvent(QGraphicsSceneContextMenuEvent * event) {
+ void NsRouter::disableRouterActionInViewMode()
+ {
+     setFlag(QGraphicsItem::ItemIsMovable, false);
+-    setFlag(QGraphicsItem::ItemIsSelectable, false);
+ }
+ 
+ void NsRouter::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 24ee8a90afe..51dc0afdf41 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -3300,6 +3300,10 @@ void MainWindow::zoomInAct()
+             zoomDisplayingTooltip(ZOOM_IN, tooltip);
+         }
+     }
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (meshScene) {
++        meshScene->clearSelection();
++    }
+ }
+ 
+ void MainWindow::zoomOutAct()
+@@ -3345,6 +3349,10 @@ void MainWindow::zoomOutAct()
+             zoomDisplayingTooltip(ZOOM_OUT, tooltip);
+         }
+     }
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (meshScene) {
++        meshScene->clearSelection();
++    }
+ }
+ 
+ void MainWindow::zoomSelectAct()
+@@ -3457,6 +3465,10 @@ void MainWindow::zoomAutoFitAct()
+         }
+         nsWorkArea->triggerAutoFit(true);
+     }
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (meshScene) {
++        meshScene->clearSelection();
++    }
+ }
+ 
+ QWidget* MainWindow::createPropTable(QString propName, string cate)
+@@ -7475,7 +7487,7 @@ void MainWindow::zoomDisplayingMeshView(double delta)
+     workArea->sceneScaleChanged(newScale);
+     auto scene = workArea->getMeshViewScene();
+     if (scene) {
+-        if (NetSpeed::is_member(scene->viewMode(), {NsScene::NOC, NsScene::RTL_GROUP_VIEW})) {
++        if (scene->isViewMode(NsScene::NOC)) {
+             auto items = scene->selectedItems();
+             if (items.size() > 0) {
+                 QRectF boundingRect;
+@@ -7516,10 +7528,10 @@ void MainWindow::zoomDisplayingMeshView(double delta)
+                     scene->box << box; /* Storge item to delete later */                
+                 }
+             } else {
+-                    auto p = workArea->getFocusPoint();
+-                    if (!p.isNull()) {
+-                        workArea->centerOn(p);
+-                    }
++                auto p = workArea->getFocusPoint();
++                if (!p.isNull()) {
++                    workArea->centerOn(p);
++                }
+             }
+         }
+     }

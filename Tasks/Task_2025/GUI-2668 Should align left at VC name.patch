@@ -1,0 +1,37 @@
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
+index c96cf256026..37202d71c93 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsArrowItem.cpp
+@@ -22,15 +22,15 @@ void vcContextMenu(QPoint pos, std::string name, QWidget* wget, Qt::LayoutDirect
+     action->setData(QVariant(CMD_SHOW_DOWN_STREAM + itemName));
+     action->setProperty(TEXT_HELP, "show_downstream");
+ 
+-    action = menu.addAction("analyze links balanced");
++    action = menu.addAction("Analyze links balanced");
+     action->setData(QVariant(CMD_ANALYZE_LINKS_BALANCE + itemName));
+     action->setProperty(TEXT_HELP, "analyze_links");
+ 
+-    action = menu.addAction("analyze links average");
++    action = menu.addAction("Analyze links average");
+     action->setData(QVariant(CMD_ANALYZE_LINKS_AVERAGE + itemName));
+     action->setProperty(TEXT_HELP, "analyze_links");
+ 
+-    action = menu.addAction("analyze links peak");
++    action = menu.addAction("Analyze links peak");
+     action->setData(QVariant(CMD_ANALYZE_LINKS_PEAK + itemName));
+     action->setProperty(TEXT_HELP, "analyze_links");
+ 
+@@ -38,7 +38,9 @@ void vcContextMenu(QPoint pos, std::string name, QWidget* wget, Qt::LayoutDirect
+     action->setData(QVariant(CMD_RESET_CHANNEL_COLOR));
+     action->setProperty(TEXT_HELP, "reset_channel_colors");
+ 
+-    menu.setLayoutDirection(dir);
++    if (dir == Qt::LayoutDirection::RightToLeft) pos = pos - QPoint(menu.sizeHint().width(), 0);
++    menu.popup(pos);
++
+     NetSpeed::NocConsole* c = mw->getNsConsole();
+     if (c->get_container().get_state() >= NetSpeed::state_t::Run) {
+         action = menu.addAction("Performance Analysis");

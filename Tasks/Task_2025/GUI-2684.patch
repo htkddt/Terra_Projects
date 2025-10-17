@@ -1,0 +1,25 @@
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
+index 347a8119c9a..a560e474505 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsHost.cpp
+@@ -50,12 +50,13 @@ void NsHost::hostContextMenu(const NetSpeed::Host* host, QMenu* menu)
+     // add bridge for soc view
+     DataSingleton::Instance()->getInstrument();
+     auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow());
++    if (!mw) return;
+     if (NetSpeed::are_bridges_supported() && host->get_hosttype() == NetSpeed::STANDARD) // only add bridge option to standard hosts
+     {
+-        auto addBridge = menu->addAction("Add Bridge");
+-        addBridge->setIcon(QIcon(ICON_ADD_CIRCLE));
+-        addBridge->setProperty("type", ADD_BRIDGE_ACT);
+-        addBridge->setProperty(TEXT_HELP,QVariant("add_bridge"));
++        auto addBridge = mw->getInstrumentsActMap()[ADD_BRIDGE];
++        addBridge->setProperty(TITLE_TYPE, ADD_BRIDGE_ACT);
++        addBridge->setProperty(TEXT_HELP, "add_bridge");
++        menu->addAction(mw->getInstrumentsActMap()[ADD_BRIDGE]);
+         if (mw && mw->allowCmdInEcoMode("add_bridge")) {
+             addBridge->setEnabled(false);
+         }

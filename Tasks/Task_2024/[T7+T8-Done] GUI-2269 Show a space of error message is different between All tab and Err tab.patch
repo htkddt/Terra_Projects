@@ -1,0 +1,34 @@
+ src/sw/noc_dev/GUICore/genericconsole.cpp | 4 +++-
+ src/sw/noc_dev/GUICore/genericconsole.h   | 4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/genericconsole.cpp b/src/sw/noc_dev/GUICore/genericconsole.cpp
+index 50c6895e095..3f41b322f5b 100644
+--- a/src/sw/noc_dev/GUICore/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore/genericconsole.cpp
+@@ -327,7 +327,9 @@ void MainConsole::printOutput(const QString& message)
+         } else if (isWarningMessage(s)) {
+             int pos = textCursor().blockNumber() + deletedBlockCnt;
+             appendText(s, WARNING_CONSOLE_TEXT_COLOR);
+-            warningBuff.appendItem(format.arg(pos).arg("#aF8E65").arg(s));
++            auto msg = s;
++            msg.replace("  ", "&nbsp;&nbsp;");
++            warningBuff.appendItem(format.arg(pos).arg("#aF8E65").arg(msg));
+         } else {
+             appendText(s, NORMAL_CONSOLE_TEXT_COLOR);
+         }
+diff --git a/src/sw/noc_dev/GUICore/genericconsole.h b/src/sw/noc_dev/GUICore/genericconsole.h
+index d57e2ee1f6a..1603c9f3925 100644
+--- a/src/sw/noc_dev/GUICore/genericconsole.h
++++ b/src/sw/noc_dev/GUICore/genericconsole.h
+@@ -194,7 +194,9 @@ protected:
+ inline void MainConsole::highlightErrorMessage(const QString& strOutput) {
+     int pos = textCursor().blockNumber() + deletedBlockCnt;
+     appendText(strOutput, ERROR_CONSOLE_TEXT_COLOR);
+-    auto txt = format.arg(pos).arg("#FF4343").arg(strOutput);
++    auto msg = strOutput;
++    msg.replace("  ", "&nbsp;&nbsp;");
++    auto txt = format.arg(pos).arg("#FF4343").arg(msg);
+     emit printErrorConsole(txt);
+ }
+ 

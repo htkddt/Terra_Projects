@@ -1,0 +1,104 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     |  5 +++--
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp                 | 14 +++++++++++++-
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp |  5 +++--
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp             | 14 +++++++++++++-
+ 4 files changed, 32 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 93e827d8822..6efa738df9b 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -2625,8 +2625,9 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                         auto textOption = msgBox->getTextRouterDest();
+                         if (!textOption.isEmpty()) {
+                             if (msgBox->getStateComboBoxAll()) {
+-                                auto splitRouter = m_router.split(".");
+-                                destRouter.replace(splitRouter.first(), "R*");
++                                auto firstDestRouter = textOption.split(" ").first();
++                                auto splitRouter = firstDestRouter.split(".");
++                                destRouter = "R*." + splitRouter.last();
+                             } else {
+                                 destRouter = QString("{") + textOption + QString("}");
+                             }
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 9a4264293a4..d540c9899c7 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5286,8 +5286,19 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     });
+ 
+     connect(cbAll, &QCheckBox::clicked, this, [&](bool checked) {
+-        addButton->setEnabled(!checked);
+         if (checked) {
++            auto listDestRouter = textRouterDest->text().trimmed().split(" ");
++            if (listDestRouter.size() > 1) {
++                QMessageBox msgBox;
++                msgBox.setWindowTitle(QString("All Layers"));
++                msgBox.setIcon(QMessageBox::Information);
++                msgBox.setText("All Layers only apply to the first row (R*." + listDestRouter.first().split(".").last() + ").\nWould you like to continue?");
++                msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
++                if (msgBox.exec() == QMessageBox::No) {
++                    cbAll->setCheckState(Qt::Unchecked);
++                    return;
++                }
++            }
+             for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
+                 auto item = layoutOfComboBoxs->itemAt(i);
+                 if (!item) continue;
+@@ -5308,6 +5319,7 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+                 comboBox->setEnabled(true);
+             }
+         }
++        addButton->setEnabled(!checked);
+     });
+ 
+     QGridLayout* layout = new QGridLayout;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 4ac4dd6763c..ad6fcd162f4 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -2625,8 +2625,9 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                         auto textOption = msgBox->getTextRouterDest();
+                         if (!textOption.isEmpty()) {
+                             if (msgBox->getStateComboBoxAll()) {
+-                                auto splitRouter = m_router.split(".");
+-                                destRouter.replace(splitRouter.first(), "R*");
++                                auto firstDestRouter = textOption.split(" ").first();
++                                auto splitRouter = firstDestRouter.split(".");
++                                destRouter = "R*." + splitRouter.last();
+                             } else {
+                                 destRouter = QString("{") + textOption + QString("}");
+                             }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index 96c236eb14e..ff94d764734 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5305,8 +5305,19 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     });
+ 
+     connect(cbAll, &QCheckBox::clicked, this, [&](bool checked) {
+-        addButton->setEnabled(!checked);
+         if (checked) {
++            auto listDestRouter = textRouterDest->text().trimmed().split(" ");
++            if (listDestRouter.size() > 1) {
++                QMessageBox msgBox;
++                msgBox.setWindowTitle(QString("All Layers"));
++                msgBox.setIcon(QMessageBox::Information);
++                msgBox.setText("All Layers only apply to the first row (R*." + listDestRouter.first().split(".").last() + ").\nWould you like to continue?");
++                msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
++                if (msgBox.exec() == QMessageBox::No) {
++                    cbAll->setCheckState(Qt::Unchecked);
++                    return;
++                }
++            }
+             for (int i = 0; i < layoutOfComboBoxs->count(); i++) {
+                 auto item = layoutOfComboBoxs->itemAt(i);
+                 if (!item) continue;
+@@ -5327,6 +5338,7 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+                 comboBox->setEnabled(true);
+             }
+         }
++        addButton->setEnabled(!checked);
+     });
+ 
+     QGridLayout* layout = new QGridLayout;

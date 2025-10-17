@@ -1,0 +1,31 @@
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index b6e9884ee9c..37f75a7e0bf 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -7685,14 +7685,16 @@ void MainWindow::destroyAllStatTabPlots() {
+     tabStatTabMap.clear();
+ }
+ 
+-void MainWindow::closeAllStatTab() {
++void MainWindow::closeAllStatTab()
++{
+     propPanel->getDockStat()->getMenu()->setEnabled(false);
+-    for (auto it = tabStatTabMap.begin(); it != tabStatTabMap.end(); it++) {
+-        if (!it.value()) continue;
+-        int index = displayPanel->indexOf(it.key());
+-        if (-1 != index) {
+-            closeTab(index);
+-        }
++    qDebug() << displayPanel->count();
++    for (auto key : tabStatTabMap.keys()) {
++        if (!tabStatTabMap[key]) continue;
++        int index = displayPanel->indexOf(key);
++        qDebug() << "Current:" << displayPanel->currentIndex() << "---" << key << "---" << index;
++        if (index != -1) closeTab(index);
++        else closeTab(displayPanel->currentIndex());
+     }
+ }
+ 

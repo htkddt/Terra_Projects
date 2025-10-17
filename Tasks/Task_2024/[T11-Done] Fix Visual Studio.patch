@@ -1,0 +1,84 @@
+ src/sw/noc_dev/prototype/NocStudio.vcxproj | 35 +++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/NocStudio.vcxproj b/src/sw/noc_dev/prototype/NocStudio.vcxproj
+index 963bd3b7630..1167adc5406 100644
+--- a/src/sw/noc_dev/prototype/NocStudio.vcxproj
++++ b/src/sw/noc_dev/prototype/NocStudio.vcxproj
+@@ -263,6 +263,8 @@
+     </QtMoc>
+     <ClInclude Include="..\include\SysVerilogPEG.h" />
+     <QtMoc Include="Gui\Item\NsBridge.h">
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <ClInclude Include="Gui\View\AddressrangeTable.h" />
+     <ClInclude Include="INICommandHelp.h" />
+@@ -294,6 +296,8 @@
+     </QtMoc>
+     <ClInclude Include="Gui\Item\NsHost.h" />
+     <QtMoc Include="Gui\Item\NsBridgeDiagram.h">
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\Item\NsVC.h">
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+@@ -303,7 +307,10 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+-    <QtMoc Include="Gui\Item\NsPlusItem.h" />
++    <QtMoc Include="Gui\Item\NsPlusItem.h">
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
++    </QtMoc>
+     <QtMoc Include="Gui\View\NsScene.h">
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+@@ -362,6 +369,8 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsChopView.h">
++	  <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsView.h">
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+@@ -508,6 +517,18 @@ echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+     </QtMoc>
+   </ItemGroup>
+   <ItemGroup>
++    <ClCompile Include="debug\moc_NsBridgeDiagram.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="debug\moc_NsBridge.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="debug\moc_NsChopView.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="debug\moc_NsPlusItem.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
++    </ClCompile>
+     <ClCompile Include="debug\moc_CustomHighLightDialog.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+@@ -618,6 +639,18 @@ echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+     </ClCompile>
+     <ClCompile Include="debug\moc_worker.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="release\moc_NsBridgeDiagram.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="release\moc_NsBridge.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="release\moc_NsChopView.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
++    </ClCompile>
++	<ClCompile Include="release\moc_NsPlusItem.cpp">
++      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+     <ClCompile Include="release\moc_CustomHighLightDialog.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

@@ -1,0 +1,138 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 23 ++++++++++-------------
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 23 ++++++++++-------------
+ 2 files changed, 20 insertions(+), 26 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index cb06874d127..77a26c481c0 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -4327,16 +4327,15 @@ QString FinalizeDialog::getValues()
+ 
+ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent), grid(grid)
+ {
+-    chopLayOut = new QVBoxLayout(this);
+-    chopWidget = new QWidget(this);
++    chopLayOut = new QVBoxLayout;
++    chopLayOut->setAlignment(Qt::AlignTop);
++    chopWidget = new QWidget;
+     chopWidget->setLayout(chopLayOut);
+-    auto scrollBar = new QScrollArea(this);
++    auto scrollBar = new QScrollArea;
+     scrollBar->setWidgetResizable(true);
++    scrollBar->setMinimumSize(300, 400);
+     scrollBar->setWidget(chopWidget);
+     scrollBar->setFocusPolicy(Qt::NoFocus);
+-    auto chopWrapperLayout = new QVBoxLayout;
+-    chopWrapperLayout->addWidget(scrollBar);
+-    chopWrapperLayout->setSpacing(3);
+ 
+     QGridLayout* layout = new QGridLayout;
+     checkBox = new QCheckBox("Select All Chops");
+@@ -4348,9 +4347,9 @@ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent),
+             ckBox->setFocusPolicy(Qt::NoFocus);
+         }
+     });
+-    layout->addWidget(checkBox, 0, 1, 1, 2, Qt::AlignTop);
+-    layout->addWidget(new QLabel("Chops:"), 1, 0, 1, 1, Qt::AlignTop);
+-    layout->addLayout(chopWrapperLayout, 1, 1);
++    layout->addWidget(checkBox, 0, 1, Qt::AlignTop);
++    layout->addWidget(new QLabel("Chops:"), 1, 0, Qt::AlignTop);
++    layout->addWidget(scrollBar, 1, 1);
+ 
+     auto okButton = new QPushButton("OK");
+     auto cancelButton = new QPushButton("Cancel");
+@@ -4361,7 +4360,7 @@ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent),
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignCenter);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignCenter);
+ 
+-    QVBoxLayout* mainLayout = new QVBoxLayout;
++    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+     mainLayout->addLayout(layout);
+     mainLayout->addStretch(1);
+     mainLayout->addSpacing(10);
+@@ -4382,7 +4381,6 @@ ChopDialog *ChopDialog::getChopDialog(NetSpeed::Grid *grid, QWidget *parent)
+     if(!chopDialog) {
+         chopDialog = new ChopDialog(grid, parent);
+         chopDialog->addChops();
+-        chopDialog->resize(400, 500);
+         return chopDialog;
+     }
+     chopDialog->updateChops(grid);
+@@ -4418,9 +4416,8 @@ void ChopDialog::addChops(){
+     }
+     for (const auto& it : allChopName) {
+         QCheckBox* newItem = constructChopCheckBox(it.toStdString());
+-        chopLayOut->addWidget(newItem, chopLayOut->count(), Qt::AlignTop);
++        chopLayOut->addWidget(newItem, chopLayOut->count());
+     }
+-    chopWidget->adjustSize();
+ }
+ 
+ void ChopDialog::updateChops(NetSpeed::Grid *g){
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index ea300b70182..b69c3dbac78 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -4342,16 +4342,15 @@ QString FinalizeDialog::getValues()
+ 
+ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent), grid(grid)
+ {
+-    chopLayOut = new QVBoxLayout(this);
+-    chopWidget = new QWidget(this);
++    chopLayOut = new QVBoxLayout;
++    chopLayOut->setAlignment(Qt::AlignTop);
++    chopWidget = new QWidget;
+     chopWidget->setLayout(chopLayOut);
+-    auto scrollBar = new QScrollArea(this);
++    auto scrollBar = new QScrollArea;
+     scrollBar->setWidgetResizable(true);
++    scrollBar->setMinimumSize(300, 400);
+     scrollBar->setWidget(chopWidget);
+     scrollBar->setFocusPolicy(Qt::NoFocus);
+-    auto chopWrapperLayout = new QVBoxLayout;
+-    chopWrapperLayout->addWidget(scrollBar);
+-    chopWrapperLayout->setSpacing(3);
+ 
+     QGridLayout* layout = new QGridLayout;
+     checkBox = new QCheckBox("Select All Chops");
+@@ -4363,9 +4362,9 @@ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent),
+             ckBox->setFocusPolicy(Qt::NoFocus);
+         }
+     });
+-    layout->addWidget(checkBox, 0, 1, 1, 2, Qt::AlignTop);
+-    layout->addWidget(new QLabel("Chops:"), 1, 0, 1, 1, Qt::AlignTop);
+-    layout->addLayout(chopWrapperLayout, 1, 1);
++    layout->addWidget(checkBox, 0, 1, Qt::AlignTop);
++    layout->addWidget(new QLabel("Chops:"), 1, 0, Qt::AlignTop);
++    layout->addWidget(scrollBar, 1, 1);
+ 
+     auto okButton = new QPushButton("OK");
+     auto cancelButton = new QPushButton("Cancel");
+@@ -4376,7 +4375,7 @@ ChopDialog::ChopDialog(NetSpeed::Grid *grid, QWidget *parent) : QDialog(parent),
+     buttonLayout->addWidget(okButton, 0, 0, Qt::AlignCenter);
+     buttonLayout->addWidget(cancelButton, 0, 1, Qt::AlignCenter);
+ 
+-    QVBoxLayout* mainLayout = new QVBoxLayout;
++    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+     mainLayout->addLayout(layout);
+     mainLayout->addStretch(1);
+     mainLayout->addSpacing(10);
+@@ -4397,7 +4396,6 @@ ChopDialog *ChopDialog::getChopDialog(NetSpeed::Grid *grid, QWidget *parent)
+     if(!chopDialog) {
+         chopDialog = new ChopDialog(grid, parent);
+         chopDialog->addChops();
+-        chopDialog->resize(400, 500);
+         return chopDialog;
+     }
+     chopDialog->updateChops(grid);
+@@ -4433,9 +4431,8 @@ void ChopDialog::addChops(){
+     }
+     for (const auto& it : allChopName) {
+         QCheckBox* newItem = constructChopCheckBox(it.toStdString());
+-        chopLayOut->addWidget(newItem, chopLayOut->count(), Qt::AlignTop);
++        chopLayOut->addWidget(newItem, chopLayOut->count());
+     }
+-    chopWidget->adjustSize();
+ }
+ 
+ void ChopDialog::updateChops(NetSpeed::Grid *g){

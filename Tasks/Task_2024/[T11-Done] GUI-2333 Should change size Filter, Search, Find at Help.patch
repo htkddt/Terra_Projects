@@ -1,0 +1,151 @@
+ src/sw/noc_dev/GUICore/genericdialog.h      | 46 +++++++++++++++++++++++------
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 26 ++++++++++++++++
+ 2 files changed, 63 insertions(+), 9 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/genericdialog.h b/src/sw/noc_dev/GUICore/genericdialog.h
+index 805b934c66b..1a79ea266f5 100644
+--- a/src/sw/noc_dev/GUICore/genericdialog.h
++++ b/src/sw/noc_dev/GUICore/genericdialog.h
+@@ -342,8 +342,19 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     QWidget* itemFinderWidget = new QWidget;
+     itemFinderWidget->setLayout(itemFinderLayout);
+     itemFinder = new QLineEdit;
+-    QLabel* searchLabel = new QLabel("\tsearch : ");
++    itemFinder->setFixedHeight(25);
++    QAction* clearButtonItemFinder = new QAction(this);
++    clearButtonItemFinder->setIcon(QIcon(ICON_CLEAR));
++    itemFinder->addAction(clearButtonItemFinder, QLineEdit::TrailingPosition);
++    clearButtonItemFinder->setVisible(false);
++    connect(clearButtonItemFinder, &QAction::triggered, itemFinder, [this]() {
++        itemFinder->setText("");
++        });
++
++    QLabel* searchLabel = new QLabel("\tSearch : ");
+     QToolButton* button = new QToolButton;
++    button->setFixedWidth(60);
++    button->setFixedHeight(25);
+     button->setText("Filter");
+     button->setPopupMode(QToolButton::InstantPopup);
+     filterOptions = new LayerMenu;
+@@ -352,14 +363,12 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     back->setFixedSize(30, 25);
+     forward = new QPushButton(QIcon(":/images/icons/close_right.png"), "");
+     forward->setFixedSize(30, 25);
+-    itemFinderLayout->addWidget(back);
+-    itemFinderLayout->addWidget(forward);
+     back->setVisible(false);
+     forward->setVisible(false);
+     itemFinderLayout->addWidget(button);
+     itemFinderLayout->addWidget(searchLabel);
+     itemFinderLayout->addWidget(itemFinder);
+-    itemFinderLayout->setContentsMargins(0, 1, 0, 0);
++    itemFinderLayout->setContentsMargins(0, 0, 0, 0);
+     itemFinderLayout->setSpacing(1);
+ 
+     /* tree view */
+@@ -380,14 +389,26 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     /* text finder widget */
+     QHBoxLayout* finderLayout = new QHBoxLayout;
+     finderWidget = new QWidget;
+-    finderWidget->setFixedHeight(20);
++    finderWidget->setFixedHeight(25);
+     finderWidget->setLayout(finderLayout);
+     finderLayout->setContentsMargins(0, 0, 0, 1);
+     QPushButton* findButton = new QPushButton("Find");
+-    findButton->setFixedWidth(50);
++    findButton->setFixedHeight(25);
++    findButton->setFixedWidth(60);
+     textFinder = new QLineEdit;
++    textFinder->setFixedHeight(25);
++    QAction* clearButtonTextFinder = new QAction(this);
++    clearButtonTextFinder->setIcon(QIcon(ICON_CLEAR));
++    textFinder->addAction(clearButtonTextFinder, QLineEdit::TrailingPosition);
++    clearButtonTextFinder->setVisible(false);
++    connect(clearButtonTextFinder, &QAction::triggered, textFinder, [this]() {
++        textFinder->setText("");
++        });
++
+     finderLayout->addWidget(findButton);
+     finderLayout->addWidget(textFinder);
++    finderLayout->addWidget(back);
++    finderLayout->addWidget(forward);
+     finderLayout->setSpacing(1);
+ 
+     info = new NsTextBrowser;
+@@ -417,14 +438,14 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     split->setStretchFactor(0, 25);
+     split->setStretchFactor(1, 75);
+     mainLayout->addWidget(split);
+-    mainLayout->setContentsMargins(0, 0, 0, 0);
++    mainLayout->setContentsMargins(5, 0, 5, 5);
+     mainLayout->setSpacing(1);
+     setLayout(mainLayout);
+     setWindowFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint |
+                    Qt::WindowMaximizeButtonHint | Qt::Window);
+     setWindowTitle("Help");
+     setWindowIcon(QIcon(ICON_NOC_M1));
+-    resize(900, 600);
++    resize(1000, 600);
+     itemFinder->setFocus();
+     // Update font size of help dialog
+     if (auto resizeFontSlider = getAbstractFontSlider()) setFontSize(resizeFontSlider->value());
+@@ -432,7 +453,14 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     connect(treeViewWidget, &QTreeWidget::itemPressed, this, [&]() { currentAnchor = -1; back->hide(); forward->hide(); anchors.clear(); });
+     connect(this, &HelpAppDialog::updateCurrentItem, this, [this, htmlHelp]() { if(auto item = treeViewWidget->currentItem()) currentItemChanged(htmlHelp, item); });
+     connect(findButton, SIGNAL(clicked()), this, SLOT(helpSearching()));
+-    connect(itemFinder, &QLineEdit::textChanged, this, [this, guiHelp]() { itemFinderButtonSlot(guiHelp); });
++    connect(itemFinder, &QLineEdit::textChanged, this, [this, clearButtonItemFinder, guiHelp](QString text) {
++        clearButtonItemFinder->setVisible(!text.isEmpty());
++        itemFinderButtonSlot(guiHelp);
++        });
++    connect(textFinder, &QLineEdit::textChanged, this, [this, clearButtonTextFinder](QString text) {
++        clearButtonTextFinder->setVisible(!text.isEmpty());
++        });
++
+     connect(new QShortcut(QKeySequence("Ctrl+F"), this), &QShortcut::activated, this, [&]() { textFinder->setFocus(); });
+     connect(info, &QTextBrowser::anchorClicked, this, [&, htmlHelp](const QUrl& url) {
+         if (auto current = treeViewWidget->currentItem()) anchors.push_back(current->text(0));
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index e9b11881d8d..a92288bd1a0 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2338,6 +2338,19 @@ void MainWindow::createPanels()
+     consoleFinder->setFont(font);
+     finderLayout->addWidget(findButton);
+     finderLayout->addWidget(consoleFinder);
++
++    QAction* clearConsoleButton = new QAction(this);
++    clearConsoleButton->setIcon(QIcon(ICON_CLEAR));
++    consoleFinder->addAction(clearConsoleButton, QLineEdit::TrailingPosition);
++    clearConsoleButton->setVisible(false);
++
++    connect(consoleFinder, &QLineEdit::textChanged, this, [this, clearConsoleButton](QString text) {
++        clearConsoleButton->setVisible(!text.isEmpty());
++        });
++    connect(clearConsoleButton, &QAction::triggered, consoleFinder, [this]() {
++        consoleFinder->setText("");
++        });
++
+     QPushButton* upBtn = new QPushButton("+");
+     upBtn->setFixedWidth(60);
+     upBtn->setToolTip("Up font size");
+@@ -2393,6 +2406,19 @@ void MainWindow::createPanels()
+     nocFinder->setFont(font);
+     nocFinderLayout->addWidget(nocFindButton);
+     nocFinderLayout->addWidget(nocFinder);
++
++    QAction* clearNocButton = new QAction(this);
++    clearNocButton->setIcon(QIcon(ICON_CLEAR));
++    nocFinder->addAction(clearNocButton, QLineEdit::TrailingPosition);
++    clearNocButton->setVisible(false);
++
++    connect(nocFinder, &QLineEdit::textChanged, this, [this, clearNocButton](QString text) {
++        clearNocButton->setVisible(!text.isEmpty());
++        });
++    connect(clearNocButton, &QAction::triggered, nocFinder, [this]() {
++        nocFinder->setText("");
++        });
++
+     QPushButton* upBtnNoc = new QPushButton("+");
+     upBtnNoc->setFixedWidth(60);
+     upBtnNoc->setToolTip("Up font size");

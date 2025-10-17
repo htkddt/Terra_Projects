@@ -1,0 +1,472 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.h       |   1 +
+ src/sw/noc_dev/prototype/Gui/Item/NsHost.h         |   2 +
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 266 +++++++++++++++++++++
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h |   5 +
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        |  58 +++++
+ src/sw/noc_dev/prototype/Gui/mainwindow.h          |   4 +
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp         |   1 +
+ 7 files changed, 337 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
+index 383ac390e1c..b673c15d5f0 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.h
+@@ -181,6 +181,7 @@ public:
+     explicit NsChopViewBridge(const NetSpeed::Bridge* bridge);
+     NsChopViewBridge(const NetSpeed::Bridge *bridge, const QRectF& rect, QGraphicsItem *parent);
+     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
++    const NetSpeed::Bridge* getBridge() { return bridge; }
+ 
+ protected:
+     void mousePressEvent(QGraphicsSceneMouseEvent* event);
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsHost.h b/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
+index f8d2a28cbd5..6a5a1041c06 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsHost.h
+@@ -61,6 +61,8 @@ public:
+     explicit NsChopViewHost(const NetSpeed::Host* host, QGraphicsItem* parent = nullptr);
+     explicit NsChopViewHost(const QRectF& rect, const NetSpeed::Host* host, QGraphicsItem* parent);
+     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
++    const NetSpeed::Host* getHost() { return host; }
++
+ protected:
+     void mousePressEvent(QGraphicsSceneMouseEvent* event);
+     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index b804f96d007..fc5d2310066 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -107,6 +107,58 @@ template <typename T> bool NsNocViewScene::zoomOnBridge(NetSpeed::Bridge* bridge
+     QToolTip::showText(global, bridgeItem->toolTip());
+     return true;
+ }
++
++template <typename T>
++bool NsNocViewScene::findOnBridge(NetSpeed::Bridge* bridge, int layId, bool sttBridgeLink,
++                                  NetSpeed::Rx_VChannel* bridgeLink, std::string chanName) {
++    T* bridgeItem = getItem<T>(QString::fromStdString(bridge->name()), layId);
++    if (bridgeItem) {
++        if (!bridgeItem->isVisible()) {
++            mw->setShowBridgesAct(true);
++            bridgeItem->setVisible(true);
++        }
++        if (!bridgeItem->isVisible()) return false;
++    } else {
++        for (const auto& item : items(Qt::AscendingOrder)) {
++            if (item->type() != PLUS) continue;
++            auto plus = dynamic_cast<NsPlusItem*>(item);
++            if (!plus) continue;
++            if (plus->getLayerID() != layId) continue;
++            if (!plus->isVisible()) plus->setVisible(true);
++            if (plus->hasBridge(bridge)) {
++                if (!plus->isChecked()) {
++                    QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
++                    event.setButton(Qt::LeftButton);
++                    sendEvent(plus, &event);
++                }
++                NsMultipleBridges* mulBr = plus->getMulBr();
++                if (mulBr) {
++                    auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(mulBr->childItems().first());
++                    diagram->ensureBrVisible(QString::fromStdString(bridge->name()));
++                    for (const auto& name : diagram->bridgeNameList) {
++                        if (name->toPlainText() == QString::fromStdString(bridge->name())) {
++                            bridgeItem = getItem<T>(QString::fromStdString(bridge->name()), layId);
++                            break;
++                        }
++                    }
++                }
++            }
++        }
++    }
++    if (bridgeItem) {
++        if (sttBridgeLink && bridgeLink && !chanName.empty()) {
++            auto diagram = new NsRSSBDiagram(bridge, bridgeItem);
++            diagram->showFlowData(bridgeLink, false);
++            diagram->showTooltip(chanName);
++            nsWorkArea->centerOn(diagram);
++            return true;
++        }
++        nsWorkArea->centerOn(bridgeItem);
++        return true;
++    }
++    return false;
++}
++
+ NsNocViewScene::NsNocViewScene(NsWorkArea* parent, NocConsole* c)
+     : NsMeshViewScene(c, parent, NOC)
+ {
+@@ -465,6 +517,220 @@ bool NsNocViewScene::zoomOn(QString compName, QString color)
+     return ok;
+ }
+ 
++QList<QGraphicsItem*> NsNocViewScene::findOnChop(QString textSearch, std::vector<NsChopViewBoundingBox*> listChopView)
++{
++    QList<QGraphicsItem*> listItemOnChop;
++    if (!listChopView.empty()) {
++        for (const auto& chop : listChopView) {
++            auto sectors = chop->getSectors();
++            for (const auto& s : sectors) {
++                QGraphicsItem* findItem = nullptr;
++                for (const auto& it : s->childItems()) {
++                    if (auto host = dynamic_cast<NsChopViewHost*>(it)) {
++                        if (QString::fromStdString(host->getHost()->name()) == textSearch) {
++                            findItem = it;
++                            break;
++                        }
++                    } else if (auto bridge = dynamic_cast<NsChopViewBridge*>(it)) {
++                        if (QString::fromStdString(bridge->getBridge()->name()) == textSearch) {
++                            findItem = it;
++                            break;
++                        }
++                    } else if (auto router = dynamic_cast<NsChopViewRouter*>(it)) {
++                        if (QString::fromStdString(router->getRouter()->name()) == textSearch) {
++                            findItem = it;
++                            break;
++                        }
++                    }
++                }
++                if (findItem) {
++                    if (!nsWorkArea->isShowChopview(QString::fromStdString(chop->getTopoName()))) {
++                        QAction* topo = mw->getTopoButtons().value(QString::fromStdString(chop->getTopoName()));
++                        emit topo->triggered(true);
++                    }
++                    listItemOnChop.push_back(findItem);
++                    break;
++                }
++            }
++        }
++    }
++    return listItemOnChop;
++}
++
++bool NsNocViewScene::findOn(QString compName, int layId)
++{
++    deleteAllDiagram();
++
++    bool ret = false;
++    if (!console) return false;
++    auto grid = console->get_container().get_grid();
++    if (!grid) return false;
++    const auto& hosts = grid->get_hosts();
++    Bridge* bridge = grid->bridge(compName.toStdString());
++    Router* router = grid->get_router(compName.toStdString());
++
++    Rx_VChannel* routerLink = nullptr;
++    Rx_VChannel* bridgeLink = nullptr;
++    string chanName = "";
++    auto console = mw->getNsConsole();
++    if (console->get_container().get_state() >= NetSpeed::state_t::Mapped) {
++        std::vector<Rx_VChannel*> channels = grid->get_channels("*", true, false);
++        for (auto chan : channels) {
++            chanName = "";
++            if (!chan->is_vc() && !chan->to_rx_vifce()) continue;
++            if (chan->is_vc()) chanName = chan->name();
++            if (chan->to_rx_vifce()) {
++                NetSpeed::Interface* ifce = chan->to_rx_vifce()->get_ifce();
++                if (ifce) {
++                    chanName = ifce->if_name();
++                }
++            }
++
++            if (chanName == compName.toStdString()) {
++                PortHolder* portholder = chan->get_portholder();
++                if (!portholder) continue;
++                if (portholder->is_router()) {
++                    routerLink = chan;
++                    break;
++                }
++                if (portholder->is_bridge() || portholder->is_switch()) {
++                    bridgeLink = chan;
++                    break;
++                }
++            }
++        }
++    } else {
++        for (const auto& ifce : grid->get_ifces("*", false)) {
++            if (ifce->if_name() == compName.toStdString()) {
++                chanName = ifce->if_name();
++                bridgeLink = ifce->get_first_rx_vchannel();
++                break;
++            }
++        }
++    }
++
++    if (hosts.find(Host_idx(compName.toStdString())) != hosts.end()) {
++        if (!nsWorkArea->getShowLayers(Layer_id(layId))) {
++            mw->setLayerButtonState(Layer_id(layId), true, true);
++        }
++        NsNormalHost* hostItem = getItem<NsNormalHost>(compName, layId);
++        if (hostItem) {
++            if (!hostItem->isVisible()) {
++                mw->setShowHostsAct(true);
++                hostItem->setVisible(true);
++            }
++            if (!hostItem->isVisible()) return false;
++            nsWorkArea->centerOn(hostItem);
++            ret = true;
++        }
++    } else if (bridge) {
++        int id = -1;
++
++        for (auto rxPort : bridge->get_rx_noc_ports(false)) {
++            if (rxPort->get_layer() == layId) {
++                id = layId;
++                break;
++            }
++        }
++
++        if (id == -1) {
++            for (auto txPort : bridge->get_tx_noc_ports(false)) {
++                if (txPort->get_layer() == layId) {
++                    id = layId;
++                    break;
++                }
++            }
++        }
++
++        if (id > -1) {
++            if (!nsWorkArea->getShowLayers(Layer_id(id))) {
++                mw->setLayerButtonState(Layer_id(id), true, true);
++            }
++            if (findOnBridge<NsNormalBridge>(bridge, id)) {
++                ret = true;
++            } else if (findOnBridge<NsRegbusBridge>(bridge, id)) {
++                ret = true;
++            }
++        }
++    } else if (router) {
++        if (!router->is_enabled()) return false;
++        NsRouter* routerItem = getItem<NsRouter>(compName);
++        if (routerItem) {
++            if (!nsWorkArea->getShowLayers(routerItem->getLayerID())) {
++                mw->setLayerButtonState(routerItem->getLayerID(), true, true);
++            }
++            if (!routerItem->isVisible()) return false;
++            nsWorkArea->centerOn(routerItem);
++            ret = true;
++        }
++    } else if (routerLink) {
++        PortHolder* portholder = routerLink->get_portholder();
++        if (!portholder) return false;
++        Router* rtr = nullptr;
++        if (portholder->is_router()) {
++            rtr = dynamic_cast <Router*> (portholder);
++        }
++        if (!rtr) return false;
++        NsRouter* routerItem = getItem<NsRouter>(QString::fromStdString(rtr->name()));
++        if (routerItem) {
++            if (!nsWorkArea->getShowLayers(routerItem->getLayerID())) {
++                mw->setLayerButtonState(routerItem->getLayerID(), true, true);
++            }
++            if (!routerItem->isVisible()) return false;
++            auto diagram = NsRouterDiagramManager::manager(this)->createDiagramFromRouter(routerItem);
++            VC* vc = dynamic_cast<VC*>(routerLink);
++            if (vc) {
++                diagram->showFlowData(vc);
++                diagram->showTooltip(vc->name());
++                nsWorkArea->centerOn(diagram);
++            }
++            ret = true;
++        }
++    } else if (bridgeLink) {
++        PortHolder* portholder = bridgeLink->get_portholder();
++        if (!portholder) return false;
++        Bridge* br = nullptr;
++        if (portholder->is_bridge()) {
++            br = dynamic_cast <Bridge*> (portholder);
++        } else if (portholder->is_switch()) {
++            Switch* sw = dynamic_cast <Switch*> (portholder);
++            br = sw->get_bridge_parent();
++        }
++        if (!br) return false;
++        int id = -1;
++        for (auto rxPort : br->get_rx_noc_ports(false)) {
++            if (rxPort->get_layer() == layId) {
++                id = layId;
++                break;
++            }
++        }
++        if (id == -1) {
++            for (auto txPort : br->get_tx_noc_ports(false)) {
++                if (txPort->get_layer() == layId) {
++                    id = layId;
++                    break;
++                }
++            }
++        }
++        if (id > -1) {
++            if (!nsWorkArea->getShowLayers(Layer_id(id))) {
++                mw->setLayerButtonState(Layer_id(id), true, true);
++            }
++            if (findOnBridge<NsNormalBridge>(br, id, true, bridgeLink, chanName)) {
++                ret = true;
++            }
++        }
++    }
++
++    if (ret && !router && !routerLink) {
++        mw->indexLayer += 1;
++    } else if (router) {
++        mw->indexLayer = getLayers().size();
++    }
++
++    return ret;
++}
++
+ 
+ std::vector<NetSpeed::Router*> NsNocViewScene::get_route_routers(const std::string& src_vifce_name, const std::string& dest_vifce_name)
+ {
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+index c935005238b..08c56306ffb 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+@@ -147,6 +147,8 @@ public:
+ 
+     NetSpeed::Node_id getNodeIdAtPoint() const {return nodeIdAtPoint;}
+     bool zoomOn(QString compName, QString color = "");
++    bool findOn(QString compName, int layerId);
++    QList<QGraphicsItem*> findOnChop(QString textSearch, std::vector<NsChopViewBoundingBox*> listChopView);
+     void setFocusName(QString focusName);
+ 
+ protected:
+@@ -239,6 +241,9 @@ private:
+     }
+     template <typename T> void findItem(NetSpeed::Bridge* bridge, T *& bridgeItem);
+     template <typename T> bool zoomOnBridge(NetSpeed::Bridge* bridge);
++    template <typename T>
++    bool findOnBridge(NetSpeed::Bridge* bridge, int layId, bool sttBridgeLink = false,
++                      NetSpeed::Rx_VChannel* bridgeLink = nullptr, std::string chanName = "");
+ 
+     std::vector<NetSpeed::Router*> get_route_routers(const std::string& src_vifce_name, const std::string& dest_vifce_name);
+     std::vector<NetSpeed::VC*> get_route_vcs(const std::string& src_vifce_name, const std::string& dest_vifce_name);
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 24ee8a90afe..84d4b0be5b8 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2562,6 +2562,60 @@ void MainWindow::nocFinderButtonSlot()
+     {
+         isSearching = true;
+         refreshMeshView();
++        auto nocScene = dynamic_cast<NsNocViewScene*>(nsWorkArea->scene());
++        if (nocScene) {
++            auto listLayerID = nocScene->getLayers().keys();
++            auto listChopView = nocScene->getChopViews();
++            QList<int> listLayerShow;
++            QList<int> listLayerHide;
++            QList<QGraphicsItem*> listItemOnChop;
++            for (int layer : listLayerID) {
++                if (nsWorkArea->getShowLayers(NetSpeed::Layer_id(layer))) {
++                    listLayerShow.push_back(NetSpeed::Layer_id(layer));
++                }
++                else {
++                    listLayerHide.push_back(NetSpeed::Layer_id(layer));
++                }
++            }
++            listLayerShow << listLayerHide;
++
++            if (layerShowHideClicked) {
++                indexLayer = 0;
++                indexChop = 0;
++                layerShowHideClicked = false;
++            }
++
++            if (indexLayer == listLayerID.size()) {
++                listItemOnChop = nocScene->findOnChop(nocFinder->text(), listChopView);
++                if (!listItemOnChop.isEmpty()) {
++                    if (indexChop < listItemOnChop.size()) {
++                        nsWorkArea->centerOn(listItemOnChop.at(indexChop++));
++                        return;
++                    }
++                }
++                indexChop = 0;
++                indexLayer = 0;
++            }
++
++            int indexInit = indexLayer;
++            while (!nocScene->findOn(nocFinder->text(), listLayerShow.at(indexLayer))) {
++                ++indexLayer;
++                if (indexLayer >= listLayerID.size()) {
++                    listItemOnChop = nocScene->findOnChop(nocFinder->text(), listChopView);
++                    if (!listItemOnChop.isEmpty()) {
++                        if (indexChop < listItemOnChop.size()) {
++                            nsWorkArea->centerOn(listItemOnChop.at(indexChop++));
++                            return;
++                        }
++                    }
++                    indexChop = 0;
++                    indexLayer = 0;
++                }
++                if (indexLayer == indexInit) {
++                    break;
++                }
++            }
++        }
+     }
+ }
+ 
+@@ -2577,6 +2631,8 @@ void MainWindow::nocFinderFocus() {
+             nocFinder->setText(QString());
+             nocFinderWidget->setVisible(true);
+             nocFinder->setFocus();
++            indexLayer = 0;
++            indexChop = 0;
+         }
+         else closeNocFinder();
+     }
+@@ -5906,6 +5962,7 @@ void MainWindow::layerButtonAction(bool state)
+     auto id = layersActions.key(currentAction);
+     if (id.is_null()) return;
+     setLayerButtonState(id, state, true);
++    layerShowHideClicked = true;
+ }
+ 
+ bool MainWindow::isLayerButtonChecked(NetSpeed::Layer_id l) const
+@@ -6835,6 +6892,7 @@ void MainWindow::chopViewButtonAction(bool state)
+     currentAction->setChecked(state);
+     nsWorkArea->setShowChopViews(topoName, state);
+     nsWorkArea->display();
++    layerShowHideClicked = true;
+ }
+ 
+ NsWorkArea* MainWindow::getNsWorkArea()
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.h b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+index a9aaa4d58eb..6049a0a021b 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.h
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.h
+@@ -333,6 +333,8 @@ public:
+     QString getMessageViewMode(NsScene::SCENE_TYPE);
+     //void addPropTblTab(QWidget *);
+     bool isSearching = false;
++    bool layerShowHideClicked = false;
++    int indexLayer;
+     QString getSearchText() { return nocFinder->text(); }
+ 
+     void refreshStatsView();
+@@ -506,6 +508,7 @@ public:
+     bool isCoreUnlocked() { return core_mutex.tryLock(-1); }
+ 
+     const QVector<QString>& getChopsToDisplay() { return chopsToDisplay; }
++    QMap<QString, QAction*> getTopoButtons() { return topoButtons; }
+     void resetPropertyPanel();
+     void enableControlsViewMenu(bool state);
+ 
+@@ -683,6 +686,7 @@ private:
+     int tooltipListCosts, tooltipListHosts, tooltipListTraffic, tooltipShowPerformance, tooltipDynamic, tooltipType;
+     int tabListHosts, tabListTraffic, tabShowPerformance, tabListCosts, tabListRoute,
+         tabListRTLGroup, tabShowDensity, tabReport, tabType;
++    int indexChop;
+ 
+     /*
+   * Toolbars
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index 555d20e6a63..c0ef5725292 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -3470,6 +3470,7 @@ void INIConsole::preCommandDeclaration()
+             qDeleteAll(topo.second.sectors);
+         }
+         mainWindow->topoMap.clear();
++        mainWindow->indexLayer = 0;
+         return true;
+     });
+ 

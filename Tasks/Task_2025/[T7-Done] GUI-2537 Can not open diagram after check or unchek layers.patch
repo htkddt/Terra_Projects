@@ -1,0 +1,28 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp     | 1 +
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+index 10041ed2136..2e560edf50f 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRouter.cpp
+@@ -378,6 +378,7 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             /* Don't create a new router diagram if it was openned */
+             for (auto& hugeDialog : mw->findChildren<customDialog*>()) {
+                 if (hugeDialog->windowTitle().contains(this->getName())) {
++                    if (!hugeDialog->isVisible()) hugeDialog->setVisible(true);
+                     hugeDialog->raise();   // Bring to top of stacking order
+                     hugeDialog->activateWindow();  
+                     hugeDialog->setFocus();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+index 323cf1067b6..c36db8f8c6b 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRouter.cpp
+@@ -378,6 +378,7 @@ void NsRouter::mousePressEvent(QGraphicsSceneMouseEvent * event)
+             /* Don't create a new router diagram if it was openned */
+             for (const auto& hugeDialog : mw->findChildren<customDialog*>("hugeDialogs")) {
+                 if (hugeDialog->windowTitle().contains(this->getName())) {
++                    if (!hugeDialog->isVisible()) hugeDialog->setVisible(true);
+                     hugeDialog->raise();   // Bring to top of stacking order
+                     hugeDialog->activateWindow();
+                     hugeDialog->setFocus();

@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/myconsole.cpp     | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.cpp b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index db9e5c580d3..e879b3740ff 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -2418,7 +2418,7 @@ void INIConsole::registerGuiCommands()
+             return false;
+         }
+         QSharedPointer<StatTab>st = mainWindow->getStatTab(statID_arg);
+-        if (st == nullptr) {
++        if (st == nullptr || (mainWindow->getNumTabStatShowed() == 0)) {
+             NetSpeed::LOG_ERROR("") << "Stat ID is not valid, please run \""
+                                     << CMD_LIST_STATTABS << "\" for available Stat IDs\n";
+             return false;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 753886cd8d7..34608177f8c 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -2417,7 +2417,7 @@ void INIConsole::registerGuiCommands()
+             return false;
+         }
+         QSharedPointer<StatTab>st = mainWindow->getStatTab(statID_arg);
+-        if (st == nullptr) {
++        if (st == nullptr || (mainWindow->getNumTabStatShowed() == 0)) {
+             NetSpeed::LOG_ERROR("") << "Stat ID is not valid, please run \""
+                                     << CMD_LIST_STATTABS << "\" for available Stat IDs\n";
+             return false;

@@ -1,0 +1,384 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     |  9 +++-
+ .../prototype/Gui/Item/NsMultipleBridges.cpp       | 56 +++++++++++++++++++---
+ .../noc_dev/prototype/Gui/Item/NsMultipleBridges.h |  4 +-
+ src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp   | 16 +++++++
+ src/sw/noc_dev/prototype/Gui/View/NsChopview.h     |  1 +
+ src/sw/noc_dev/prototype/Gui/View/NsScene.cpp      |  1 -
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp |  9 +++-
+ .../prototype_qt6/Gui/Item/NsMultipleBridges.cpp   | 56 +++++++++++++++++++---
+ .../prototype_qt6/Gui/Item/NsMultipleBridges.h     |  4 +-
+ .../noc_dev/prototype_qt6/Gui/View/NsChopview.cpp  | 16 +++++++
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.h |  1 +
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp  |  1 -
+ 12 files changed, 154 insertions(+), 20 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 2bb71c3c686..2cf1c7798ba 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -984,12 +984,19 @@ void NsChopViewBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         proPanel->updateBridgeProperties(bridge, true);
+         proPanel->raiseSelectionTab();
+         mw->raiseTooltipTab();
++        if (this->parentItem() && this->parentItem()->type() == MULTIPLE_BRIDGE) {
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                if (auto mulBris = diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(mulBris);
++                }
++            }
++        }
+         if (event->button() == Qt::RightButton) {
+             scene()->clearSelection();
+             setSelected(true);
+             return;
+         }
+-    }else {
++    } else {
+         event->ignore();
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index 9b234cbf4ea..96392fb5f3d 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -73,7 +73,7 @@ NsMultipleBridges::NsMultipleBridges(const QPoint pos, const QVector<NetSpeed::B
+         diagram->bridgeList.append(bridge);
+         /* Create Bridge Name item */
+         QString briName = QString::fromStdString(br->name());
+-        NsBridgeLabel* bridgeName = new NsBridgeLabel(br, briName);
++        NsBridgeLabel* bridgeName = new NsBridgeLabel(br, briName, bridge);
+         bridgeName->setParentItem(diagram);
+         //bridgeName->setPos(diagram->mapFromScene(start + QPointF(BRIDGE_SIZE + 2 + STRECH_MUL_BRI / 2, 0)));
+         diagram->bridgeNameList.append(bridgeName);
+@@ -183,6 +183,12 @@ void NsMultipleBridges::visibleChanged(bool b)
+         if (this->isVisible()) {
+             mw->appendListDiagrams(this);
+         }
++    } else if (auto tooltipApp = dynamic_cast<ToolTipAppDialog*>(QApplication::activeWindow())) {
++        if (auto mw = tooltipApp->getMainWindow()) {
++            if (this->isVisible()) {
++                mw->appendListDiagrams(this);
++            }
++        }
+     }
+ }
+ 
+@@ -525,7 +531,31 @@ NsSocViewMultipleBridges::NsSocViewMultipleBridges(const std::vector<NetSpeed::B
+     setHandlesChildEvents(false);
+ }
+ 
+-void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event) {
++void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event)
++{
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++        for (const auto& diagram : listDiagrams) {
++            if (diagram->type() == BRIDGE_DIAGRAM) {
++                if (auto nsRSSBDiagram = dynamic_cast<NsRSSBDiagram*>(diagram)) {
++                    if (nsRSSBDiagram->parentBridge == normalBridge) {
++                        return diagram;
++                    }
++                } else if (auto nsBridgeDiagram = dynamic_cast<NsBridgeDiagram*>(diagram)) {
++                    if (nsBridgeDiagram->parentBridge == normalBridge) {
++                        return diagram;
++                    }
++                }
++            } else if (diagram->type() == RING_VISUALIZATION) {
++                if (auto nsRegbusRing = dynamic_cast<NsRegbusRing*>(diagram)) {
++                    if (nsRegbusRing->parentBridge == normalBridge) {
++                        return diagram;
++                    }
++                }
++            }
++        }
++        return nullptr;
++    };
++
+     if (auto nsScene = dynamic_cast<NsScene*>(scene())) {
+         if (nsScene->isDomainView()) {
+             event->accept();
+@@ -545,11 +575,23 @@ void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+             }
+         }
+     }
+-    if(mw){
+-       auto proPanel = mw->getPropertyPanel();
+-       proPanel->updateBridgeProperties(bridge, true);
+-       proPanel->raiseSelectionTab();
+-       mw->raiseTooltipTab();
++    if (mw) {
++        auto proPanel = mw->getPropertyPanel();
++        proPanel->updateBridgeProperties(bridge, true);
++        proPanel->raiseSelectionTab();
++        mw->raiseTooltipTab();
++        if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                if (auto mulBris = diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(mulBris);
++                    if (dynamic_cast<NsNormalBridge*>(normalBridge)) {
++                        if (auto diagramOpenning = isOpenedDiagram(mulBris->getListBridgeDiagram())) {
++                            mulBris->updateZValueOfListBridgeDiagram(diagramOpenning);
++                        }
++                    }
++                }
++            }
++        }
+     }
+     QGraphicsTextItem::mousePressEvent(event);
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+index 8f5b6514d5a..77a2fd5c601 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+@@ -48,13 +48,15 @@ private:
+ class NsBridgeLabel : public QGraphicsTextItem
+ {
+ public:
+-    NsBridgeLabel(NetSpeed::Bridge* bridge, const QString& text) : QGraphicsTextItem(text), bridge(bridge) {}
++    NsBridgeLabel(NetSpeed::Bridge* bridge, const QString& text, QGraphicsItem* itemBridge = nullptr)
++    : QGraphicsTextItem(text), bridge(bridge), normalBridge(itemBridge) {}
+ 
+ protected:
+      void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+ 
+ private:
+     NetSpeed::Bridge* bridge = nullptr;
++    QGraphicsItem* normalBridge = nullptr;
+ };
+ 
+ class NsSocViewMultipleBridges : public NsMultipleBridges
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp b/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
+index b5cd44e1ea9..d80724516b8 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChopview.cpp
+@@ -128,6 +128,22 @@ void NsChopView::genImage(QString path)
+ 
+ NsChopView::~NsChopView(){}
+ 
++void NsChopView::mousePressEvent(QMouseEvent* event)
++{
++    auto itemClicked = scene->itemAt(mapToScene(event->posF().toPoint()), QTransform());
++    if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(itemClicked)) {
++        if (auto mulBris = diagram->getMulBris()) mainWindow->updateZValueOfListDiagrams(mulBris);
++        for (auto& item : diagram->scene()->selectedItems()) {
++            item->setSelected(false);
++        }
++    } else if (auto bridgeLabel = dynamic_cast<NsBridgeLabel*>(itemClicked)) {
++        for (auto& item : bridgeLabel->scene()->selectedItems()) {
++            item->setSelected(false);
++        }
++    }
++    QGraphicsView::mousePressEvent(event);
++}
++
+ void NsChopView::mouseReleaseEvent(QMouseEvent *event)
+ {
+     if (event->button() & Qt::LeftButton) {
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsChopview.h b/src/sw/noc_dev/prototype/Gui/View/NsChopview.h
+index 08d68cb9e61..ceb5c66185e 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsChopview.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsChopview.h
+@@ -65,6 +65,7 @@ private:
+     QPointF selectedPoint = QPointF();
+ 
+ protected:
++    void mousePressEvent(QMouseEvent* event);
+     void mouseReleaseEvent(QMouseEvent* event);
+     void wheelEvent(QWheelEvent *event);
+ };
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+index 1f937eb727c..11c29fc1beb 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsScene.cpp
+@@ -760,7 +760,6 @@ void NsMeshViewScene::load()
+     }
+ 
+     if (mw) {
+-        mw->clearListDiagrams();
+         if (isViewMode(NOC) && (getInsType() != NONE_INSTRUMENT)) {
+             instrumentMediator = nullptr;
+             auto prop = mw->getPropertyPanel();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+index 51eca784139..72d921318a8 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridge.cpp
+@@ -985,12 +985,19 @@ void NsChopViewBridge::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         proPanel->updateBridgeProperties(bridge, true);
+         proPanel->raiseSelectionTab();
+         mw->raiseTooltipTab();
++        if (this->parentItem() && this->parentItem()->type() == MULTIPLE_BRIDGE) {
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                if (auto mulBris = diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(mulBris);
++                }
++            }
++        }
+         if (event->button() == Qt::RightButton) {
+             scene()->clearSelection();
+             setSelected(true);
+             return;
+         }
+-    }else {
++    } else {
+         event->ignore();
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
+index 323c8a91e49..983f38c541f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
+@@ -73,7 +73,7 @@ NsMultipleBridges::NsMultipleBridges(const QPoint pos, const QVector<NetSpeed::B
+         diagram->bridgeList.append(bridge);
+         /* Create Bridge Name item */
+         QString briName = QString::fromStdString(br->name());
+-        NsBridgeLabel* bridgeName = new NsBridgeLabel(br, briName);
++        NsBridgeLabel* bridgeName = new NsBridgeLabel(br, briName, bridge);
+         bridgeName->setParentItem(diagram);
+         //bridgeName->setPos(diagram->mapFromScene(start + QPointF(BRIDGE_SIZE + 2 + STRECH_MUL_BRI / 2, 0)));
+         diagram->bridgeNameList.append(bridgeName);
+@@ -183,6 +183,12 @@ void NsMultipleBridges::visibleChanged(bool b)
+         if (this->isVisible()) {
+             mw->appendListDiagrams(this);
+         }
++    } else if (auto tooltipApp = dynamic_cast<ToolTipAppDialog*>(QApplication::activeWindow())) {
++        if (auto mw = tooltipApp->getMainWindow()) {
++            if (this->isVisible()) {
++                mw->appendListDiagrams(this);
++            }
++        }
+     }
+ }
+ 
+@@ -525,7 +531,31 @@ NsSocViewMultipleBridges::NsSocViewMultipleBridges(const std::vector<NetSpeed::B
+     setHandlesChildEvents(false);
+ }
+ 
+-void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event) {
++void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event)
++{
++    auto isOpenedDiagram = [&](QList<QGraphicsItem*> listDiagrams) -> QGraphicsItem* {
++        for (const auto& diagram : listDiagrams) {
++            if (diagram->type() == BRIDGE_DIAGRAM) {
++                if (auto nsRSSBDiagram = dynamic_cast<NsRSSBDiagram*>(diagram)) {
++                    if (nsRSSBDiagram->parentBridge == normalBridge) {
++                        return diagram;
++                    }
++                } else if (auto nsBridgeDiagram = dynamic_cast<NsBridgeDiagram*>(diagram)) {
++                    if (nsBridgeDiagram->parentBridge == normalBridge) {
++                        return diagram;
++                    }
++                }
++            } else if (diagram->type() == RING_VISUALIZATION) {
++                if (auto nsRegbusRing = dynamic_cast<NsRegbusRing*>(diagram)) {
++                    if (nsRegbusRing->parentBridge == normalBridge) {
++                        return diagram;
++                    }
++                }
++            }
++        }
++        return nullptr;
++    };
++
+     if (auto nsScene = dynamic_cast<NsScene*>(scene())) {
+         if (nsScene->isDomainView()) {
+             event->accept();
+@@ -545,11 +575,23 @@ void NsBridgeLabel::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+             }
+         }
+     }
+-    if(mw){
+-       auto proPanel = mw->getPropertyPanel();
+-       proPanel->updateBridgeProperties(bridge, true);
+-       proPanel->raiseSelectionTab();
+-       mw->raiseTooltipTab();
++    if (mw) {
++        auto proPanel = mw->getPropertyPanel();
++        proPanel->updateBridgeProperties(bridge, true);
++        proPanel->raiseSelectionTab();
++        mw->raiseTooltipTab();
++        if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                if (auto mulBris = diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(mulBris);
++                    if (dynamic_cast<NsNormalBridge*>(normalBridge)) {
++                        if (auto diagramOpenning = isOpenedDiagram(mulBris->getListBridgeDiagram())) {
++                            mulBris->updateZValueOfListBridgeDiagram(diagramOpenning);
++                        }
++                    }
++                }
++            }
++        }
+     }
+     QGraphicsTextItem::mousePressEvent(event);
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.h
+index 8f5b6514d5a..77a2fd5c601 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.h
+@@ -48,13 +48,15 @@ private:
+ class NsBridgeLabel : public QGraphicsTextItem
+ {
+ public:
+-    NsBridgeLabel(NetSpeed::Bridge* bridge, const QString& text) : QGraphicsTextItem(text), bridge(bridge) {}
++    NsBridgeLabel(NetSpeed::Bridge* bridge, const QString& text, QGraphicsItem* itemBridge = nullptr)
++    : QGraphicsTextItem(text), bridge(bridge), normalBridge(itemBridge) {}
+ 
+ protected:
+      void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+ 
+ private:
+     NetSpeed::Bridge* bridge = nullptr;
++    QGraphicsItem* normalBridge = nullptr;
+ };
+ 
+ class NsSocViewMultipleBridges : public NsMultipleBridges
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.cpp
+index c4d596258e9..547b09f27e6 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.cpp
+@@ -128,6 +128,22 @@ void NsChopView::genImage(QString path)
+ 
+ NsChopView::~NsChopView(){}
+ 
++void NsChopView::mousePressEvent(QMouseEvent* event)
++{
++    auto itemClicked = scene->itemAt(mapToScene(event->position().toPoint()), QTransform());
++    if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(itemClicked)) {
++        if (auto mulBris = diagram->getMulBris()) mainWindow->updateZValueOfListDiagrams(mulBris);
++        for (auto& item : diagram->scene()->selectedItems()) {
++            item->setSelected(false);
++        }
++    } else if (auto bridgeLabel = dynamic_cast<NsBridgeLabel*>(itemClicked)) {
++        for (auto& item : bridgeLabel->scene()->selectedItems()) {
++            item->setSelected(false);
++        }
++    }
++    QGraphicsView::mousePressEvent(event);
++}
++
+ void NsChopView::mouseReleaseEvent(QMouseEvent *event)
+ {
+     if (event->button() & Qt::LeftButton) {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.h b/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.h
+index 08d68cb9e61..ceb5c66185e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsChopview.h
+@@ -65,6 +65,7 @@ private:
+     QPointF selectedPoint = QPointF();
+ 
+ protected:
++    void mousePressEvent(QMouseEvent* event);
+     void mouseReleaseEvent(QMouseEvent* event);
+     void wheelEvent(QWheelEvent *event);
+ };
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+index 71a64a9fabb..0977880d4da 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsScene.cpp
+@@ -760,7 +760,6 @@ void NsMeshViewScene::load()
+     }
+ 
+     if (mw) {
+-        mw->clearListDiagrams();
+         if (isViewMode(NOC) && (getInsType() != NONE_INSTRUMENT)) {
+             instrumentMediator = nullptr;
+             auto prop = mw->getPropertyPanel();

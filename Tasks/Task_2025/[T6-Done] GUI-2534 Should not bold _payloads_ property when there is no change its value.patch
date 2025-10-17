@@ -1,0 +1,114 @@
+ src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp     | 3 ++-
+ src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h       | 1 +
+ src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.cpp | 3 ++-
+ src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.h   | 1 +
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp            | 7 ++++++-
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp        | 7 ++++++-
+ 6 files changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp b/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp
+index c486ef9c936..9e219502d3a 100644
+--- a/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp
++++ b/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.cpp
+@@ -2021,6 +2021,7 @@ QStringList MultiSelectComboBox::currentText() {
+ }
+ 
+ void MultiSelectComboBox::setSelectedItems(QString selectedItems) {
++    if (currentSelectedItems.isEmpty()) currentSelectedItems = selectedItems;
+     if (m_selectedItems != selectedItems) {
+         m_selectedItems = selectedItems;
+         emit selectedChanged();
+@@ -2042,7 +2043,7 @@ void MultiSelectComboBox::addItems(const QStringList& itemsName) {
+     mListWidget->addItem(listWidgetItem);
+     mListWidget->setItemWidget(listWidgetItem, btnOk);
+     connect(btnOk, &QPushButton::clicked, [&](){
+-        emit selectionChanged(getSelectedItems().split(" "));
++        if (m_selectedItems != currentSelectedItems) emit selectionChanged(getSelectedItems().split(" "));
+         emit editingFinished();
+     });
+ }
+diff --git a/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h b/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h
+index 2f0daf20c7e..86dfc14d334 100644
+--- a/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h
++++ b/src/sw/noc_dev/GUICore/Qtproperty/qteditorfactory.h
+@@ -348,6 +348,7 @@ private:
+     QLineEdit* mLineEdit;
+     QLineEdit* mSearchBar;
+     QString m_selectedItems;
++    QString currentSelectedItems = QString();
+     bool allowHidePopup = false;
+ };
+ 
+diff --git a/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.cpp b/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.cpp
+index 607db38e6db..ad7e232de8e 100644
+--- a/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.cpp
+@@ -2023,6 +2023,7 @@ QStringList MultiSelectComboBox::currentText() {
+ }
+ 
+ void MultiSelectComboBox::setSelectedItems(QString selectedItems) {
++    if (currentSelectedItems.isEmpty()) currentSelectedItems = selectedItems;
+     if (m_selectedItems != selectedItems) {
+         m_selectedItems = selectedItems;
+         emit selectedChanged();
+@@ -2044,7 +2045,7 @@ void MultiSelectComboBox::addItems(const QStringList& itemsName) {
+     mListWidget->addItem(listWidgetItem);
+     mListWidget->setItemWidget(listWidgetItem, btnOk);
+     connect(btnOk, &QPushButton::clicked, [&](){
+-        emit selectionChanged(getSelectedItems().split(" "));
++        if (m_selectedItems != currentSelectedItems) emit selectionChanged(getSelectedItems().split(" "));
+         emit editingFinished();
+     });
+ }
+diff --git a/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.h b/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.h
+index 64bb715b1b1..d51309237a2 100644
+--- a/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.h
++++ b/src/sw/noc_dev/GUICore_qt6/Qtproperty/qteditorfactory.h
+@@ -348,6 +348,7 @@ private:
+     QLineEdit* mLineEdit;
+     QLineEdit* mSearchBar;
+     QString m_selectedItems;
++    QString currentSelectedItems = QString();
+     bool allowHidePopup = false;
+ };
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 5e8f4640507..6acee8d2456 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -183,9 +183,14 @@ template<typename OBJ>
+ void updateOrResetProp(PropertyPanel * pp, QtProperty * property, const OBJ * obj, bool onPropertyCanceledFlag) {
+     const auto oldValue = getPropVal(property, obj);
+     if (!oldValue) return;
++    QString oldValueSplit = QString::fromStdString(*oldValue);
++    if (oldValueSplit.contains("{")) {
++        oldValueSplit.remove("{");
++        oldValueSplit.remove("}");
++    }
+     const string newValue = property->valueText().toStdString();
+     //checking the property value changes or not
+-    if (*oldValue == newValue) return;
++    if (oldValueSplit.toStdString() == newValue) return;
+     const auto helpText = property->whatsThis();
+     auto processName = [&](auto const& list) {
+         auto it = std::find_if(list.begin(), list.end(), [&](auto & item) {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 8643e4cf575..03619a9b4dd 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -183,9 +183,14 @@ template<typename OBJ>
+ void updateOrResetProp(PropertyPanel * pp, QtProperty * property, const OBJ * obj, bool onPropertyCanceledFlag) {
+     const auto oldValue = getPropVal(property, obj);
+     if (!oldValue) return;
++    QString oldValueSplit = QString::fromStdString(*oldValue);
++    if (oldValueSplit.contains("{")) {
++        oldValueSplit.remove("{");
++        oldValueSplit.remove("}");
++    }
+     const string newValue = property->valueText().toStdString();
+     //checking the property value changes or not
+-    if (*oldValue == newValue) return;
++    if (oldValueSplit.toStdString() == newValue) return;
+     const auto helpText = property->whatsThis();
+     auto processName = [&](auto const& list) {
+         auto it = std::find_if(list.begin(), list.end(), [&](auto & item) {

@@ -1,0 +1,15 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 9ac6d40fb9f..fabc98fd5b3 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -4767,6 +4767,7 @@ DelSpineGatingRegionDialog::DelSpineGatingRegionDialog(QWidget* parent) {
+ 
+     spine_gating_region_name  = new QComboBox; 
+     spine_gating_region_name->addItem(QString("none"));
++    spine_gating_region_name->addItem(QString("*"));
+     FOR (cg, g->get_spine_cg_mods()) {
+         if (!cg->first.empty()) {
+             spine_gating_region_name->addItem(QString::fromStdString(cg->first));

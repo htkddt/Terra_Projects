@@ -1,0 +1,16 @@
+ src/sw/noc_dev/NocCore/src/Commands.host.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/NocCore/src/Commands.host.cpp b/src/sw/noc_dev/NocCore/src/Commands.host.cpp
+index 0f4b7ab3e19..3508e4723f1 100644
+--- a/src/sw/noc_dev/NocCore/src/Commands.host.cpp
++++ b/src/sw/noc_dev/NocCore/src/Commands.host.cpp
+@@ -2000,7 +2000,7 @@ COMMAND(add_sib, eco_t::ECO_DISABLED, AddHost, "-name <name> -pos <pos> -layers
+     "  -pos is the position and direction that the bridge should be connected to. Position is a valid node ID in the design and the direction can be one of I, J, K or H ports.\n"
+     "  -layers is the list of layers that the SIB connects to. Multiple layers must be specified within { and }. If layers are not specified, the SIB connects to all available layers.\n"
+     "\tWhen a SIB is added at a position, an AXI4M bridge is created at that position. This is the shared interface source bridge."
+-    " The source that is connected to the position specified for the SIB automatically becomes part of the SIB. Other sourcess must be added to the SIB using bridge property shared_interface_bridge. Managers of type AXI4M, AHBLM and AXI3M are compatible with the SIB."
++    " The source that is connected to the position specified for the SIB automatically becomes part of the SIB. Other sources must be added to the SIB using bridge property shared_interface_bridge. Managers of type AXI4M, AHBLM and AXI3M are compatible with the SIB."
+     " The position specified for the SIB must have a compatible source already connected to that position on all layers.\n"
+     " The shared interface bridge must be added after all sources that must be part of the SIB have already been added.\n\n"
+     "Example:\n"

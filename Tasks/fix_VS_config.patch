@@ -1,0 +1,782 @@
+ src/sw/noc_dev/GUICore/GUICore.vcxproj | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/GUICore.vcxproj b/src/sw/noc_dev/GUICore/GUICore.vcxproj
+index a244d2a233b..6405673242f 100644
+--- a/src/sw/noc_dev/GUICore/GUICore.vcxproj
++++ b/src/sw/noc_dev/GUICore/GUICore.vcxproj
+@@ -90,11 +90,11 @@
+     <LinkIncremental>false</LinkIncremental>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;printsupport;widgets</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;printsupport;widgets</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -174,9 +174,9 @@
+       <WarningLevel>Level3</WarningLevel>
+       <SDLCheck>true</SDLCheck>
+       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-      <ConformanceMode>false</ConformanceMode>
++      <ConformanceMode>true</ConformanceMode>
+       <LanguageStandard>stdcpp17</LanguageStandard>
+-      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt\6.7.3\msvc2019_64\include\QtSvg;C:\Qt\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt\6.7.3\msvc2019_64\include\QtGui;C:\Qt\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt\6.7.3\msvc2019_64\include\QtCore;C:\Qt\6.7.3\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+@@ -215,7 +215,7 @@
+       <PreprocessorDefinitions>_CONSOLE;_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;QT_NO_DEBUG;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>true</ConformanceMode>
+       <LanguageStandard>stdcpp17</LanguageStandard>
+-      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.;..\GUICore;..\GUICore\Utils;..\GUICore\Qtproperty;..\GUICore\DRC;Qtproperty;C:\Qt\6.7.3\msvc2019_64\include;C:\Qt\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt\6.7.3\msvc2019_64\include\QtSvg;C:\Qt\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt\6.7.3\msvc2019_64\include\QtGui;C:\Qt\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt\6.7.3\msvc2019_64\include\QtCore;C:\Qt\6.7.3\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+     </ClCompile>
+     <Link>
+       <SubSystem>Console</SubSystem>
+ src/sw/noc_dev/IPStudio/IPStudio.vcxproj | 153 +++++++++----------------------
+ 1 file changed, 44 insertions(+), 109 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio/IPStudio.vcxproj b/src/sw/noc_dev/IPStudio/IPStudio.vcxproj
+index 6ed27672e82..27ec514c222 100644
+--- a/src/sw/noc_dev/IPStudio/IPStudio.vcxproj
++++ b/src/sw/noc_dev/IPStudio/IPStudio.vcxproj
+@@ -94,11 +94,11 @@
+     <LinkIncremental>false</LinkIncremental>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -137,12 +137,12 @@
+       <WarningLevel>Level3</WarningLevel>
+       <SDLCheck>true</SDLCheck>
+       <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_DISABLE_DEPRECATED_BEFORE=0;ENABLE_VSTAT;QT_USE_QSTRINGBUILDER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+-      <ConformanceMode>false</ConformanceMode>
++      <ConformanceMode>true</ConformanceMode>
+       <LanguageStandard>stdcpp17</LanguageStandard>
+       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+       <SupportJustMyCode>true</SupportJustMyCode>
+       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+-      <AdditionalIncludeDirectories>../Infra/include;./libavoid;./GUI;./GUI/WireItem;..\GUICore;../GUICore/Utils;../GUICore/DRC;../GUICore/Qtproperty;../NocCore/src;.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../IPCore/include;include;../include;../NocCore/include;.;Qtproperty;..\prototype;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;debug;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../ip_include;../../lib/cpptcl-2.2.5;../../lib/mstch/src;../lib/mstch/include;../../lib/tcl;../IPTclApi/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>../Infra/include;./libavoid;./GUI;./GUI/WireItem;..\GUICore;../GUICore/Utils;../GUICore/DRC;../GUICore/Qtproperty;../NocCore/src;.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../IPCore/include;include;../include;../NocCore/include;.;Qtproperty;..\prototype;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\6.7.3\msvc2019_64\include;C:\Qt\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt\6.7.3\msvc2019_64\include\QtSvg;C:\Qt\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt\6.7.3\msvc2019_64\include\QtGui;C:\Qt\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt\6.7.3\msvc2019_64\include\QtCore;debug;C:\Qt\6.7.3\msvc2019_64\mkspecs\win32-msvc;../ip_include;../../lib/cpptcl-2.2.5;../../lib/mstch/src;../lib/mstch/include;../../lib/tcl;../IPTclApi/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <Optimization>Disabled</Optimization>
+       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+@@ -154,9 +154,9 @@
+     <Link>
+       <SubSystem>Windows</SubSystem>
+       <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>..\IPCore\releaseLib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(Platform)\$(Configuration)\IPCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalLibraryDirectories>..\IPCore\releaseLib;C:\Qt\6.7.3\msvc2019_64\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(Platform)\$(Configuration)\IPCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
+-      <AdditionalDependencies>Shell32.lib;libEGLd.lib;libGLESv2d.lib;gdi32.lib;user32.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;Dhcpcsvc.lib;Shlwapi.lib;tcl86tsgx.lib;%(AdditionalDependencies)</AdditionalDependencies>
++      <AdditionalDependencies>Shell32.lib;gdi32.lib;user32.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;Dhcpcsvc.lib;Shlwapi.lib;tcl86tsgx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+     </Link>
+     <ResourceCompile>
+@@ -187,7 +187,7 @@
+       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+       <OptimizeReferences>true</OptimizeReferences>
+       <GenerateDebugInformation>true</GenerateDebugInformation>
+-      <AdditionalLibraryDirectories>C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalLibraryDirectories>C:\Qt\6.7.3\msvc2019_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+     </Link>
+     <ResourceCompile>
+@@ -205,6 +205,40 @@
+     </ProjectReference>
+   </ItemDefinitionGroup>
+   <ItemGroup>
++    <ClCompile Include="Debug\moc_commandbase.cpp" />
++    <ClCompile Include="Debug\moc_commanditemadd.cpp" />
++    <ClCompile Include="Debug\moc_commanditemmove.cpp" />
++    <ClCompile Include="Debug\moc_commanditemremove.cpp" />
++    <ClCompile Include="Debug\moc_commanditemvisibility.cpp" />
++    <ClCompile Include="Debug\moc_commandlabelrename.cpp" />
++    <ClCompile Include="Debug\moc_commandnodeaddconnector.cpp" />
++    <ClCompile Include="Debug\moc_commandnoderesize.cpp" />
++    <ClCompile Include="Debug\moc_commandnoderotate.cpp" />
++    <ClCompile Include="Debug\moc_commandwirenetrename.cpp" />
++    <ClCompile Include="Debug\moc_commandwirepointmove.cpp" />
++    <ClCompile Include="Debug\moc_connector.cpp" />
++    <ClCompile Include="Debug\moc_fancywire.cpp" />
++    <ClCompile Include="Debug\moc_IPConnectivity.cpp" />
++    <ClCompile Include="Debug\moc_IPDesign.cpp" />
++    <ClCompile Include="Debug\moc_IPDialog.cpp" />
++    <ClCompile Include="Debug\moc_IPInstance.cpp" />
++    <ClCompile Include="Debug\moc_IPInstancesTable.cpp" />
++    <ClCompile Include="Debug\moc_IPObject.cpp" />
++    <ClCompile Include="Debug\moc_IPPropertyPanel.cpp" />
++    <ClCompile Include="Debug\moc_IPWorker.cpp" />
++    <ClCompile Include="Debug\moc_item.cpp" />
++    <ClCompile Include="Debug\moc_itemmimedata.cpp" />
++    <ClCompile Include="Debug\moc_itemwire.cpp" />
++    <ClCompile Include="Debug\moc_label.cpp" />
++    <ClCompile Include="Debug\moc_MainConsole.cpp" />
++    <ClCompile Include="Debug\moc_MainWindow.cpp" />
++    <ClCompile Include="Debug\moc_manager.cpp" />
++    <ClCompile Include="Debug\moc_node.cpp" />
++    <ClCompile Include="Debug\moc_scene.cpp" />
++    <ClCompile Include="Debug\moc_splinewire.cpp" />
++    <ClCompile Include="Debug\moc_view.cpp" />
++    <ClCompile Include="Debug\moc_wirenet.cpp" />
++    <ClCompile Include="Debug\moc_wireroundedcorners.cpp" />
+     <ClCompile Include="GUI\Item\IPConnectivity.cpp" />
+     <ClCompile Include="GUI\Item\IPGroup.cpp" />
+     <ClCompile Include="GUI\Item\IPInstance.cpp" />
+@@ -290,6 +324,9 @@
+     <ProjectReference Include="..\IPCore\IPCore.vcxproj">
+       <Project>{52cfd572-60d7-47e9-8cb1-507e10badc70}</Project>
+     </ProjectReference>
++    <ProjectReference Include="..\NocCore\NocCore.vcxproj">
++      <Project>{afadccb2-c2b8-4d3a-904e-0b470d9f0902}</Project>
++    </ProjectReference>
+     <ProjectReference Include="libavoid\libavoid.vcxproj">
+       <Project>{959b50cc-890a-4d92-a17a-c32762ddc9d9}</Project>
+     </ProjectReference>
+@@ -431,108 +468,6 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+-    <ClCompile Include="debug\moc_IPConnectivity.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPInstance.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandnodeaddconnector.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_fancywire.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_wireroundedcorners.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_itemwire.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_wirenet.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_view.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_splinewire.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_scene.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_node.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_label.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_itemmimedata.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_item.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_connector.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandwirepointmove.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandwirenetrename.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandnoderotate.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandnoderesize.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandlabelrename.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemvisibility.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemremove.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemmove.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemadd.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandbase.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_MainConsole.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_MainWindow.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPWorker.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPPropertyPanel.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPInstancesTable.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPDesign.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPDialog.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPObject.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_manager.cpp">
+-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-    </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <ClInclude Include="GUI\WireItem\commands.h" />
+ src/sw/noc_dev/IPStudio/IPStudio.vcxproj.filters | 204 +++++++++++------------
+ 1 file changed, 102 insertions(+), 102 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio/IPStudio.vcxproj.filters b/src/sw/noc_dev/IPStudio/IPStudio.vcxproj.filters
+index 9dccbc0d198..f58e0591224 100644
+--- a/src/sw/noc_dev/IPStudio/IPStudio.vcxproj.filters
++++ b/src/sw/noc_dev/IPStudio/IPStudio.vcxproj.filters
+@@ -63,15 +63,6 @@
+     <ClCompile Include="ipstudio_main.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_MainConsole.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_MainWindow.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPWorker.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\MainWindow\MainConsole.cpp">
+       <Filter>GUI\Source</Filter>
+     </ClCompile>
+@@ -84,15 +75,9 @@
+     <ClCompile Include="GUI\MainWindow\IPPropertyPanel.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_IPPropertyPanel.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\MainWindow\IPDesign.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_IPDesign.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\Item\IPGroup.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+@@ -102,12 +87,6 @@
+     <ClCompile Include="GUI\MainWindow\IPDialog.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_IPDialog.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPObject.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\Item\IPConnectivity.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+@@ -132,9 +111,6 @@
+     <ClCompile Include="GUI\WireSystem\wire.cpp">
+       <Filter>WireSystem\Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_manager.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\WireItem\item.cpp">
+       <Filter>WireItems\Source Files</Filter>
+     </ClCompile>
+@@ -198,90 +174,15 @@
+     <ClCompile Include="GUI\WireItem\wireroundedcorners.cpp">
+       <Filter>WireItems\Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_wireroundedcorners.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_wirenet.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_view.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_splinewire.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_scene.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_node.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_label.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_itemmimedata.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_item.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_connector.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandwirepointmove.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandwirenetrename.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandnoderotate.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandnoderesize.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandlabelrename.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemvisibility.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemremove.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemmove.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commanditemadd.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_commandbase.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\WireItem\itemwire.cpp">
+       <Filter>WireItems\Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_itemwire.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\WireItem\fancywire.cpp">
+       <Filter>CustomWires\Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_fancywire.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="GUI\WireItem\commandnodeaddconnector.cpp">
+       <Filter>CustomWires\Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_commandnodeaddconnector.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPInstance.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+-    <ClCompile Include="debug\moc_IPConnectivity.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="libavoid\actioninfo.cpp">
+       <Filter>libavoid\Source Files</Filter>
+     </ClCompile>
+@@ -357,9 +258,6 @@
+     <ClCompile Include="GUI\MainWindow\IPInstancesTable.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+-    <ClCompile Include="debug\moc_IPInstancesTable.cpp">
+-      <Filter>Source Files</Filter>
+-    </ClCompile>
+     <ClCompile Include="src\IPGUIHelp.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
+@@ -381,6 +279,108 @@
+     <ClCompile Include="src\IPGParse.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
++    <ClCompile Include="Debug\moc_IPInstance.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPConnectivity.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_fancywire.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandnodeaddconnector.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_wireroundedcorners.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_view.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_itemwire.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_wirenet.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_splinewire.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_scene.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_node.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_itemmimedata.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_label.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_item.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_connector.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandwirepointmove.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandwirenetrename.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_MainWindow.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandnoderotate.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandlabelrename.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandnoderesize.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commanditemvisibility.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commanditemremove.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commanditemmove.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPPropertyPanel.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_MainConsole.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commanditemadd.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_commandbase.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_manager.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPDialog.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPDesign.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPInstancesTable.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPWorker.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="Debug\moc_IPObject.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <QtMoc Include="GUI\MainWindow\IPWorker.h">
+ src/sw/noc_dev/NoC.sln | 46 ----------------------------------------------
+ 1 file changed, 46 deletions(-)
+
+diff --git a/src/sw/noc_dev/NoC.sln b/src/sw/noc_dev/NoC.sln
+index f5945cd5f69..c0eecd92fd8 100644
+--- a/src/sw/noc_dev/NoC.sln
++++ b/src/sw/noc_dev/NoC.sln
+@@ -72,18 +72,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCFNocStudio", "SCFNocStudi
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPTest", "IPTest\IPTest.vcxproj", "{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}"
+ EndProject
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GUICore_qt6", "GUICore_qt6\GUICore_qt6.vcxproj", "{A01D1618-1FEE-4180-B46A-38733CC076CC}"
+-EndProject
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NocStudio_qt6", "prototype_qt6\NocStudio_qt6.vcxproj", "{E05FC362-6056-43F3-8843-64EA6C0132AA}"
+-	ProjectSection(ProjectDependencies) = postProject
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC} = {A01D1618-1FEE-4180-B46A-38733CC076CC}
+-	EndProjectSection
+-EndProject
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPStudio_qt6", "IPStudio_qt6\IPStudio_qt6.vcxproj", "{9AB256EC-593C-4485-95B2-D92B5FAF8C14}"
+-	ProjectSection(ProjectDependencies) = postProject
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC} = {A01D1618-1FEE-4180-B46A-38733CC076CC}
+-	EndProjectSection
+-EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|x64 = Debug|x64
+@@ -238,40 +226,6 @@ Global
+ 		{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
+ 		{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}.Release-NETSPEED_BUILD|x86.ActiveCfg = Release|Win32
+ 		{7CB64809-CCD1-40A5-9B2E-7E28B131A93D}.Release-NETSPEED_BUILD|x86.Build.0 = Release|Win32
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x64.ActiveCfg = Debug|x64
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x64.Build.0 = Debug|x64
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x86.ActiveCfg = Debug|Win32
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Debug|x86.Build.0 = Debug|Win32
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x64.ActiveCfg = Release|x64
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x64.Build.0 = Release|x64
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x86.ActiveCfg = Release|Win32
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release|x86.Build.0 = Release|Win32
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x64.ActiveCfg = Release|x64
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x86.ActiveCfg = Release|Win32
+-		{A01D1618-1FEE-4180-B46A-38733CC076CC}.Release-NETSPEED_BUILD|x86.Build.0 = Release|Win32
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Debug|x64.ActiveCfg = Debug|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Debug|x64.Build.0 = Debug|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Debug|x86.ActiveCfg = Debug|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release|x64.ActiveCfg = Release|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release|x64.Build.0 = Release|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release|x86.ActiveCfg = Release|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x64.ActiveCfg = Release|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x86.ActiveCfg = Debug|x64
+-		{E05FC362-6056-43F3-8843-64EA6C0132AA}.Release-NETSPEED_BUILD|x86.Build.0 = Debug|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Debug|x64.ActiveCfg = Debug|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Debug|x64.Build.0 = Debug|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Debug|x86.ActiveCfg = Debug|Win32
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Debug|x86.Build.0 = Debug|Win32
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release|x64.ActiveCfg = Release|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release|x64.Build.0 = Release|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release|x86.ActiveCfg = Release|Win32
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release|x86.Build.0 = Release|Win32
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release-NETSPEED_BUILD|x64.ActiveCfg = Release|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release-NETSPEED_BUILD|x64.Build.0 = Release|x64
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release-NETSPEED_BUILD|x86.ActiveCfg = Release|Win32
+-		{9AB256EC-593C-4485-95B2-D92B5FAF8C14}.Release-NETSPEED_BUILD|x86.Build.0 = Release|Win32
+ 	EndGlobalSection
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+ src/sw/noc_dev/prototype/NocStudio.vcxproj | 44 +++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/NocStudio.vcxproj b/src/sw/noc_dev/prototype/NocStudio.vcxproj
+index 131181ac31d..50bdc956046 100644
+--- a/src/sw/noc_dev/prototype/NocStudio.vcxproj
++++ b/src/sw/noc_dev/prototype/NocStudio.vcxproj
+@@ -65,11 +65,11 @@
+     <LinkIncremental>true</LinkIncremental>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+-    <QtInstall>Qt5.11.1</QtInstall>
++    <QtInstall>6.7.3_msvc2019_64</QtInstall>
+     <QtModules>core;gui;svg;widgets;printsupport</QtModules>
+   </PropertyGroup>
+   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+@@ -77,7 +77,7 @@
+   </ImportGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;release;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\6.7.3\msvc2019_64\include;C:\Qt\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt\6.7.3\msvc2019_64\include\QtSvg;C:\Qt\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt\6.7.3\msvc2019_64\include\QtGui;C:\Qt\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt\6.7.3\msvc2019_64\include\QtCore;release;C:\Qt\6.7.3\msvc2019_64\mkspecs\win32-msvc;../../lib/cpptcl-2.2.5;../../lib/tcl;../Infra/include/;../Isabelle/include/;../IPCore/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+       <AssemblerListingLocation>release\</AssemblerListingLocation>
+       <BrowseInformation>false</BrowseInformation>
+@@ -100,8 +100,8 @@
+       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+     </ClCompile>
+     <Link>
+-      <AdditionalDependencies>Shell32.lib;libEGL.lib;libGLESv2.lib;gdi32.lib;user32.lib;libcrvs.lib;libsb.lib;lmgr_dongle_stub.lib;libFNPload.lib;lmgr.lib;lmgr_trl.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;libredir_std.lib;lm_new.obj;Dhcpcsvc.lib;Shlwapi.lib;%(AdditionalDependencies);tcl86tsx.lib</AdditionalDependencies>
+-      <AdditionalLibraryDirectories>..\NocCore\releaseLib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(SolutionDir)$(Platform)\$(Configuration)\NocCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalDependencies>Shell32.lib;gdi32.lib;user32.lib;libcrvs.lib;libsb.lib;lmgr_dongle_stub.lib;libFNPload.lib;lmgr.lib;lmgr_trl.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;libredir_std.lib;lm_new.obj;Dhcpcsvc.lib;Shlwapi.lib;%(AdditionalDependencies);tcl86tsx.lib</AdditionalDependencies>
++      <AdditionalLibraryDirectories>..\NocCore\releaseLib;C:\Qt\6.7.3\msvc2019_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;$(SolutionDir)$(Platform)\$(Configuration)\NocCore.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+       <DataExecutionPrevention>true</DataExecutionPrevention>
+       <GenerateDebugInformation>Debug</GenerateDebugInformation>
+@@ -135,7 +135,7 @@
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../Infra/include;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtPrintSupport;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtSvg;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtWidgets;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtGui;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtANGLE;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\include\QtCore;debug;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\mkspecs\win32-msvc2015;../../lib/cpptcl-2.2.5/;../../lib/tcl/;../Isabelle/include;..\IPCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;../../lib/;../GUICore;../GUICore/Utils;../GUICore/DRC;../Infra/include;../include;.;../GUICore/Qtproperty;..\prototype;..\NocCore\include;..\prototype\Gui;..\prototype\Gui\Item;..\prototype\Gui\View;C:\Qt\6.7.3\msvc2019_64\include;C:\Qt\6.7.3\msvc2019_64\include\QtPrintSupport;C:\Qt\6.7.3\msvc2019_64\include\QtSvg;C:\Qt\6.7.3\msvc2019_64\include\QtWidgets;C:\Qt\6.7.3\msvc2019_64\include\QtGui;C:\Qt\6.7.3\msvc2019_64\include\QtANGLE;C:\Qt\6.7.3\msvc2019_64\include\QtCore;debug;C:\Qt\6.7.3\msvc2019_64\mkspecs\win32-msvc;../../lib/cpptcl-2.2.5/;../../lib/tcl/;../Isabelle/include;..\IPCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>$(FLEXCFLAGS) -Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+       <AssemblerListingLocation>debug\</AssemblerListingLocation>
+       <BrowseInformation>false</BrowseInformation>
+@@ -162,8 +162,8 @@
+       <FunctionLevelLinking>true</FunctionLevelLinking>
+     </ClCompile>
+     <Link>
+-      <AdditionalDependencies>Shell32.lib;libEGLd.lib;libGLESv2d.lib;gdi32.lib;user32.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;Dhcpcsvc.lib;Shlwapi.lib;tcl86tsgx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <AdditionalLibraryDirectories>..\IPCore\releaseLib;$(Platform)\$(Configuration)\IPCore.lib;C:\Qt\Qt5.11.1\5.11.1\msvc2017_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
++      <AdditionalDependencies>Shell32.lib;gdi32.lib;user32.lib;oldnames.lib;kernel32.lib;netapi32.lib;advapi32.lib;comdlg32.lib;comctl32.lib;wsock32.lib;shell32.lib;Rpcrt4.lib;oleaut32.lib;Ole32.lib;Wbemuuid.lib;wintrust.lib;crypt32.lib;Ws2_32.lib;psapi.lib;legacy_stdio_definitions.lib;Dhcpcsvc.lib;Shlwapi.lib;tcl86tsgx.lib;%(AdditionalDependencies)</AdditionalDependencies>
++      <AdditionalLibraryDirectories>..\IPCore\releaseLib;$(Platform)\$(Configuration)\IPCore.lib;C:\Qt\6.7.3\msvc2019_64\lib;..\..\lib\FlexLM\11.14.01\lib64;../../lib/tcl/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+       <DataExecutionPrevention>true</DataExecutionPrevention>
+       <GenerateDebugInformation>true</GenerateDebugInformation>
+@@ -263,7 +263,7 @@
+     </QtMoc>
+     <ClInclude Include="..\include\SysVerilogPEG.h" />
+     <QtMoc Include="Gui\Item\NsBridge.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <ClInclude Include="Gui\View\AddressrangeTable.h" />
+@@ -296,7 +296,7 @@
+     </QtMoc>
+     <ClInclude Include="Gui\Item\NsHost.h" />
+     <QtMoc Include="Gui\Item\NsBridgeDiagram.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\Item\NsVC.h">
+@@ -308,7 +308,7 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\Item\NsPlusItem.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsScene.h">
+@@ -369,7 +369,7 @@
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsChopView.h">
+-	   <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
++      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DynamicSource>
+       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DynamicSource>
+     </QtMoc>
+     <QtMoc Include="Gui\View\NsView.h">
+@@ -520,13 +520,13 @@ echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+     <ClCompile Include="debug\moc_NsBridgeDiagram.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+-	<ClCompile Include="debug\moc_NsBridge.cpp">
++    <ClCompile Include="debug\moc_NsBridge.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+-	<ClCompile Include="debug\moc_NsChopView.cpp">
++    <ClCompile Include="debug\moc_NsChopView.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+-	<ClCompile Include="debug\moc_NsPlusItem.cpp">
++    <ClCompile Include="debug\moc_NsPlusItem.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+     <ClCompile Include="debug\moc_CustomHighLightDialog.cpp">
+@@ -639,17 +639,17 @@ echo #include "stdafx.h"&gt;&gt;..\NocCore\include\stdafx.h.cpp</Command>
+     </ClCompile>
+     <ClCompile Include="debug\moc_worker.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+-   </ClCompile>
+-	<ClCompile Include="release\moc_NsBridgeDiagram.cpp">
++    </ClCompile>
++    <ClCompile Include="release\moc_NsBridgeDiagram.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-   </ClCompile>
+-	<ClCompile Include="release\moc_NsBridge.cpp">
++    </ClCompile>
++    <ClCompile Include="release\moc_NsBridge.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+-	<ClCompile Include="release\moc_NsChopView.cpp">
++    <ClCompile Include="release\moc_NsChopView.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+-   </ClCompile>
+-	<ClCompile Include="release\moc_NsPlusItem.cpp">
++    </ClCompile>
++    <ClCompile Include="release\moc_NsPlusItem.cpp">
+       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+     </ClCompile>
+     <ClCompile Include="release\moc_CustomHighLightDialog.cpp">
+ src/sw/noc_dev/prototype/NocStudio.vcxproj.filters | 26 +++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/NocStudio.vcxproj.filters b/src/sw/noc_dev/prototype/NocStudio.vcxproj.filters
+index a60c7b58176..0fcfc5991d8 100644
+--- a/src/sw/noc_dev/prototype/NocStudio.vcxproj.filters
++++ b/src/sw/noc_dev/prototype/NocStudio.vcxproj.filters
+@@ -213,6 +213,30 @@
+     <ClCompile Include="release\moc_worker.cpp">
+       <Filter>Source Files</Filter>
+     </ClCompile>
++    <ClCompile Include="debug\moc_NsBridgeDiagram.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="debug\moc_NsBridge.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="debug\moc_NsChopView.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="debug\moc_NsPlusItem.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="release\moc_NsBridgeDiagram.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="release\moc_NsBridge.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="release\moc_NsChopView.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
++    <ClCompile Include="release\moc_NsPlusItem.cpp">
++      <Filter>Source Files</Filter>
++    </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <ClInclude Include="..\include\SysVerilogPEG.h" />
+@@ -298,4 +322,4 @@
+       <ParseFiles>true</ParseFiles>
+     </Filter>
+   </ItemGroup>
+-</Project>
++</Project>
+\ No newline at end of file

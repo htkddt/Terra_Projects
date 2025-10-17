@@ -1,0 +1,132 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp        | 23 +++++++++++++++++++----
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 19 +++++++++++++++----
+ src/sw/noc_dev/prototype/Utils/initabwidget.cpp | 10 ++++++++++
+ src/sw/noc_dev/prototype/Utils/initabwidget.h   |  1 +
+ 4 files changed, 45 insertions(+), 8 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 43556ad7415..6b08b4f9580 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -3117,18 +3117,33 @@ void ToolTipAppDialog::closeEvent(QCloseEvent * event)
+     event->accept();
+ }
+ 
+-void ToolTipAppDialog::changeEvent(QEvent * event)
++void ToolTipAppDialog::changeEvent(QEvent* event)
+ {
+     if (event->type() == QEvent::WindowStateChange && isMinimized()) {
+         event->ignore();
+         if (isTable) {
+             unDocking = true;
+             emit unDockTable(windowTitle(), mW, 0);
+-        }
+-        else
++        } else {
+             emit b(mName, mContent, 0);
+-
++        }
+         this->close();
++    } else if (event->type() == QEvent::ActivationChange) {
++        auto mw = getMainWindow();
++        if (!mw) return;
++        if (isActiveWindow()) {
++            if (dynamic_cast<QTextBrowser*>(getMainWidget())) {
++                mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++            } else {
++                mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++            }
++        } else if (mw->isActiveWindow()) {
++            if (dynamic_cast<QTextBrowser*>(mw->displayPanel->currentWidget())) {
++                mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++            } else {
++                mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++            }
++        }
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 731f81e3226..5d4b2a4f6cf 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -3227,10 +3227,12 @@ void MainWindow::zoomOutAct()
+ 
+ void MainWindow::zoomSelectAct()
+ {
+-    if (instrumentsActMap[ZOOM_SELECTION]->isChecked()) {
+-        instrumentsActMap[ZOOM_SELECTION]->setChecked(false);
+-    } else {
+-        instrumentsActMap[ZOOM_SELECTION]->setChecked(true);
++    if (instrumentsActMap[ZOOM_SELECTION]->isEnabled()) {
++        if (instrumentsActMap[ZOOM_SELECTION]->isChecked()) {
++            instrumentsActMap[ZOOM_SELECTION]->setChecked(false);
++        } else {
++            instrumentsActMap[ZOOM_SELECTION]->setChecked(true);
++        }
+     }
+ }
+ 
+@@ -4459,6 +4461,12 @@ bool MainWindow::floatingTab(int index)
+ 
+     QString title = displayPanel->tabText(index);
+     auto w = displayPanel->widget(index);
++    auto tooltip = dynamic_cast<QTextBrowser*>(w);
++    if (tooltip) {
++        instrumentsActMap[ZOOM_SELECTION]->setEnabled(false);
++    } else {
++        instrumentsActMap[ZOOM_SELECTION]->setEnabled(true);
++    }
+ 
+     // prevent float tab
+     if (isDisplayingMeshView() || isDisplayingSocView()) return false;
+@@ -5879,6 +5887,9 @@ void MainWindow::enableControls(bool enable, bool hostCreation)
+     }
+ 
+     handleGrayFeatures();
++    if (dynamic_cast<QTextBrowser*>(displayPanel->currentWidget())) {
++        instrumentsActMap[ZOOM_SELECTION]->setEnabled(false);
++    }
+ 
+     // handle state instruments action in view mode.
+     if (instrumentsActMap[TOGGLE_CLOCK_DOMAIN_VIEW]->isChecked() ||
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+index 125ed1540ed..03b02c641b3 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+@@ -22,6 +22,7 @@ INITabWidget::INITabWidget(MainWindow* parent)
+     connect(tb, SIGNAL(floatThis()), this, SIGNAL(floatThis()));
+     connect(tb, SIGNAL(floatAll()), this, SIGNAL(floatAll()));
+     connect(tb, SIGNAL(tabClicked(int)), this, SIGNAL(tabClicked(int)));
++    connect(tb, SIGNAL(tabClicked(int)), this, SLOT(tabClickedAct(int)));
+     connect(tb, SIGNAL(renameTab()), this, SIGNAL(renameTab()));
+     connect(this, SIGNAL(currentChanged(int)), this, SLOT(onTabChanged(int)));
+     connect(this, SIGNAL(tabIsActive(const QString&)), mw, SLOT(onReloadTabContent(const QString&)));
+@@ -34,6 +35,15 @@ void INITabWidget::dockTab(int index)
+     emit tabDocked(index);
+ }
+ 
++void INITabWidget::tabClickedAct(int index)
++{
++    if (dynamic_cast<QTextBrowser*>(mw->displayPanel->widget(index))) {
++        mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++    } else {
++        mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++    }
++}
++
+ void INITabWidget::onTabChanged(int index)
+ {
+     QString tabName = tabText(index);
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.h b/src/sw/noc_dev/prototype/Utils/initabwidget.h
+index b4b13ce0c14..654f60a3799 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.h
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.h
+@@ -21,6 +21,7 @@ protected:
+ public slots:
+     void dockTab(int index);
+     void onTabChanged(int index);
++    void tabClickedAct(int index);
+ 
+ signals:
+     void tabDocked(int index);

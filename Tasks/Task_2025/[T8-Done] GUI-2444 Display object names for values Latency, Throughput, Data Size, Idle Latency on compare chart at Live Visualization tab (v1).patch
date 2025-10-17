@@ -1,0 +1,94 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     | 17 ++++++++++++++---
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 17 ++++++++++++++---
+ 2 files changed, 28 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 188c8594d41..05de26af404 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3235,9 +3235,15 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                 QString lbl = customPlot->axisRect(0)->axes()[i]->label();
+                 if (lbl.contains("Time") || lbl.contains("Idle Latency")) continue;
+                 double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->localPos().y());
++                QColor colorGraph = QColor();
++                QString styleGraph = QString();
+                 for (graphix = 0; graphix < customPlot->graphCount(); graphix++) {
+                     if (!customPlot->graph(graphix)->visible()) continue;
+                     if (!customPlot->graph(graphix)->data()) continue;
++                    if (customPlot->plottable(graphix)) {
++                        colorGraph = customPlot->plottable(graphix)->pen().color();
++                        styleGraph = "<span style='color:" + colorGraph.name() + "; font-weight:bold'>------- </span>";
++                    }
+                     QCPData dat = customPlot->graph(graphix)->data()->lowerBound(coord).value();
+                     float cc    = dat.value - coordy;
+                     if (cc >= 0 && cc <= dat.value / 10)  // Inside the graph
+@@ -3247,8 +3253,12 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                         if (lbl.contains("Data") && !eg.pkt_size) continue;
+                         if (lbl.contains("Throughput") && !eg.throughput) continue;
+                         hasMessage = true;
+-                        msg = msg + lbl + ":";
+-                        msg = msg + QString::number(dat.value) + "\n";
++                        if (msg.split("<span").size() > 50) {
++                            msg = msg + "...";
++                            break;
++                        }
++                        msg = msg + "<div style='white-space:nowrap;'>" + styleGraph + lbl + ":";
++                        msg = msg + QString::number(dat.value) + "</div>";
+                     } else if (cc < 0) {
+                         outside = true;
+                         outsidecnt++;
+@@ -3760,7 +3770,8 @@ void PropertyPanel::initComparisonPlot(QString name, QCustomPlot * customPlot, P
+     wideAxisRect->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
+     legend->setLayer("legend");
+     for (int i = 0; i < customPlot->plottableCount(); i += 3) {
+-        if (i == 36) {
++        if (customPlot->plottable(i)->pen().color().alpha() == 0) continue;
++        if (i == 33) {
+             if (customPlot->plottable(i)) {
+                 auto plot = customPlot->plottable(i);
+                 plot->setName("...");
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index f7668464928..31368613800 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -3236,9 +3236,15 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                 QString lbl = customPlot->axisRect(0)->axes()[i]->label();
+                 if (lbl.contains("Time") || lbl.contains("Idle Latency")) continue;
+                 double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->localPos().y());
++                QColor colorGraph = QColor();
++                QString styleGraph = QString();
+                 for (graphix = 0; graphix < customPlot->graphCount(); graphix++) {
+                     if (!customPlot->graph(graphix)->visible()) continue;
+                     if (!customPlot->graph(graphix)->data()) continue;
++                    if (customPlot->plottable(graphix)) {
++                        colorGraph = customPlot->plottable(graphix)->pen().color();
++                        styleGraph = "<span style='color:" + colorGraph.name() + "; font-weight:bold'>------- </span>";
++                    }
+                     QCPData dat = customPlot->graph(graphix)->data()->lowerBound(coord).value();
+                     float cc    = dat.value - coordy;
+                     if (cc >= 0 && cc <= dat.value / 10)  // Inside the graph
+@@ -3248,8 +3254,12 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+                         if (lbl.contains("Data") && !eg.pkt_size) continue;
+                         if (lbl.contains("Throughput") && !eg.throughput) continue;
+                         hasMessage = true;
+-                        msg        = msg + lbl + ":";
+-                        msg        = msg + QString::number(dat.value) + "\n";
++                        if (msg.split("<span").size() > 50) {
++                            msg = msg + "...";
++                            break;
++                        }
++                        msg = msg + "<div style='white-space:nowrap;'>" + styleGraph + lbl + ":";
++                        msg = msg + QString::number(dat.value) + "</div>";
+                     } else if (cc < 0) {
+                         outside = true;
+                         outsidecnt++;
+@@ -3761,7 +3771,8 @@ void PropertyPanel::initComparisonPlot(QString name, QCustomPlot * customPlot, P
+     wideAxisRect->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
+     legend->setLayer("legend");
+     for (int i = 0; i < customPlot->plottableCount(); i += 3) {
+-        if (i == 36) {
++        if (customPlot->plottable(i)->pen().color().alpha() == 0) continue;
++        if (i == 33) {
+             if (customPlot->plottable(i)) {
+                 auto plot = customPlot->plottable(i);
+                 plot->setName("...");

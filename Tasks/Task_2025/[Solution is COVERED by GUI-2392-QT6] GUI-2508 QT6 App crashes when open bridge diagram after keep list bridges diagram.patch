@@ -1,0 +1,92 @@
+ .../noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp | 45 +++++++++++-----------
+ .../noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp  |  1 -
+ 2 files changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp
+index 54471db9692..a0b2c71940e 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsBridgeDiagram.cpp
+@@ -736,20 +736,21 @@ NsBridgeDiagram::NsBridgeDiagram(NetSpeed::Bridge * b, QGraphicsItem * p) : QGra
+     }
+ }
+ 
+-NsBridgeDiagram::~NsBridgeDiagram() {
++NsBridgeDiagram::~NsBridgeDiagram()
++{
+     if (mesh && dynamic_cast<NsMeshViewScene*>(scene()))
+         mesh->setZValue(NsMeshViewScene::MESH_ORDER);
+     if (auto parent = parentItem()) {
+         if (auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+             host->setZValue(NsMeshViewScene::HOST_ORDER);
+         parent->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
+-            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                if (diagram->getMulBris()) {
+-                    diagram->getMulBris()->removeBridgeDiagram(this);
+-                }
++    }
++    auto pItem = parentBridge->parentItem();
++    if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
++        pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++            if (diagram->getMulBris()) {
++                diagram->getMulBris()->removeBridgeDiagram(this);
+             }
+         }
+     }
+@@ -1747,13 +1748,13 @@ NsRegbusRing::~NsRegbusRing()
+         if(auto host = dynamic_cast<NsNormalHost*>(p->parentItem()))
+             host->setZValue(NsMeshViewScene::HOST_ORDER);
+         p->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
+-            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                if (diagram->getMulBris()) {
+-                    diagram->getMulBris()->removeBridgeDiagram(this);
+-                }
++    }
++    auto pItem = parentBridge->parentItem();
++    if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
++        pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++            if (diagram->getMulBris()) {
++                diagram->getMulBris()->removeBridgeDiagram(this);
+             }
+         }
+     }
+@@ -2748,13 +2749,13 @@ NsRSSBDiagram::~NsRSSBDiagram()
+         if (auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+             host->setZValue(NsMeshViewScene::HOST_ORDER);
+         parent->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
+-            if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                if (diagram->getMulBris()) {
+-                    diagram->getMulBris()->removeBridgeDiagram(this);
+-                }
++    }
++    auto pItem = parentBridge->parentItem();
++    if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
++        pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++            if (diagram->getMulBris()) {
++                diagram->getMulBris()->removeBridgeDiagram(this);
+             }
+         }
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 3c4540ec689..a7254d46233 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -930,7 +930,6 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         for (auto& item : items()) {
+             if (is_diagram(item)) {
+                 to_be_deleted.push_back(item);
+-                mw->removeDiagramItem(item);
+             }
+         }
+         qDeleteAll(to_be_deleted);

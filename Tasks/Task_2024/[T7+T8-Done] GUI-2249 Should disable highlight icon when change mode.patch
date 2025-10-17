@@ -1,0 +1,22 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a3b97d5fe85..f665749270e 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2175,9 +2175,11 @@ void MainWindow::toggleLinkBlockageAct(bool state)
+ 
+ void MainWindow::toggleNocViewAct()
+ {
+-    nsWorkArea->setViewMode(NsScene::NOC);
+-    // Set none instrument to active
+-    instrumentsActMap[NONE_INSTRUMENT]->setChecked(true);
++    if (displayPanel->currentIndex() == 0) {
++        nsWorkArea->setViewMode(NsScene::NOC);
++        // Set none instrument to active
++        instrumentsActMap[NONE_INSTRUMENT]->setChecked(true);
++    }
+ }
+ 
+ void MainWindow::grayOutActions(bool val)

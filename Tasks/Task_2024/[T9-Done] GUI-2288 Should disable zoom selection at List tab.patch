@@ -1,0 +1,62 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp        | 23 +++++++++++++++++++++++
+ src/sw/noc_dev/prototype/Utils/initabwidget.cpp | 13 +++++++++++++
+ 2 files changed, 36 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index effd411c7ea..04b0b326c9b 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -3114,6 +3114,29 @@ void ToolTipAppDialog::closeEvent(QCloseEvent * event)
+         emit closeTable(mName, mW);
+     }
+ 
++    if (!mainWindow) return;
++    if (isActiveWindow()) {
++        if (dynamic_cast<QTextBrowser*>(getMainWidget())) {
++            mainWindow->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++        } else {
++            mainWindow->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++        }
++    } else if (mainWindow->isActiveWindow()) {
++        if (dynamic_cast<QTextBrowser*>(mainWindow->displayPanel->currentWidget())) {
++            mainWindow->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++        } else {
++            mainWindow->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++        }
++    } else {
++        if (mainWindow->getTooltipDialogs().size() > 0) {
++            auto toolTipWidget = dynamic_cast<ToolTipAppDialog*>(mainWindow->getTooltipDialogs().last());
++            if (dynamic_cast<QTextBrowser*>(toolTipWidget->getMainWidget())) {
++                mainWindow->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++            } else {
++                mainWindow->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++            }
++        }
++    }
+     event->accept();
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+index 03b02c641b3..19b3606a0b0 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+@@ -58,6 +58,19 @@ void INITabWidget::onTabChanged(int index)
+         }
+ 
+         emit tabIsActive(tabName);
++
++        auto zoomSelectionAct = mw->getInstrumentsActMap()[ZOOM_SELECTION];
++        if (zoomSelectionAct) {
++            if (dynamic_cast<QTextBrowser*>(mw->displayPanel->currentWidget())) {
++                mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(false);
++            } else {
++                mw->getInstrumentsActMap()[ZOOM_SELECTION]->setEnabled(true);
++                if (zoomSelectionAct->isChecked()) {
++                    mw->setZoomSelectionCursorState();
++                }
++            }
++        }
++
+         auto view = mw->getNsWorkArea();
+         if (!view) return;
+         auto scene = dynamic_cast<NsNocViewScene*>(view->scene());

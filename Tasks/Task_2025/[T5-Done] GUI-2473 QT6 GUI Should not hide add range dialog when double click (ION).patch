@@ -1,0 +1,139 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp        | 12 +++++++++++-
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 18 ++++--------------
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp    | 16 +++++++++++++---
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 18 ++++--------------
+ 4 files changed, 32 insertions(+), 32 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 802c4f48db1..5b140cee082 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -2202,7 +2202,17 @@ AddRangeToAXISlavesDialog::AddRangeToAXISlavesDialog(NetSpeed::Grid * grid, QWid
+     mainLayout->addLayout(buttonLayout);
+     setLayout(mainLayout);
+ 
+-    connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
++    connect(okButton, &QPushButton::clicked, this, [&]() {
++        bool isRangeNameEmpty = getRangeName().isEmpty();
++        bool isAddressEmpty = getAddress().isEmpty();
++        if (isRangeNameEmpty && isAddressEmpty) QMessageBox::warning(this, "Error", "Please enter the range name and the address range.");
++        else if (isRangeNameEmpty) QMessageBox::warning(this, "Error", "Please enter the range name.");
++        else if (isAddressEmpty) QMessageBox::warning(this, "Error", "Please enter the address range.");
++
++        if (!isRangeNameEmpty && !isAddressEmpty) {
++            accept();
++        }
++    });
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+     setWindowFlags(getFlagsDialog());
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 6d6b8b6303e..3f60ae2f014 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -5154,19 +5154,10 @@ void MainWindow::addRangeToAXISlavesAct()
+     AddRangeToAXISlavesDialog* addRangeToAXISlavesDialog = new AddRangeToAXISlavesDialog(grid, this, slaveNames);
+     setStayOnTopDesignReview(addRangeToAXISlavesDialog);
+ 
+-    while (addRangeToAXISlavesDialog->exec()) {
+-        // validate range name && address
+-        bool isRangeNameEmpty = addRangeToAXISlavesDialog->getRangeName().isEmpty();
+-        bool isAddressEmpty = addRangeToAXISlavesDialog->getAddress().isEmpty();
+-        if (isRangeNameEmpty) QMessageBox::warning(this, "Error", "Please input range name");
+-        if (isAddressEmpty) QMessageBox::warning(this, "Error", "Please input address");
+-
++    if (addRangeToAXISlavesDialog->exec() == QDialog::Accepted) {
+         // excute command add_range
+-        if (!isRangeNameEmpty && !isAddressEmpty) {
+-            QString cmd = QString(CMD_ADD_RANGE) + addRangeToAXISlavesDialog->getValues();
+-            console->applyCmd(cmd);
+-            break;
+-        }
++        QString cmd = QString(CMD_ADD_RANGE) + addRangeToAXISlavesDialog->getValues();
++        console->applyCmd(cmd);
+     }
+ }
+ 
+@@ -5201,8 +5192,7 @@ void MainWindow::addRangeToAXIMasterAct()
+     // Create Dialog
+     AddRangeToAXIMasterDialog* addRangeMasterDialog = new AddRangeToAXIMasterDialog(this, masterNames, rangeNames);
+     setStayOnTopDesignReview(addRangeMasterDialog);
+-    if (addRangeMasterDialog->exec())
+-    {
++    if (addRangeMasterDialog->exec() == QDialog::Accepted) {
+         //add_range_to_master <master name> [disabled] <range name>+
+         QString cmd = "add_range_to_master " + addRangeMasterDialog->getValues();
+         console->applyCmd(cmd);
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index e48e00e3c1d..5bfc5e02539 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -2216,10 +2216,20 @@ AddRangeToAXISlavesDialog::AddRangeToAXISlavesDialog(NetSpeed::Grid * grid, QWid
+     mainLayout->addLayout(buttonLayout);
+     setLayout(mainLayout);
+ 
+-    connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
++    connect(okButton, &QPushButton::clicked, this, [&]() {
++        bool isRangeNameEmpty = getRangeName().isEmpty();
++        bool isAddressEmpty = getAddress().isEmpty();
++        if (isRangeNameEmpty && isAddressEmpty) QMessageBox::warning(this, "Error", "Please enter the range name and the address range.");
++        else if (isRangeNameEmpty) QMessageBox::warning(this, "Error", "Please enter the range name.");
++        else if (isAddressEmpty) QMessageBox::warning(this, "Error", "Please enter the address range.");
++
++        if (!isRangeNameEmpty && !isAddressEmpty) {
++            accept();
++        }
++    });
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_ADD_RANGE);
+     setWindowIcon(QIcon(ICON_NOC_M1));
+     //resize dialog
+@@ -2403,7 +2413,7 @@ AddRangeToAXIMasterDialog::AddRangeToAXIMasterDialog(QWidget * parent, QStringLi
+         
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+     setModal(true);
+-    setWindowFlags(getFlagsDialog());
++    setWindowFlags(getFlagsDialog() | Qt::Tool);
+     setWindowTitle(CMD_ADD_RANGE_TO_MASTER);
+     setWindowIcon(QIcon(ICON_NOC_M1));
+     /* the widget does not accept focus. */
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index d9aea23871d..d5ad56f70c1 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -5156,19 +5156,10 @@ void MainWindow::addRangeToAXISlavesAct()
+     AddRangeToAXISlavesDialog* addRangeToAXISlavesDialog = new AddRangeToAXISlavesDialog(grid, this, slaveNames);
+     setStayOnTopDesignReview(addRangeToAXISlavesDialog);
+ 
+-    while (addRangeToAXISlavesDialog->exec()) {
+-        // validate range name && address
+-        bool isRangeNameEmpty = addRangeToAXISlavesDialog->getRangeName().isEmpty();
+-        bool isAddressEmpty = addRangeToAXISlavesDialog->getAddress().isEmpty();
+-        if (isRangeNameEmpty) QMessageBox::warning(this, "Error", "Please input range name");
+-        if (isAddressEmpty) QMessageBox::warning(this, "Error", "Please input address");
+-
++    if (addRangeToAXISlavesDialog->exec() == QDialog::Accepted) {
+         // excute command add_range
+-        if (!isRangeNameEmpty && !isAddressEmpty) {
+-            QString cmd = QString(CMD_ADD_RANGE) + addRangeToAXISlavesDialog->getValues();
+-            console->applyCmd(cmd);
+-            break;
+-        }
++        QString cmd = QString(CMD_ADD_RANGE) + addRangeToAXISlavesDialog->getValues();
++        console->applyCmd(cmd);
+     }
+ }
+ 
+@@ -5203,8 +5194,7 @@ void MainWindow::addRangeToAXIMasterAct()
+     // Create Dialog
+     AddRangeToAXIMasterDialog* addRangeMasterDialog = new AddRangeToAXIMasterDialog(this, masterNames, rangeNames);
+     setStayOnTopDesignReview(addRangeMasterDialog);
+-    if (addRangeMasterDialog->exec())
+-    {
++    if (addRangeMasterDialog->exec() == QDialog::Accepted) {
+         //add_range_to_master <master name> [disabled] <range name>+
+         QString cmd = "add_range_to_master " + addRangeMasterDialog->getValues();
+         console->applyCmd(cmd);

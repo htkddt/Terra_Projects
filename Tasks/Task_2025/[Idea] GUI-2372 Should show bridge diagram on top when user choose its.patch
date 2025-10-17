@@ -1,0 +1,430 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp  | 17 +++-
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     | 45 +++++++++-
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 98 ++++++++++++++--------
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.h   |  1 +
+ .../prototype/Gui/Item/NsMultipleBridges.cpp       | 39 ++++++---
+ .../noc_dev/prototype/Gui/Item/NsMultipleBridges.h |  5 ++
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        | 14 +++-
+ 7 files changed, 170 insertions(+), 49 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+index 7a223e017fb..3bb90af23f4 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsArrowItem.cpp
+@@ -1,6 +1,7 @@
+ #include "NsArrowItem.h"
+ #include "../mainwindow.h"
+ #include "NsBridgeDiagram.h"
++#include "NsMultipleBridges.h"
+ #include "NsTypes.h"
+ #include <QMenu>
+ #include <QGraphicsSceneContextMenuEvent>
+@@ -172,7 +173,21 @@ void NsArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* /*event*/)
+     else if(iFCE) propertyPanel->showInterfacePropertyOnSelectionTab(iFCE);
+     propertyPanel->raiseSelectionTab();
+     mw->raiseTooltipTab();
+-    mw->updateZValueOfListDiagrams(this->parentItem());
++    auto rssbDiagram = dynamic_cast<NsRSSBDiagram*>(this->parentItem());
++    if (rssbDiagram) {
++        if (auto guiBridge = rssbDiagram->getGuiBridge()) {
++            if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
++                if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
++                    if (diagram->getMulBris()) {
++                        mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                        diagram->getMulBris()->updateZValueOfListBridgeDiagram(this->parentItem());
++                    }
++                }
++            } else {
++                mw->updateZValueOfListDiagrams(this->parentItem());
++            }
++        }
++    }
+ }
+ 
+ void NsArrowItem::hoverEnterEvent(QGraphicsSceneHoverEvent* /*event*/)
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index 4e2652c3ff9..591904a90e9 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -19,6 +19,7 @@
+ #include "mainwindow.h"
+ #include "Power.h"
+ #include "NsBridgeDiagram.h"
++#include "NsMultipleBridges.h"
+ #include <QApplication>
+ #include <QGraphicsSceneMouseEvent>
+ #include "ClockDomain.h"
+@@ -423,10 +424,28 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+                     auto it = rbRings[node_id];
+                     if (!it.empty()) {
+                         auto diagram = new NsRegbusRing(bridge, node_id, this);
+-                        mw->appendListDiagrams(diagram);
++                        //mw->appendListDiagrams(diagram);
++                        if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                            if (auto mulBrisDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                                if (auto mulBris = mulBrisDiagram->getMulBris()) {
++                                    mulBris->appendBridgeDiagram(diagram);
++                                }
++                            }
++                        } else {
++                            mw->appendListDiagrams(diagram);
++                        }
+                     } else if (bridgeHasRSSB) {
+                         auto diagram = new NsRSSBDiagram(bridge, this);
+-                        mw->appendListDiagrams(diagram);
++                        //mw->appendListDiagrams(diagram);
++                        if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                            if (auto mulBrisDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                                if (auto mulBris = mulBrisDiagram->getMulBris()) {
++                                    mulBris->appendBridgeDiagram(diagram);
++                                }
++                            }
++                        } else {
++                            mw->appendListDiagrams(diagram);
++                        }
+                     }
+                 }
+             } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() &&
+@@ -435,10 +454,28 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+                        !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked()) {
+                 if (bridgeHasRSSB) {
+                     auto diagram = new NsRSSBDiagram(bridge, this);
+-                    mw->appendListDiagrams(diagram);
++                    //mw->appendListDiagrams(diagram);
++                    if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                        if (auto mulBrisDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                            if (auto mulBris = mulBrisDiagram->getMulBris()) {
++                                mulBris->appendBridgeDiagram(diagram);
++                            }
++                        }
++                    } else {
++                        mw->appendListDiagrams(diagram);
++                    }
+                 } else {
+                     auto diagram = new NsBridgeDiagram(bridge, this);
+-                    mw->appendListDiagrams(diagram);
++                    //mw->appendListDiagrams(diagram);
++                    if (this->parentItem()->type() == MULTIPLE_BRIDGE) {
++                        if (auto mulBrisDiagram = dynamic_cast<NsMultipleBridgesDiagram*>(this->parentItem())) {
++                            if (auto mulBris = mulBrisDiagram->getMulBris()) {
++                                mulBris->appendBridgeDiagram(diagram);
++                            }
++                        }
++                    } else {
++                        mw->appendListDiagrams(diagram);
++                    }
+                 }
+                 bridgeContextMenu(this, bridge, meshScene->getMenuDirection());
+             }
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index 9d6794b23aa..559c6325c83 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -710,20 +710,21 @@ NsBridgeDiagram::NsBridgeDiagram(NetSpeed::Bridge * b, QGraphicsItem * p) : QGra
+     initData();
+ 
+     if (pItem) {
++        bool ok;
++        setParentItem(nullptr);
++        setZValue(NsMeshViewScene::HIGHEST_ORDER);
+         if (pItem->type() != MULTIPLE_BRIDGE) {
+-            bool ok;
+-            auto mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+-            setParentItem(nullptr);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             auto transform = mesh->itemTransform(this, &ok);
+             if (ok) setTransform(transform);
+             diagramLine = new NsBridgeDiagramLine(scenePos().toPoint() + arrowPos, this);
+         } else {
+-            pItem->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+-            diagramLine = new NsBridgeDiagramLine(arrowPos, this);
++            auto transform = guiBridge->itemTransform(this, &ok);
++            if (ok) setTransform(transform);
++            diagramLine = new NsBridgeDiagramLine(guiBridge->scenePos().toPoint() + arrowPos, this);
+             if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                if (diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                }
+             }
+         }
+     }
+@@ -736,9 +737,14 @@ NsBridgeDiagram::~NsBridgeDiagram()
+         if(auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+             host->setZValue(NsMeshViewScene::HOST_ORDER);
+         parent->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = parent->parentItem();
+-        if (pItem->type() == MULTIPLE_BRIDGE) {
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++    }
++    auto pItem = guiBridge->parentItem();
++    if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
++        pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++            if (diagram->getMulBris()) {
++                diagram->getMulBris()->removeBridgeDiagram(this);
++            }
+         }
+     }
+     if (diagramLine) diagramLine->hide();
+@@ -754,7 +760,10 @@ void NsBridgeDiagram::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+     if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
+         if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
+-            mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            if (diagram->getMulBris()) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                diagram->getMulBris()->updateZValueOfListBridgeDiagram(this);
++            }
+         }
+     } else {
+         mw->updateZValueOfListDiagrams(this);
+@@ -1656,20 +1665,21 @@ NsRegbusRing::NsRegbusRing(NetSpeed::Bridge * b, NetSpeed::Node_id regbus_ring_p
+     initData();
+ 
+     if (pItem) {
++        bool ok;
++        setParentItem(nullptr);
++        setZValue(NsMeshViewScene::HIGHEST_ORDER);
+         if (pItem->type() != MULTIPLE_BRIDGE) {
+-            bool ok;
+-            auto mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+-            setParentItem(nullptr);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             auto transform = mesh->itemTransform(this, &ok);
+             if (ok) setTransform(transform);
+             diagramLine = new NsBridgeDiagramLine(scenePos().toPoint() + arrowPos, this);
+         } else {
+-            pItem->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+-            diagramLine = new NsBridgeDiagramLine(arrowPos, this);
++            auto transform = guiBridge->itemTransform(this, &ok);
++            if (ok) setTransform(transform);
++            diagramLine = new NsBridgeDiagramLine(guiBridge->scenePos().toPoint() + arrowPos, this);
+             if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                if (diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                }
+             }
+         }
+     }
+@@ -1683,6 +1693,15 @@ NsRegbusRing::~NsRegbusRing()
+             host->setZValue(NsMeshViewScene::HOST_ORDER);
+         p->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+     }
++    auto pItem = guiBridge->parentItem();
++    if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
++        pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++            if (diagram->getMulBris()) {
++                diagram->getMulBris()->removeBridgeDiagram(this);
++            }
++        }
++    }
+     if (diagramLine) diagramLine->hide();
+     if (mw) mw->removeDiagramItem(this);
+ }
+@@ -1837,7 +1856,10 @@ void NsRegbusRing::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ {
+     if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
+         if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
+-            mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            if (diagram->getMulBris()) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                diagram->getMulBris()->updateZValueOfListBridgeDiagram(this);
++            }
+         }
+     } else {
+         mw->updateZValueOfListDiagrams(this);
+@@ -2591,20 +2613,21 @@ NsRSSBDiagram::NsRSSBDiagram(NetSpeed::Bridge *bridge, QGraphicsItem *parent):
+ 
+     auto pItem = guiBridge->parentItem();
+     if (pItem) {
++        bool ok;
++        setParentItem(nullptr);
++        setZValue(NsMeshViewScene::HIGHEST_ORDER);
+         if (pItem->type() != MULTIPLE_BRIDGE) {
+-            bool ok;
+-            auto mesh = getFirst<NsMesh>(guiBridge->collidingItems(), MESH);
+-            setParentItem(nullptr);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+             auto transform = mesh->itemTransform(this, &ok);
+             if (ok) setTransform(transform);
+             diagramLine = new NsBridgeDiagramLine(scenePos().toPoint() + arrowPos, this);
+         } else {
+-            pItem->setZValue(NsMeshViewScene::HIGHEST_ORDER);
+-            setZValue(NsMeshViewScene::HIGHEST_ORDER);
+-            diagramLine = new NsBridgeDiagramLine(arrowPos, this);
++            auto transform = guiBridge->itemTransform(this, &ok);
++            if (ok) setTransform(transform);
++            diagramLine = new NsBridgeDiagramLine(guiBridge->scenePos().toPoint() + arrowPos, this);
+             if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
+-                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                if (diagram->getMulBris()) {
++                    mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                }
+             }
+         }
+     }
+@@ -2629,9 +2652,15 @@ NsRSSBDiagram::~NsRSSBDiagram()
+         if (auto host = dynamic_cast<NsNormalHost*>(parent->parentItem()))
+             host->setZValue(NsMeshViewScene::HOST_ORDER);
+         parent->setZValue(NsMeshViewScene::BRIDGE_ORDER);
+-        auto pItem = guiBridge->parentItem();
+-        if (pItem && pItem->type() == MULTIPLE_BRIDGE)
+-            pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++    }
++    auto pItem = guiBridge->parentItem();
++    if (pItem && pItem->type() == MULTIPLE_BRIDGE) {
++        pItem->setZValue(NsMeshViewScene::DIAGRAM_ORDER);
++        if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(pItem)) {
++            if (diagram->getMulBris()) {
++                diagram->getMulBris()->removeBridgeDiagram(this);
++            }
++        }
+     }
+     if (diagramLine) diagramLine->hide();
+     if (mw) mw->removeDiagramItem(this);
+@@ -3424,7 +3453,10 @@ void NsRSSBDiagram::mousePressEvent(QGraphicsSceneMouseEvent *event)
+ {
+     if (guiBridge->parentItem()->type() == MULTIPLE_BRIDGE) {
+         if (auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(guiBridge->parentItem())) {
+-            mw->updateZValueOfListDiagrams(diagram->getMulBris());
++            if (diagram->getMulBris()) {
++                mw->updateZValueOfListDiagrams(diagram->getMulBris());
++                diagram->getMulBris()->updateZValueOfListBridgeDiagram(this);
++            }
+         }
+     } else {
+         mw->updateZValueOfListDiagrams(this);
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+index 3637ae61466..ef6cf710dcb 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.h
+@@ -432,6 +432,7 @@ public:
+     std::string m_name;
+     int m_layerId;
+     QGraphicsItem* parentBridge = nullptr;
++    QGraphicsItem* getGuiBridge() { return guiBridge; }
+     void showTooltip(std::string arrowName);
+ private:
+     /*Rssb Bridge*/
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index e0d5a3e0f46..d7526c053cb 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -145,6 +145,35 @@ void NsMultipleBridges::visibleChanged(bool b)
+     }
+ }
+ 
++void NsMultipleBridges::appendBridgeDiagram(QGraphicsItem* diagram)
++{
++    int index = listBridgeDiagram.indexOf(diagram);
++    if (index < 0) listBridgeDiagram.append(diagram);
++    qDebug() << "Append Multi:" << listBridgeDiagram.size();
++    updateZValueOfListBridgeDiagram(diagram);
++}
++
++void NsMultipleBridges::removeBridgeDiagram(QGraphicsItem* diagram)
++{
++    auto index = listBridgeDiagram.indexOf(diagram);
++    if (index < 0) return;
++    listBridgeDiagram.removeAt(index);
++    qDebug() << "Remove Multi:" << listBridgeDiagram.size();
++}
++
++void NsMultipleBridges::updateZValueOfListBridgeDiagram(QGraphicsItem* diagram)
++{
++    if (listBridgeDiagram.isEmpty()) return;
++    int itemIndex = listBridgeDiagram.indexOf(diagram);
++    if (itemIndex == -1) return;
++    // Move diagram to end of list
++    listBridgeDiagram.move(itemIndex, listBridgeDiagram.count() - 1);
++    int z_priority = this->zValue();
++    for (auto& diagram : listBridgeDiagram) {
++        diagram->setZValue(++z_priority);
++    }
++}
++
+ NsMultipleBridgesDiagram::NsMultipleBridgesDiagram(QString name, int width, int height, QGraphicsItem* mesh, NsMultipleBridges* _mulBris)
+ : name(name), mesh(mesh), mulBris(_mulBris)
+ {
+@@ -252,16 +281,6 @@ void NsMultipleBridgesDiagram::ensureBrVisible(QString brName)
+ QVariant NsMultipleBridgesDiagram::itemChange(GraphicsItemChange change, const QVariant& value)
+ {
+     if ((change == QGraphicsItem::ItemPositionChange) && diagramLine) {
+-        auto offset  = value.toPointF() - pos();
+-        if (!childItems().isEmpty()) {
+-            for (auto& item : childItems()) {
+-                for (auto& it : item->childItems()) {
+-                    if (NetSpeed::is_member(it->type(), {BRIDGE_DIAGRAM, RING_VISUALIZATION})) {
+-                        it->setPos(it->pos() - offset);
+-                    }
+-                }
+-            }
+-        }
+         diagramLine->moveLineToPosition(scenePos());
+     } else if (change == QGraphicsItem::ItemVisibleChange && diagramLine) {
+         diagramLine->setLineVisible(value.toBool());
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+index b51f188ef01..456ac6143c5 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.h
+@@ -27,6 +27,10 @@ public:
+     NsMultipleBridges();
+     NsMultipleBridges(const QPoint pos, const QVector<NetSpeed::Bridge*>& bridges, NetSpeed::Layer_id layerID, QGraphicsItem* parent = nullptr, bool isChopView = false);
+     ~NsMultipleBridges();
++    void appendBridgeDiagram(QGraphicsItem* diagram);
++    void removeBridgeDiagram(QGraphicsItem* diagram);
++    void updateZValueOfListBridgeDiagram(QGraphicsItem* diagram);
++    QList<QGraphicsItem*> getListBridgeDiagram() { return listBridgeDiagram; }
+ 
+ public slots:
+     void visibleChanged(bool);
+@@ -37,6 +41,7 @@ protected:
+ 
+ private:
+     int parentOrder = 0;
++    QList<QGraphicsItem*> listBridgeDiagram;
+ };
+ 
+ class NsBridgeLabel : public QGraphicsTextItem
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 2cc13b4e0b4..f35c30bfde8 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -9253,12 +9253,23 @@ void MainWindow::updateZValueOfListDiagrams(QGraphicsItem* diagram)
+     int z_priority = NsMeshViewScene::HIGHEST_ORDER;
+     for (auto& diagram : listDiagrams) {
+         diagram->setZValue(++z_priority);
++        if (diagram->type() != MULTIPLE_BRIDGE) continue;
++        if (auto mulBris = dynamic_cast<NsMultipleBridges*>(diagram)) {
++            if (!mulBris->getListBridgeDiagram().isEmpty()) {
++                z_priority += mulBris->getListBridgeDiagram().size();
++                for (auto& brDiagram : mulBris->getListBridgeDiagram()) {
++                    mulBris->updateZValueOfListBridgeDiagram(brDiagram);
++                }
++            }
++        }
+     }
+ }
+ 
+ void MainWindow::appendListDiagrams(QGraphicsItem* item)
+ {
+-    listDiagrams.append(item);
++    int index = listDiagrams.indexOf(item);
++    if (index < 0) listDiagrams.append(item);
++    qDebug() << "Append Main:" << listDiagrams.size();
+     updateZValueOfListDiagrams(item);
+ }
+ 
+@@ -9267,6 +9278,7 @@ void MainWindow::removeDiagramItem(QGraphicsItem* item)
+     int index = listDiagrams.indexOf(item);
+     if (index < 0) return;
+     listDiagrams.removeAt(index);
++    qDebug() << "Remove Main:" << listDiagrams.size();
+ }
+ 
+ void MainWindow::createUserNoteDock()

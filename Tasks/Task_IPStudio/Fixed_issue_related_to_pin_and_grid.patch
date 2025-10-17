@@ -1,0 +1,71 @@
+ src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp     | 7 +++----
+ src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp | 6 +++---
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/node.cpp       | 3 ++-
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp
+index 2dcd24cc466..1b4cf9cc3cf 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPInstance.cpp
+@@ -54,13 +54,12 @@ void IPInstance::updateBoundingRect()
+     QRectF united;
+     for (auto* child : childItems()) {
+         auto ipInstance = dynamic_cast<IPInstance*>(child);
+-        if (ipInstance)
+-            united = united.united(child->mapToParent(ipInstance->boundingRect()).boundingRect());
++        if (ipInstance) united = united.united(child->mapToParent(ipInstance->boundingRect()).boundingRect());
+     }
+     prepareGeometryChange();
+-    qreal pad = 50.0;
++    qreal pad = 100.0;
+     united    = united.adjusted(-pad, -pad, pad, pad);
+-    setSize(united.size(), united.topLeft());
++    setSize(_settings.snapToGrid(united.size()), _settings.snapToGrid(united.topLeft()));
+     moveChild = false;
+ }
+ 
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+index 04af1fc6021..ca65d551ae0 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+@@ -694,8 +694,8 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+         subSrcInstanceBottomRight = subInstance->sceneBoundingRect().bottomRight();
+         if (auto hugeInstance = subInstance->parentItem()) {
+             if (hugeInstance->isSelected()) hugeInstance->setSelected(false);
+-            hugeInstanceTopLeft = hugeInstance->sceneBoundingRect().topLeft();
+-            hugeInstanceBottomRight = hugeInstance->sceneBoundingRect().bottomRight();
++            hugeInstanceTopLeft = hugeInstance->sceneBoundingRect().topLeft() + QPointF(_settings.gridSize, _settings.gridSize);
++            hugeInstanceBottomRight = hugeInstance->sceneBoundingRect().bottomRight() - QPointF(_settings.gridSize, _settings.gridSize);
+         }
+     }
+ 
+@@ -936,7 +936,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     
+     auto net_name = ptrSrc->get_net_name();
+     if (!net_name.empty()) {
+-        if (auto wireNet = std::dynamic_pointer_cast<WireNet>(wire->net())) {                      
++        if (auto wireNet = std::dynamic_pointer_cast<WireNet>(wire->net())) {
+             auto manager = scene->wire_manager();
+             if (manager) {
+                 /* Check existing label */ 
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/node.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/node.cpp
+index d268ca5e6f5..58357a42d3c 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/node.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/node.cpp
+@@ -109,7 +109,7 @@ void Node::setSize(const QSizeF& size, QPointF topLeft)
+     QRectF bRect = sizeRect();
+     qreal ratio  = 0.0;
+     for (auto& connector : connectors()) {
+-        pos  = connector->pos();
++        pos  = _settings.snapToGrid(connector->pos());
+         edge = connector->edgeIndex;
+         switch (edge) {
+         case 0:  // top
+@@ -154,6 +154,7 @@ void Node::setSize(const QSizeF& size, QPointF topLeft)
+             pos.setY(bRect.top() + distances[connector.get()] * bRect.height());
+             break;
+         }
++        _settings.toGridPoint(pos);
+         connector->setPos(pos);
+     }
+ 

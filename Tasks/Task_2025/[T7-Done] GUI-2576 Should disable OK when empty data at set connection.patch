@@ -1,0 +1,144 @@
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp     | 26 ++++++++++++++++++++------
+ src/sw/noc_dev/prototype/Gui/dialogs.h       |  1 +
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp | 26 ++++++++++++++++++++------
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.h   |  1 +
+ 4 files changed, 42 insertions(+), 12 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 8cb46fbea19..cb06874d127 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -5319,7 +5319,7 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     QGridLayout* layoutAllOption = new QGridLayout;
+     layoutAllOption->addWidget(widget, 0, 0, Qt::AlignLeft);
+ 
+-    auto okButton = new QPushButton("OK");
++    okButton = new QPushButton("OK");
+     connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+     auto cancelButton = new QPushButton("CANCEL");
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+@@ -5464,8 +5464,11 @@ void chooseArgumentDialog::itemComboBoxChanged()
+ {
+     QStringList list;
+     textRouterDest->clear();
++    QString destRouter;
++    int preCol;
+     for (int row = 0; row < layoutOfLayers->rowCount(); row++) {
+-        QString destRouter = QString("R");
++        preCol = 0;
++        destRouter = QString("R");
+         for (int col = 0; col < layoutOfLayers->columnCount(); col++) {
+             auto item = layoutOfLayers->itemAtPosition(row, col);
+             if (!item) break;
+@@ -5484,15 +5487,26 @@ void chooseArgumentDialog::itemComboBoxChanged()
+             } else {
+                 destRouter += text;
+             }
++            preCol = col;
+         }
+         if (!destRouter.isEmpty() && destRouter.size() > 1) {
+-            list.append(destRouter);
++            if (list.contains(destRouter)) {
++                if (auto item = layoutOfLayers->itemAtPosition(row, preCol)) {
++                    if (auto widget = item->widget()) {
++                        if (auto comboBox = dynamic_cast<QComboBox*>(widget)) comboBox->setCurrentIndex(0);
++                    }
++                }
++            } else list.append(destRouter);
+         }
+     }
+-    for (const auto& text : list) {
+-        if (!textRouterDest->text().isEmpty()) textRouterDest->setText(textRouterDest->text() + " ");
+-        textRouterDest->setText(textRouterDest->text() + text);
++    if (!list.isEmpty()) {
++        for (const auto& text : list) {
++            if (textRouterDest->text().contains(text)) continue;
++            if (!textRouterDest->text().isEmpty()) textRouterDest->setText(textRouterDest->text() + " ");
++            textRouterDest->setText(textRouterDest->text() + text);
++        }
+     }
++    okButton->setEnabled(!list.isEmpty());
+     QString dst = "Router|" + textRouterDest->text();
+     auto mw = dynamic_cast<MainWindow*>(parent());
+     if (mw) {
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index 9d1299940a4..96dda9824f0 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -1182,6 +1182,7 @@ private:
+     QString argument = QString();
+     QCheckBox* cbAll = nullptr;
+     QPushButton* addButton = nullptr;
++    QPushButton* okButton = nullptr;
+     QGridLayout* layoutOfLayers = nullptr;
+     QLineEdit* textRouterDest = nullptr;
+     NetSpeed::Grid* grid;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index 55312d8961e..ea300b70182 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5338,7 +5338,7 @@ chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers
+     QGridLayout* layoutAllOption = new QGridLayout;
+     layoutAllOption->addWidget(widget, 0, 0, Qt::AlignLeft);
+ 
+-    auto okButton = new QPushButton("OK");
++    okButton = new QPushButton("OK");
+     connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+     auto cancelButton = new QPushButton("CANCEL");
+     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+@@ -5485,8 +5485,11 @@ void chooseArgumentDialog::itemComboBoxChanged()
+ {
+     QStringList list;
+     textRouterDest->clear();
++    QString destRouter;
++    int preCol;
+     for (int row = 0; row < layoutOfLayers->rowCount(); row++) {
+-        QString destRouter = QString("R");
++        preCol = 0;
++        destRouter = QString("R");
+         for (int col = 0; col < layoutOfLayers->columnCount(); col++) {
+             auto item = layoutOfLayers->itemAtPosition(row, col);
+             if (!item) break;
+@@ -5505,15 +5508,26 @@ void chooseArgumentDialog::itemComboBoxChanged()
+             } else {
+                 destRouter += text;
+             }
++            preCol = col;
+         }
+         if (!destRouter.isEmpty() && destRouter.size() > 1) {
+-            list.append(destRouter);
++            if (list.contains(destRouter)) {
++                if (auto item = layoutOfLayers->itemAtPosition(row, preCol)) {
++                    if (auto widget = item->widget()) {
++                        if (auto comboBox = dynamic_cast<QComboBox*>(widget)) comboBox->setCurrentIndex(0);
++                    }
++                }
++            } else list.append(destRouter);
+         }
+     }
+-    for (const auto& text : list) {
+-        if (!textRouterDest->text().isEmpty()) textRouterDest->setText(textRouterDest->text() + " ");
+-        textRouterDest->setText(textRouterDest->text() + text);
++    if (!list.isEmpty()) {
++        for (const auto& text : list) {
++            if (textRouterDest->text().contains(text)) continue;
++            if (!textRouterDest->text().isEmpty()) textRouterDest->setText(textRouterDest->text() + " ");
++            textRouterDest->setText(textRouterDest->text() + text);
++        }
+     }
++    okButton->setEnabled(!list.isEmpty());
+     QString dst = "Router|" + textRouterDest->text();
+     auto mw = dynamic_cast<MainWindow*>(parent());
+     if (mw) {
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+index 3efc204456f..71d6979a10f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+@@ -1182,6 +1182,7 @@ private:
+     QString argument = QString();
+     QCheckBox* cbAll = nullptr;
+     QPushButton* addButton = nullptr;
++    QPushButton* okButton = nullptr;
+     QGridLayout* layoutOfLayers = nullptr;
+     QLineEdit* textRouterDest = nullptr;
+     NetSpeed::Grid* grid;

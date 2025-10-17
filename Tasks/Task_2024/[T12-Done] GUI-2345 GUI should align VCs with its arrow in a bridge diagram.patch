@@ -1,0 +1,150 @@
+ .../noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp | 73 +++++++++++++++-------
+ 1 file changed, 49 insertions(+), 24 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+index b555e928d84..9d6794b23aa 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridgeDiagram.cpp
+@@ -926,11 +926,6 @@ void NsBridgeDiagram::initData()
+         interfaceNameRect = iFMetric.boundingRect(interfaceNameRect,
+             Qt::AlignVCenter |
+             Qt::AlignRight, interfaceName);
+-        QPainterPath namePath;
+-        namePath.addText(interfaceNameRect.bottomLeft(), iFVCFont, interfaceName);
+-        //Store path to perform fill later
+-        auto ifceNameItem = new NsBridgeDiagramTextItem(namePath, this);
+-        ifceNameItem->setBrush(convertVCColor(it->get_first_rx_vchannel()->get_color()));
+         //Draw arrows
+         auto startPoint = QPointF(bridgeRectangle.topLeft().x() - lineWidth + arrowStartMargin,
+             startText.y() + arrowStartMargin);
+@@ -943,6 +938,16 @@ void NsBridgeDiagram::initData()
+         arrow->setValues(name, it);
+         arrow->setPen(Qt::NoPen);
+         arrow->setBrush(convertVCColor(it->get_first_rx_vchannel()->get_color()));
++
++        QRectF textRect(arrow->boundingRect());
++        textRect.moveCenter(QPointF(interfaceNameRect.center().x(), startPoint.y()));
++        textRect.moveTopLeft(QPointF(interfaceNameRect.topLeft().x(), textRect.topLeft().y()));
++
++        QPainterPath namePath;
++        namePath.addText(textRect.bottomLeft(), iFVCFont, interfaceName);
++        // Store path to perform fill later
++        auto ifceNameItem = new NsBridgeDiagramTextItem(namePath, this);
++        ifceNameItem->setBrush(convertVCColor(it->get_first_rx_vchannel()->get_color()));
+         ifceNameItem->setRelatedItem(arrow);
+         //To do : add direction arrows for interfaces
+         ++ifceCount;
+@@ -964,10 +969,6 @@ void NsBridgeDiagram::initData()
+             Qt::AlignLeft, vcName);
+         auto font = iFVCFont;
+         if (vc->get_layer() == bridge->get_layer()) font.setBold(true);
+-        QPainterPath namePath;
+-        namePath.addText(vcNameRect.bottomLeft(), font, vcName);
+-        auto vcNameItem = new NsBridgeDiagramTextItem(namePath, this);
+-        vcNameItem->setBrush(convertVCColor(vc->get_color()));
+         //Draw arrows
+         QPointF arrowStart = QPointF(bridgeRectangle.topRight().x(),
+             startText.y() + arrowStartMargin);
+@@ -982,6 +983,15 @@ void NsBridgeDiagram::initData()
+         arrow->setValues(name, parentName, vc);
+         arrow->setPen(Qt::NoPen);
+         arrow->setBrush(convertVCColor(vc->get_color()));
++
++        QRectF textRect(arrow->boundingRect());
++        textRect.moveCenter(QPointF(vcNameRect.center().x(), arrowStart.y()));
++        textRect.moveTopRight(QPointF(vcNameRect.topRight().x(), textRect.topRight().y()));
++
++        QPainterPath namePath;
++        namePath.addText(textRect.bottomLeft(), font, vcName);
++        auto vcNameItem = new NsBridgeDiagramTextItem(namePath);
++        vcNameItem->setBrush(convertVCColor(vc->get_color()));
+         ++vcCount;
+     }
+ 
+@@ -3016,11 +3026,6 @@ void NsRSSBDiagram::initRssbBridgeData()
+         interfaceNameRect = iFMetric.boundingRect(interfaceNameRect,
+             Qt::AlignVCenter |
+             Qt::AlignRight, interfaceName);
+-        QPainterPath namePath;
+-        namePath.addText(interfaceNameRect.bottomLeft(), iFVCFont, interfaceName);
+-        //Store path to perform fill later
+-        auto ifceNameItem = new NsBridgeDiagramTextItem(namePath, this);
+-        ifceNameItem->setBrush(convertVCColor(it->get_first_rx_vchannel()->get_color()));
+         //Draw arrows
+         auto startPoint = QPointF(bridgeRectangle.topLeft().x() - lineWidth + arrowStartMargin,
+             startText.y() + arrowStartMargin);
+@@ -3034,6 +3039,16 @@ void NsRSSBDiagram::initRssbBridgeData()
+         arrow->setValues(name, it);
+         arrow->setPen(Qt::NoPen);
+         arrow->setBrush(convertVCColor(it->get_first_rx_vchannel()->get_color()));
++
++        QRectF textRect(arrow->boundingRect());
++        textRect.moveCenter(QPointF(interfaceNameRect.center().x(), startPoint.y()));
++        textRect.moveTopLeft(QPointF(interfaceNameRect.topLeft().x(), textRect.topLeft().y()));
++
++        QPainterPath namePath;
++        namePath.addText(textRect.bottomLeft(), iFVCFont, interfaceName);
++        // Store path to perform fill later
++        auto ifceNameItem = new NsBridgeDiagramTextItem(namePath, this);
++        ifceNameItem->setBrush(convertVCColor(it->get_first_rx_vchannel()->get_color()));
+         ifceNameItem->setRelatedItem(arrow);
+ 
+         //To do : add direction arrows for interfaces
+@@ -3094,11 +3109,6 @@ void NsRSSBDiagram::initRssbBridgeData()
+             vcNameRect = iFMetric.boundingRect(vcNameRect, Qt::AlignVCenter | Qt::AlignLeft, vcName);
+             auto font  = iFVCFont;
+             if (vc->get_layer() == m_layerId) font.setBold(true);
+-            QPainterPath namePath;
+-            namePath.addText(vcNameRect.bottomLeft(), font, vcName);
+-            auto vcNameItem = new NsBridgeDiagramTextItem(namePath);
+-            vcNameItem->setBrush(convertVCColor(vc->get_color()));
+-            vcNameItem->setParentItem(this);
+             // Draw arrows
+             QPointF arrowStart = QPointF(bridgeRectangle.bottomRight().x(), startText.y() + arrowStartMargin);
+             float arrowSize = vc->get_width() / (float)maxVcPhys2BrPenWidth;
+@@ -3115,6 +3125,16 @@ void NsRSSBDiagram::initRssbBridgeData()
+             arrow->setPen(Qt::NoPen);
+             arrow->setBrush(convertVCColor(vc->get_color()));
+             arrow->setParentItem(this);
++
++            QRectF textRect(arrow->boundingRect());
++            textRect.moveCenter(QPointF(vcNameRect.center().x(), arrowStart.y()));
++            textRect.moveTopRight(QPointF(vcNameRect.topRight().x(), textRect.topRight().y()));
++
++            QPainterPath namePath;
++            namePath.addText(QPointF(textRect.bottomRight().x() - vcNameRect.width(), textRect.bottomRight().y()), font, vcName);
++            auto vcNameItem = new NsBridgeDiagramTextItem(namePath);
++            vcNameItem->setBrush(convertVCColor(vc->get_color()));
++            vcNameItem->setParentItem(this);
+             vcNameItem->setRelatedItem(arrow);
+             directly2BridgeCount++;
+         }
+@@ -3135,11 +3155,6 @@ void NsRSSBDiagram::initRssbBridgeData()
+             Qt::AlignLeft, vcName);
+         auto font = iFVCFont;
+         if (vc->get_layer() == m_layerId) font.setBold(true);
+-        QPainterPath namePath;
+-        namePath.addText(vcNameRect.bottomLeft(), font, vcName);
+-        auto vcNameItem = new NsBridgeDiagramTextItem(namePath);
+-        vcNameItem->setBrush(convertVCColor(vc->get_color()));
+-        if (!allVcPhys2Rssb.isEmpty()) vcNameItem->setParentItem(this);
+         //Draw arrows
+         QPointF arrowStart = QPointF(bridgeRssbRectangle.topRight().x(),
+             startText.y() + arrowStartMargin);
+@@ -3157,6 +3172,16 @@ void NsRSSBDiagram::initRssbBridgeData()
+         arrow->setBrush(convertVCColor(vc->get_color()));
+         ++vcCount;
+         if (!allVcPhys2Rssb.isEmpty()) arrow->setParentItem(this);
++
++        QRectF textRect(arrow->boundingRect());
++        textRect.moveCenter(QPointF(vcNameRect.center().x(), arrowStart.y()));
++        textRect.moveTopRight(QPointF(vcNameRect.topRight().x(), textRect.topRight().y()));
++
++        QPainterPath namePath;
++        namePath.addText(textRect.bottomLeft(), font, vcName);
++        auto vcNameItem = new NsBridgeDiagramTextItem(namePath);
++        vcNameItem->setBrush(convertVCColor(vc->get_color()));
++        if (!allVcPhys2Rssb.isEmpty()) vcNameItem->setParentItem(this);
+         vcNameItem->setRelatedItem(arrow);
+     }
+ 

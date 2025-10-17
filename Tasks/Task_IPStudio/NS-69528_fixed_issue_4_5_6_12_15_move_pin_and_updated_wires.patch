@@ -1,0 +1,1544 @@
+ src/sw/noc_dev/GUICore_qt6/global.h                |   1 +
+ src/sw/noc_dev/IPCore/include/IPTypes.h            |   1 +
+ .../IPStudio_qt6/GUI/Item/IPConnectivity.cpp       |  18 +-
+ .../IPStudio_qt6/GUI/MainWindow/IPDesign.cpp       | 453 +++++++++++++++++----
+ .../IPStudio_qt6/GUI/MainWindow/MainWindow.cpp     |  23 +-
+ .../IPStudio_qt6/GUI/MainWindow/MainWindow.h       |   1 -
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.cpp |   1 +
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.h   |   2 +-
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp | 193 ++++++---
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.h   |   1 +
+ .../noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.cpp  |  11 +
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.h |   3 +-
+ .../noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp   |  20 +-
+ src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h  |   5 +-
+ .../noc_dev/IPStudio_qt6/include/IPConnectivity.h  |   8 +-
+ src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h     |   7 +-
+ src/sw/noc_dev/IPStudio_qt6/include/IPInstance.h   |   1 -
+ 17 files changed, 566 insertions(+), 183 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/global.h b/src/sw/noc_dev/GUICore_qt6/global.h
+index f2e1c779a35..c830656340c 100644
+--- a/src/sw/noc_dev/GUICore_qt6/global.h
++++ b/src/sw/noc_dev/GUICore_qt6/global.h
+@@ -459,6 +459,7 @@ const char* const TEXT_RESET                          = "Reset View";
+ const char* const TEXT_OPEN_FILE                      = "Open file";
+ const char* const TEXT_SAVE_FILE                      = "Save file";
+ const char* const TEXT_TOOLTIP                        = "Enable/Disable Popup Tooltip";
++const char* const TEXT_NET_NAME                       = "Show/Hide net names";
+ const char* const TEXT_ENA_CONSOLE                    = "Enable &Console";
+ const char* const TEXT_SHOW_HIDE_WAIVE_TAB            = "Show/Hide Waive Tab";
+ const char* const TEXT_ENA_TOOLTIP_WINDOW             = "Enable &Tooltip Window";
+diff --git a/src/sw/noc_dev/IPCore/include/IPTypes.h b/src/sw/noc_dev/IPCore/include/IPTypes.h
+index 0b71e8d61de..e1e7ceec3f4 100755
+--- a/src/sw/noc_dev/IPCore/include/IPTypes.h
++++ b/src/sw/noc_dev/IPCore/include/IPTypes.h
+@@ -39,6 +39,7 @@
+ #include "Rtl_lib.common.h"
+ #include "IPTypes.Common.h"
+ #include "json/json.hpp"
++#define IP_TCL = 1
+ namespace NetSpeed {
+ 
+ using ip_json = nlohmann::json;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp
+index 74df7c32f2f..df20eff8bc5 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/Item/IPConnectivity.cpp
+@@ -21,21 +21,19 @@ IPConnectivity::IPConnectivity(const QPoint& gridPoint, const QString& text, QGr
+ 
+ }
+ 
+-IPConnectivity::IPConnectivity(const NetSpeed::BDS::IntfConn& ifce, const QPointF& gridPoint, QGraphicsItem* parent, bool group)
++IPConnectivity::IPConnectivity(const NetSpeed::BDS::IntfConn& ifce, const QPointF& gridPoint, QGraphicsItem* parent, bool isBoundary)
+ : QSchematic::Connector(::ItemType::OperationConnectorType, gridPoint.toPoint(),
+-                        QString::fromStdString(ifce.ifce->name.c_str()), parent)
++                        isBoundary ? QString::fromStdString(ifce.name.c_str()) : QString::fromStdString(ifce.ifce->name.c_str()), parent)
+     // TODO: conn.port_name replaced with an empty string. not sure if
+     // TODO: conn.port_name is even the correct string to use here
+ {
+-    g         = group;
+     mode = ifce.mode;
+     if ((mode == Conn_mode::Net) || (mode == Conn_mode::Expose)) netName = ifce.name;
+     ifceLabel = std::make_shared<QSchematic::Label>();
+     ifceLabel->setParentItem(this);
+-    if (!group)
+-        ifceLabel->setText(ifce.ifce->name.c_str());
++    if (isBoundary) ifceLabel->setText(ifce.name.c_str());    
+     else {
+-        ifceLabel->setText(ifce.name.c_str());
++        ifceLabel->setText(ifce.ifce->name.c_str());
+     }
+     ifceLabel->setHighLight(false);
+     ifceLabel->setMovable(true);
+@@ -233,13 +231,7 @@ void IPConnectivity::alignInterfaceLabel()
+     }
+     auto transform = label()->transform();
+     ifceLabel->setPos(labelNewPos);
+-    ifceLabel->setTransform(transform);
+-
+-    if (auto subInsItem = this->parentItem()) {
+-        if (auto hugeInsItem = subInsItem->parentItem()) {
+-            if (auto hugeIns = dynamic_cast<IPInstance*>(hugeInsItem)) hugeIns->updateBoundingRect();
+-        }
+-    }
++    ifceLabel->setTransform(transform);
+ }
+ 
+ QPointF IPConnectivity::getConnectingScenePos() const
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+index 7ccba675435..93817364855 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/IPDesign.cpp
+@@ -26,6 +26,12 @@ using namespace NetSpeed;
+ using namespace BDS;
+ extern QSemaphore gSem;
+ 
++void completeWire(std::shared_ptr<QSchematic::Wire>& wire, int index = 0) {
++    wire->setAcceptHoverEvents(true);
++    wire->setFlag(QGraphicsItem::ItemIsSelectable, true);
++    wire->simplify(index);
++}
++
+ IPDesign::IPDesign(const NetSpeed::BDS::Module* module, QWidget* parent)
+ : QSchematic::View(parent), module(module)
+ {    
+@@ -84,6 +90,7 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+     QRectF covert;
+     QFontMetrics metric(font);
+     QMap<std::string, IPInstance*> existingInstances;
++    QMap<NetSpeed::BDS::IntfConn*, QPair<IPInstance*, IPInstance*>> organizes;
+ 
+     auto constructInstance = [&](auto instance, auto const& borderPos, int index, bool drawConnectionPoint = false) {
+         
+@@ -280,11 +287,11 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+                                                                         instance->textLength * _settings.gridSize + TEXT_PADDING);
+         calculatePos(rect);
+     };
+-    auto createInstanceG = [&](NetSpeed::BDS::Instance* ins) {
+-        auto instanceG = constructInstance(ins, currentPos, index);
+-        instanceG->setSize(covert.size());
+-        scene->addItem(instanceG);
+-        return instanceG;
++    auto createinstance_grouproup = [&](NetSpeed::BDS::Instance* ins) {
++        auto instance_group = constructInstance(ins, currentPos, index);
++        instance_group->setSize(covert.size());
++        scene->addItem(instance_group);
++        return instance_group;
+     };
+     for (auto const& inst : module->instances) {
+         if (!existingInstances.contains(inst->name)) {
+@@ -293,14 +300,15 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+             QList<QString> ifces_name;
+             for (auto const& ifce : inst->connectivity) {
+                 if ((ifce->mode == Conn_mode::Expose)) {
+-                    bool f = false;
++                    bool found = false;
+                     for (auto& infc : outIntfConns) {
+                         if (infc->name != ifce->name) continue;
+-                        f = true;
++                        found = true;
+                         break;
+                     }
+-                    if (!f) {
++                    if (!found) {
+                         outIntfConns.push_back(ifce.get());
++                        organizes[ifce.get()] = qMakePair(nullptr, nullptr);
+                     }
+                 }
+                 ifces_name.push_back(QString::fromStdString(ifce->ifce->name));
+@@ -310,27 +318,102 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+     }
+ 
+     QRectF unitedRect;
+-    QVector<QRectF> squares;
++    QList<QString> instNames;
++    IPPropertyPanel* proper = nullptr;
++    if (mw) {
++        proper = mw->getPropertyPanel();
++        if (proper) {
++            proper->clearAll();
++            proper->drag = true;
++        }
++    }
++
+     for (auto const& inst : module->instances) {
+         if (existingInstances.contains(inst->name)) {
+             auto it = existingInstances.value(inst->name);
++            if (mw) {
++                mw->updateIntanceParameter(QString::fromStdString(inst->name));
++            }
+             QRectF rectInScene = it->mapToScene(it->boundingRect()).boundingRect();
+-            squares.push_back(rectInScene);
++
+             if (unitedRect.isNull())
+                 unitedRect = rectInScene;
+             else
+                 unitedRect |= rectInScene;
++
++            for (auto& ifcee : inst->connectivity) {
++                if ((ifcee->mode != Conn_mode::Expose)) continue;
++                for (auto& ifce : outIntfConns) {
++                    if (ifcee.get()->name == ifce->name) {
++                        auto value = organizes.value(ifce);
++                        if (value.first == nullptr) {
++                            value.first = it;
++                        } else {
++                            value.second = it;
++                        }
++                        organizes[ifce] = value;
++                    }
++                }
++            }
+         }
+     }
++    if (mw && proper) {
++        proper->drag = false;
++    }
+     qreal padding = 100.0;
+     covert = unitedRect;
+     covert.adjust(-padding, -padding, padding, padding);
+     /* Creating huge instance */
+-    auto instanceG = createInstanceG(nullptr);
++    auto instance_group = createinstance_grouproup(nullptr);
+     for (auto& inst : existingInstances) {
+-        inst->setParentItem(instanceG.get());
++        inst->setParentItem(instance_group.get());
++    }
++    instance_group->updateBoundingRect();
++
++    int w = 12;
++    int h = 12;
++    for (auto& it : outIntfConns) {
++        qreal ratio   = 0.5;
++        int edgeIndex = 0;
++        auto v = organizes.value(it);
++        if ((!v.second) && (v.first)) {
++            for (auto& child : v.first->childItems()) {
++                auto connector = dynamic_cast<Connector*>(child);
++                if (connector && connector->text() == QString::fromStdString(it->ifce->name)) {
++                    QPointF pos_local = instance_group->mapFromScene(connector->mapToScene({0, 0}));
++                    edgeIndex = connector->edgeIndex;
++                    if (edgeIndex == 0 || edgeIndex == 2)
++                        ratio = (pos_local.x() - instance_group->sizeRect().left()) /
++                                instance_group->sizeRect().width();
++                    else if (edgeIndex == 1 || edgeIndex == 3)
++                        ratio = (pos_local.y() - instance_group->sizeRect().top()) /
++                                instance_group->sizeRect().height();
++                    break;
++                }
++            }
++            auto pos = QPointF();
++            if (edgeIndex == 0)
++                pos = QPointF(instance_group->sizeRect().left() + _settings.gridSize +
++                                  ratio * instance_group->sizeRect().width(),
++                              instance_group->sizeRect().top() - h / 2 + _settings.gridSize);
++            else if (edgeIndex == 1)
++                pos = QPointF(instance_group->sizeRect().right() + w / 2 + _settings.gridSize,
++                              instance_group->sizeRect().top() + ratio * instance_group->sizeRect().height() +
++                                  _settings.gridSize);
++            else if (edgeIndex == 2)
++                pos = QPointF(instance_group->sizeRect().left() + ratio * instance_group->sizeRect().width() +
++                                  _settings.gridSize,
++                              instance_group->sizeRect().bottom() + h / 2 + _settings.gridSize);
++            else if (edgeIndex == 3)
++                pos = QPointF(instance_group->sizeRect().left() - w / 2 + _settings.gridSize,
++                              instance_group->sizeRect().top() + ratio * instance_group->sizeRect().height() +
++                                  _settings.gridSize);
++
++            auto connector = instance_group->getPinConnectors().at(*it);
++            connector->setPos(pos);
++        }
+     }
+-    instanceG->updateBoundingRect();
++
+     /* Build instanceWires */
+     for (auto const& inst : module->instances) {
+         buildInstanceWires(inst.get());
+@@ -352,10 +435,7 @@ void IPDesign::refresh(const NetSpeed::BDS::Module* module)
+                  centralWidget->rect().bottomRight().y() - heightHorizontalScrollBar * 3 - legend->height());
+ 
+     emit loadLayoutFinish(scene);
+-
+-    /* Show all connections */
+-    showWires(true);
+-    if (mw) mw->toggleWireButton(true);
++    instance_group->updateBoundingRect();
+ }
+ 
+ void IPDesign::buildInstanceWires(Instance* inst)
+@@ -421,30 +501,69 @@ IPConnectivity* IPDesign::findConnectivity(std::string instance_name, std::strin
+     return ipconn;
+ }
+ 
+-QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightWires(QString instName, QList<QString> ifces)
++QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightWires(QString instName, QString& ifce)
+ {   
+     QList<std::shared_ptr<Wire>> wireList;
+     QList<IPConnectivity*> connList;
+ 
+     if (instName.isEmpty()) return qMakePair(wireList, connList);
+ 
++    connsRouted.clear();
++    QList<QPair<QString, QString>> listWireRendered;
++    QList<QString> listPreDesInfo;
++    QString ifceSrc = ifce; /* Assuming this ifce is a source connectivity*/
+     auto connectivities = instanceWires.value(instName);
+-    for (auto const& conn : connectivities) {
+-        for (auto const& ifce : ifces) {
+-            if (conn.first->text() == ifce) {
+-                conn.first->setHighlighted(true);
+-                connList.append(conn.first);
+-                for (auto const& desConn : conn.second) {
+-                    auto wire = constructWire(conn.first, desConn, true);
+-                    if (wire) {
+-                        wire->setHighlighted(true);
+-                        conn.first->setHighlighted(true);
+-                        desConn->setHighlighted(true);
+-                        wireList.append(wire);                           
+-                        connList.append(desConn);
++
++    // Checking expose interface
++    if (connectivities.empty()) {
++        // Expose interface always is a destination, so we should find the source according it
++        for (auto const& conns : instanceWires.values()) {
++            for (auto const& conn : conns) {
++                for (auto const& des : conn.second) {
++                    if (ifce == des->text()) {
++                        ifceSrc = conn.first->text();
++                        connectivities = instanceWires.value(conn.first->getInstanceName());
++                        break;
+                     }
+                 }
+-                break;
++                if (!connectivities.empty()) break;
++            }
++            if (!connectivities.empty()) break;
++        }
++    }
++
++    for (auto const& conn : connectivities) {
++        if (conn.first->text() == ifceSrc) {
++            conn.first->setHighlighted(true);
++            connList.append(conn.first);
++            std::shared_ptr<Wire> wire = nullptr;
++            if (!listPreDesInfo.isEmpty()) listPreDesInfo.clear();
++            for (auto const& desConn : conn.second) {
++                auto pair = qMakePair(QString(conn.first->text() + "-" + conn.first->getInstanceName()),
++                                      QString(desConn->text() + "-" + desConn->getInstanceName()));
++                if (listWireRendered.contains(pair) ||
++                    listWireRendered.contains(QPair<QString, QString>(pair.second, pair.first)))
++                    continue;
++                listWireRendered.append(pair);
++                if (listPreDesInfo.isEmpty())
++                    listPreDesInfo.append(desConn->text() + "-" + desConn->getInstanceName());
++                else if (listPreDesInfo.size() == 1) {
++                    listWireRendered.append(qMakePair(listPreDesInfo.first(),
++                                                      desConn->text() + "-" + desConn->getInstanceName()));
++                    listPreDesInfo.append(desConn->text() + "-" + desConn->getInstanceName());
++                } else {
++                    for (auto& preDes : listPreDesInfo)
++                        listWireRendered.append(
++                            qMakePair(preDes, desConn->text() + "-" + desConn->getInstanceName()));
++                    listPreDesInfo.append(desConn->text() + "-" + desConn->getInstanceName());
++                }
++                wire = constructWire(conn.first, desConn, true, wire);
++                if (wire) {
++                    wire->setHighlighted(true);
++                    desConn->setHighlighted(true);
++                    wireList.append(wire);                           
++                    connList.append(desConn);
++                }
+             }
+         }
+     }
+@@ -452,28 +571,52 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+     return qMakePair(wireList, connList);
+ }
+ 
+-QList<std::shared_ptr<Wire>> IPDesign::renderWires(QString instName, QList<QString> ifces, QList<std::shared_ptr<Wire>> renderedWireList)
++QList<std::shared_ptr<Wire>> IPDesign::renderWires(QString instName, QString& ifce, QList<std::shared_ptr<Wire>> renderedWireList)
+ {
+     QList<std::shared_ptr<Wire>> wireList;
+-    if ((!scene) || instName.isEmpty()) return wireList;   
++    if ((!scene) || instName.isEmpty()) return wireList;
++
+     scene->setMode(Scene::NormalMode);
++
+     /* Clear rendered WireList */
+     for (auto& item : renderedWireList) {
+         scene->removeWire(item);
+     }
+-    
+-    auto conns = instanceWires.value(instName);
+-    for (auto const& conn : conns) {
+-        /* Check with checkbox items*/
+-        for (auto const& ifce : ifces) {
+-            if (conn.first->text() == ifce) {
+-                for (auto const desConn : conn.second) {
+-                    auto wire = constructWire(conn.first, desConn, true);
+-                    if (wire) {
+-                        wireList.append(wire);
++
++    QList<QString> listInsRendered;
++    QString ifceSrc = ifce;   /* Assuming this ifce is a source connectivity*/
++    auto connectivities = instanceWires.value(instName);
++
++    // Checking expose interface
++    if (connectivities.empty()) {
++        // Expose interface always is a destination, so we should find the source according it
++        for (auto const& conns : instanceWires.values()) {
++            for (auto const& conn : conns) {
++                for (auto const& des : conn.second) {
++                    if (ifce == des->text()) {
++                        ifceSrc = conn.first->text();
++                        connectivities = instanceWires.value(conn.first->getInstanceName());
++                        break;
+                     }
+                 }
+-                break;
++                if (!connectivities.empty()) break;
++            }
++            if (!connectivities.empty()) break;
++        }
++    }
++
++    for (auto const& conn : connectivities) {
++        if (conn.first->text() == ifceSrc) {
++            conn.first->setHighlighted(true);
++            std::shared_ptr<Wire> wire = nullptr;
++            for (const auto& desConn : conn.second) {
++                if (listInsRendered.contains(desConn->getInstanceName())) continue;
++                listInsRendered.append(desConn->getInstanceName());
++                wire = constructWire(conn.first, desConn, true, wire);               
++                if (wire) desConn->setHighlighted(true);                                      
++            }
++            if (wire) {
++                wireList.append(wire);
+             }
+         }
+     }
+@@ -517,14 +660,37 @@ void IPDesign::renderWires(QMap<QString, QList<QString>> map, bool obstacle_avoi
+     }
+     else {
+         connsRouted.clear();
++        QList<QPair<QString, QString>> listWireRendered;
++        QList<QString> listPreDesInfo;
+         for (auto it = map.begin(), end = map.end(); it != end; ++it) {
+             auto conns = instanceWires.value(it.key());
+-            /* Check with checkbox items*/
+             for (auto const& conn : conns) {
+                 if (!it.value().contains(conn.first->text())) continue;
++                std::shared_ptr<Wire> wire = nullptr;
++                if (!listPreDesInfo.isEmpty()) listPreDesInfo.clear();
+                 for (auto const& des : conn.second) {
+-                    (void)constructWire(conn.first, des, false);
++                    auto pair = qMakePair(QString(conn.first->text() + "-" + conn.first->getInstanceName()),
++                                          QString(des->text() + "-" + des->getInstanceName()));
++                    if (listWireRendered.contains(pair) ||
++                        listWireRendered.contains(QPair<QString, QString>(pair.second, pair.first)))
++                        continue;
++                    listWireRendered.append(pair);
++                    if (listPreDesInfo.isEmpty())
++                        listPreDesInfo.append(des->text() + "-" + des->getInstanceName());
++                    else if (listPreDesInfo.size() == 1) {
++                        listWireRendered.append(qMakePair(listPreDesInfo.first(),
++                                                          des->text() + "-" + des->getInstanceName()));
++                        listPreDesInfo.append(des->text() + "-" + des->getInstanceName());
++                    } else {
++                        for (auto& preDes : listPreDesInfo)
++                            listWireRendered.append(
++                                qMakePair(preDes, des->text() + "-" + des->getInstanceName()));
++                        listPreDesInfo.append(des->text() + "-" + des->getInstanceName());
++                    }
++                    des->setSource(conn.first);
++                    wire = constructWire(conn.first, des, false, wire);
+                 }
++                conn.first->setWire(wire);
+             }
+         }
+     }
+@@ -558,15 +724,99 @@ void IPDesign::showWires(bool visibleWires)
+     }
+ 
+     if (visibleWires) {
+-        if (wireDialog) wireDialog->uncheckItems();      
++        if (wireDialog) wireDialog->uncheckItems();
++        QList<QPair<QString, QString>> listWireRendered;
++        QList<QString> listPreDesInfo;
+         auto conns = instanceWires.values();
+         for (const auto& conn : conns) {
+-            /* Check with checkbox items*/
+             for (auto const& con : conn) {
++                std::shared_ptr<Wire> wire = nullptr;
++                if (!listPreDesInfo.isEmpty()) listPreDesInfo.clear();
+                 for (auto const& des : con.second) {
+-                    (void)constructWire(con.first, des, false);
++                    auto pair = qMakePair(QString(con.first->text() + "-" + con.first->getInstanceName()),
++                                          QString(des->text() + "-" + des->getInstanceName()));
++                    if (listWireRendered.contains(pair) ||
++                        listWireRendered.contains(QPair<QString, QString>(pair.second, pair.first)))
++                        continue;
++                    listWireRendered.append(pair);
++                    if (listPreDesInfo.isEmpty())
++                        listPreDesInfo.append(des->text() + "-" + des->getInstanceName());
++                    else if (listPreDesInfo.size() == 1) {
++                        listWireRendered.append(qMakePair(listPreDesInfo.first(),
++                                                          des->text() + "-" + des->getInstanceName()));
++                        listPreDesInfo.append(des->text() + "-" + des->getInstanceName());
++                    } else {
++                        for (auto& preDes : listPreDesInfo)
++                            listWireRendered.append(
++                                qMakePair(preDes, des->text() + "-" + des->getInstanceName()));
++                        listPreDesInfo.append(des->text() + "-" + des->getInstanceName());
++                    }
++                    des->setSource(con.first);
++                    wire = constructWire(con.first, des, false, wire);
++                }
++                con.first->setWire(wire);
++            }
++        }
++    }
++}
++
++void IPDesign::updateWireOfCurrentPin(QString instName, QString ifce)
++{
++    QList<IPConnectivity*> listConnectivity;
++    QList<QPair<QString, QString>> listWireRendered;
++    QList<QString> listPreDesInfo;
++
++    QString ifceSrc = ifce; /* Assuming this ifce is a source connectivity*/
++    auto connectivities = instanceWires.value(instName);
++
++    // Checking expose interface
++    if (connectivities.empty()) {
++        // Expose interface always is a destination, so we should find the source according it
++        for (auto const& conns : instanceWires.values()) {
++            for (auto const& conn : conns) {
++                for (auto const& des : conn.second) {
++                    if (ifce == des->text()) {
++                        ifceSrc = conn.first->text();
++                        connectivities = instanceWires.value(conn.first->getInstanceName());
++                        break;
++                    }
+                 }
++                if (!connectivities.empty()) break;
+             }
++            if (!connectivities.empty()) break;
++        }
++    }
++
++    for (auto const& conn : connectivities) {
++        if (conn.first->text() == ifceSrc) {
++            std::shared_ptr<Wire> wire = nullptr;
++            if (!listPreDesInfo.isEmpty()) listPreDesInfo.clear();
++            if (!listConnectivity.isEmpty()) listConnectivity.clear();
++            listConnectivity.append(conn.first);
++            for (auto const desConn : conn.second) {
++                auto pair = qMakePair(QString(conn.first->text() + "-" + conn.first->getInstanceName()),
++                                      QString(desConn->text() + "-" + desConn->getInstanceName()));
++                if (listWireRendered.contains(pair) ||
++                    listWireRendered.contains(QPair<QString, QString>(pair.second, pair.first)))
++                    continue;
++                listWireRendered.append(pair);
++                if (listPreDesInfo.isEmpty())
++                    listPreDesInfo.append(desConn->text() + "-" + desConn->getInstanceName());
++                else if (listPreDesInfo.size() == 1) {
++                    listWireRendered.append(qMakePair(listPreDesInfo.first(),
++                                                      desConn->text() + "-" + desConn->getInstanceName()));
++                    listPreDesInfo.append(desConn->text() + "-" + desConn->getInstanceName());
++                } else {
++                    for (auto& preDes : listPreDesInfo)
++                        listWireRendered.append(
++                            qMakePair(preDes, desConn->text() + "-" + desConn->getInstanceName()));
++                    listPreDesInfo.append(desConn->text() + "-" + desConn->getInstanceName());
++                }
++                desConn->setSource(conn.first);
++                wire = constructWire(conn.first, desConn, true, wire);
++            }
++            conn.first->setWire(wire);
++            break;
+         }
+     }
+ }
+@@ -623,12 +873,6 @@ void IPDesign::attachWireToNet(std::shared_ptr<QSchematic::Wire>& _newWire)
+     }
+ }
+ 
+-void completeWire(std::shared_ptr<QSchematic::Wire>& wire) {
+-    wire->setAcceptHoverEvents(true);
+-    wire->setFlag(QGraphicsItem::ItemIsSelectable, true);
+-    wire->simplify();
+-}
+-
+ Avoid::ConnRef * IPDesign::computeWire(IPConnectivity * start, IPConnectivity * end, Avoid::Router * router)
+ {
+     auto src = start->getConnectingScenePos();
+@@ -638,14 +882,15 @@ Avoid::ConnRef * IPDesign::computeWire(IPConnectivity * start, IPConnectivity *
+     return new Avoid::ConnRef(router, srcPt, dstPt);
+ }
+ 
+-std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectivity* end, bool highlight)
++std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectivity* end, bool highlight, std::shared_ptr<Wire> wire)
+ {
+     bool swap = false;
+     bool expose = false;
++    QList<QPointF> listTempPoint;
+ 
+     if (!highlight) {
+         if ((connsRouted[start] == end) || (connsRouted[end] == start)) {
+-            return nullptr;
++            return wire;
+         }
+         connsRouted[start] = end;
+     } else if (connsRouted[end] == start) {
+@@ -663,9 +908,13 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+         ptrSrc = temp;
+     }
+     
+-    std::shared_ptr<Wire> wire = nullptr;
+-    if (!scene) return wire;
+-    wire = scene->makeWire();
++    if (!wire) {
++        std::shared_ptr<Wire> initWire = nullptr;
++        if (!scene) return initWire;
++        initWire = scene->makeWire();
++        wire = initWire;
++    }
++
+     attachWireToConnector(wire, static_cast<IPInstance*>(ptrSrc->parentItem()), ptrSrc->scenePos());
+     auto src = ptrSrc->getConnectingScenePos();
+     auto des = ptrDes->getConnectingScenePos();
+@@ -688,10 +937,16 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     }
+ 
+     QPointF subSrcInstanceTopLeft, subSrcInstanceTopRight, subSrcInstanceBottomRight, hugeInstanceTopLeft, hugeInstanceBottomRight;
+-    if (auto subInstance = ptrSrc->parentItem()) {
++    auto subInstance = ptrSrc->parentItem();
++    bool insSelected = false;
++    if (subInstance) {
+         subSrcInstanceTopLeft  = subInstance->sceneBoundingRect().topLeft();
+         subSrcInstanceTopRight = subInstance->sceneBoundingRect().topRight();
+         subSrcInstanceBottomRight = subInstance->sceneBoundingRect().bottomRight();
++        if (subInstance->isSelected()) {
++            subInstance->setSelected(false);
++            insSelected = true;
++        }
+         if (auto hugeInstance = subInstance->parentItem()) {
+             if (hugeInstance->isSelected()) hugeInstance->setSelected(false);
+             hugeInstanceTopLeft = hugeInstance->sceneBoundingRect().topLeft() + QPointF(_settings.gridSize, _settings.gridSize);
+@@ -731,6 +986,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     }
+ 
+     wire->append_point(_settings.snapToGrid(src));
++    listTempPoint.push_front(src);
+     /* Config wires direction */
+     switch (ptrSrc->dir) {
+         case TOP:
+@@ -738,44 +994,53 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+             temp = QPointF(src.rx(), src.ry() - wirePadding - srcVeticalPadding);
+             pre_temp = temp;
+             wire->append_point(_settings.snapToGrid(temp)); /* Draw up */
+-            
++            listTempPoint.push_front(temp);
++
+             /* Config destination wires direction */
+             switch (ptrDes->dir) {
+                 case TOP:
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case RIGHT:
+                     if (expose) temp = QPointF(des.rx() - wirePadding, pre_temp.y());
+                     else temp = QPointF(des.rx() + wirePadding + desHorizontalPadding, pre_temp.y());
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(pre_temp.x(), des.ry());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case BOTTOM:
+                     if (expose) temp = QPointF(hugeInstanceTopLeft.x() + wirePadding, pre_temp.y());
+                     else temp = QPointF(pre_temp.x() + horizontalOffset, pre_temp.y());
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+ 
+                     if (expose) temp = QPointF(pre_temp.x(), des.ry());
+                     else temp = QPointF(pre_temp.x(), des.ry() + wirePadding + desVerticalPadding);
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case LEFT:
+                     if (expose) temp = QPointF(des.rx() + wirePadding, pre_temp.y());
+                     else temp = QPointF(des.rx() - wirePadding - desHorizontalPadding, pre_temp.y());
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(pre_temp.x(), des.ry());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+                     break;
+                 default:
+                     break;
+@@ -785,6 +1050,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+             temp = QPointF(src.rx() + wirePadding + srcHorizontalPadding, src.ry());
+             pre_temp = temp;
+             wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontally to the right */
++            listTempPoint.push_front(temp);
+ 
+             /* Config destination wires direction */
+             switch (ptrDes->dir) {
+@@ -793,26 +1059,32 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+                     else temp = QPointF(pre_temp.x(), des.ry() - wirePadding - desVerticalPadding);
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case RIGHT:
+                     if (expose) {
+                         temp = QPointF(pre_temp.x(), des.ry());
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                        listTempPoint.push_front(temp);
+                         break;
+                     } else {
+                         temp = QPointF(pre_temp.x(), pre_temp.y() - topOffset);
+                         pre_temp = temp;
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                        listTempPoint.push_front(temp);
+ 
+                         temp = QPointF(des.rx() + wirePadding + desHorizontalPadding, pre_temp.y());
+                         pre_temp = temp;
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                        listTempPoint.push_front(temp);
+ 
+                         temp = QPointF(pre_temp.x(), des.ry());
+                         wire->append_point(_settings.snapToGrid(temp));  /* Draw vertical */
++                        listTempPoint.push_front(temp);
+                         break;
+                     }
+                 case BOTTOM:
+@@ -820,13 +1092,16 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+                     else temp = QPointF(pre_temp.x(), des.ry() + wirePadding + desVerticalPadding);
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case LEFT:
+                     temp = QPointF(pre_temp.x(), des.ry());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+                     break;
+                 default:
+                     break;
+@@ -836,6 +1111,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+             temp = QPointF(src.rx(), src.ry() + wirePadding + srcVeticalPadding);
+             pre_temp = temp;
+             wire->append_point(_settings.snapToGrid(temp)); /* Draw down */
++            listTempPoint.push_front(temp);
+ 
+             /* Config destination wires direction */
+             switch (ptrDes->dir) {
+@@ -844,36 +1120,44 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+                     else temp = QPointF(pre_temp.x() + horizontalOffset, pre_temp.y());
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+ 
+                     if (expose) temp = QPointF(pre_temp.x(), des.ry());
+                     else temp = QPointF(pre_temp.x(), des.ry() - wirePadding - desVerticalPadding);
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case RIGHT:
+                     if (expose) temp = QPointF(des.rx() - wirePadding, pre_temp.y());
+                     else temp = QPointF(des.rx() + wirePadding + desHorizontalPadding, pre_temp.y());
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(pre_temp.x(), des.ry());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case BOTTOM:
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case LEFT:
+                     if (expose) temp = QPointF(des.rx() + wirePadding, pre_temp.y());
+                     else temp = QPointF(des.rx() - wirePadding - desHorizontalPadding, pre_temp.y());
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(pre_temp.x(), des.ry());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+                     break;
+                 default:
+                     break;
+@@ -883,6 +1167,7 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+             temp = QPointF(src.rx() - wirePadding - srcHorizontalPadding, src.ry());
+             pre_temp = temp;
+             wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontally to the left */
++            listTempPoint.push_front(temp);
+ 
+             /* Config destination wires direction */
+             switch (ptrDes->dir) {
+@@ -891,39 +1176,48 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+                     else temp = QPointF(pre_temp.x(), des.ry() - wirePadding - desVerticalPadding);
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case RIGHT:
+                     temp = QPointF(pre_temp.x(), des.ry());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case BOTTOM:
+                     if (expose) temp = QPointF(pre_temp.x(), pre_temp.y() + bottomOffset);
+                     else temp = QPointF(pre_temp.x(), des.ry() + wirePadding + desVerticalPadding);
+                     pre_temp = temp;
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                    listTempPoint.push_front(temp);
+ 
+                     temp = QPointF(des.rx(), pre_temp.y());
+                     wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                    listTempPoint.push_front(temp);
+                     break;
+                 case LEFT:
+                     if (expose) {
+                         temp = QPointF(pre_temp.x(), des.ry());
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                        listTempPoint.push_front(temp);
+                         break;
+                     } else {
+                         temp = QPointF(pre_temp.x(), pre_temp.y() - topOffset);
+                         pre_temp = temp;
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                        listTempPoint.push_front(temp);
+ 
+                         temp = QPointF(des.rx() - wirePadding - desHorizontalPadding, pre_temp.y());
+                         pre_temp = temp;
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw horizontal */
++                        listTempPoint.push_front(temp);
+ 
+                         temp = QPointF(pre_temp.x(), des.ry());
+                         wire->append_point(_settings.snapToGrid(temp)); /* Draw vertical */
++                        listTempPoint.push_front(temp);
+                         break;
+                     }
+                 default:
+@@ -935,34 +1229,19 @@ std::shared_ptr<Wire> IPDesign::constructWire(IPConnectivity* start, IPConnectiv
+     }
+ 
+     wire->append_point(_settings.snapToGrid(des));
++    listTempPoint.push_front(des);
+     attachWireToConnector(wire, static_cast<IPInstance*>(ptrDes->parentItem()), ptrDes->scenePos());
+-    
+-    auto net_name = ptrSrc->get_net_name();
+-    if (!net_name.empty()) {
+-        if (auto wireNet = std::dynamic_pointer_cast<WireNet>(wire->net())) {
+-            auto manager = scene->wire_manager();
+-            if (manager) {
+-                /* Check existing label */ 
+-                bool found_label = false;
+-                for (const auto& net : manager->nets()) {
+-                    if (net->name().toStdString() == net_name) {
+-                        found_label = true;
+-                        break;
+-                    }
+-                }
+-                /* Don't create new same label */
+-                if (!found_label) {
+-                    QPointF center = (src + des) / 2.0;
+-                    wireNet->setPosLabel(center);
+-                    wireNet->set_name(QString::fromStdString(net_name));
+-                    auto lb = wireNet->label();
+-                    if (lb) lb->setAlwaysHighlight();                   
+-                }
+-            }
+-        }
++    for (auto& p : listTempPoint) {
++        wire->append_point(_settings.snapToGrid(p));
++    }
++
++    if (auto wireNet = std::dynamic_pointer_cast<WireNet>(wire->net())) {
++        wireNet->set_name(QString::fromStdString(ptrSrc->get_net_name()));
++        wireNet->set_net_name_visible(false); /* Don't show net name along with wire, just show it in the wire tooltip */
+     }
+ 
+     completeWire(wire);
++    if (insSelected) subInstance->setSelected(true);
+ 
+     return wire;
+ }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+index a3c199ff4ba..83f5850f8f2 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.cpp
+@@ -29,6 +29,8 @@
+ #include <QDataStream>
+ #include <QIODevice>
+ #include <QPair>
++#include "WireItem/label.h"
++#include <QSignalBlocker>
+ 
+ extern GenericConsole* g_console;
+ extern QSemaphore gSem;
+@@ -590,7 +592,7 @@ void IPMainWindow::createToolBar()
+     viewToolbar = createToolBar(TOOLBAR_VIEW_OPTIONS);
+     auto wireToolbar = createToolBar(TOOLBAR_WIRE_OPTIONS);
+     undoRedoToolbar = createToolBar(TOOLBAR_UNDO_REDO_OPTIONS);
+-    auto tooltipToolbar = createToolBar(TOOLBAR_TOOLTIP_OPTIONS);
++    auto commonToolbar = createToolBar(TOOLBAR_TOOLTIP_OPTIONS);
+ 
+     openFile = new QAction(QIcon(ICON_OPEN_FILE), TEXT_OPEN_FILE, this);
+     openFile->setToolTip(TOOLTIP_LOAD_LAYOUT);
+@@ -687,7 +689,7 @@ void IPMainWindow::createToolBar()
+     auto undo = new QAction(QIcon(ICON_UNDO), TEXT_UNDO, this);
+     undo->setShortcut(QKeySequence(tr("Ctrl+Z")));
+     undo->setToolTip(TOOLTIP_UNDO);
+-    connect(undo, &QAction::triggered, this, [this]() {
++    connect(undo, &QAction::triggered, this, [&]() {
+         emit undoItems();
+         printMsg(QString::fromStdString(TEXT_UNDO) + "\n");
+         printMsg("> ");
+@@ -697,13 +699,14 @@ void IPMainWindow::createToolBar()
+     auto rst = new QAction(QIcon(ICON_RESET_VIEW), TEXT_RESET, this);
+     rst->setShortcut(QKeySequence(tr("Ctrl+R")));
+     rst->setToolTip(TOOLTIP_RESET);
+-    connect(rst, &QAction::triggered, this, [this]() {
+-        emit resetView();
+-        printMsg(QString::fromStdString(TEXT_RESET) + "\n");
+-        printMsg("> ");
++    connect(rst, &QAction::triggered, this, [&]() {
++        emit resetView();      
+         if (showWires->isChecked()) {
++            QSignalBlocker blocker(showWires);
+             showWires->setChecked(false);
+         }
++        printMsg(QString::fromStdString(TEXT_RESET) + "\n");
++        printMsg("> ");
+     });
+     undoRedoToolbar->addAction(rst);
+     undoRedoToolbar->setIconSize(QSize(20, 20));
+@@ -723,14 +726,14 @@ void IPMainWindow::createToolBar()
+     tooltip->setCheckable(true);
+     tooltip->setShortcut(QKeySequence(tr("Ctrl+T")));
+     tooltip->setToolTip(TEXT_TOOLTIP);
+-    tooltip->setChecked(true);
+     tooltip->setEnabled(false);
+-    tooltipToolbar->addAction(tooltip);
+-    tooltipToolbar->setStyleSheet("QToolButton:checked { "
++    commonToolbar->addAction(tooltip);
++    commonToolbar->setStyleSheet("QToolButton:checked { "
+                                "  background-color: #E0E0E0; "
+                                "  border: 1px solid #C0C0C0; "
+                                "  border-radius: 4px; "
+                                "}");
++
+ }
+ 
+ void IPMainWindow::createStatusBar()
+@@ -1101,7 +1104,7 @@ void IPMainWindow::loadLayoutFinish(QSchematic::Scene* sence)
+     if (undoRedoToolbar) undoRedoToolbar->setEnabled(true);
+     if (viewToolbar) viewToolbar->setEnabled(true);
+     if (tooltip) tooltip->setEnabled(true);
+-
++    
+     /* Print constraint configuration window messages in console */
+     if (clickingConstraintDialog == QDialog::Accepted) {
+         clickingConstraintDialog = QDialog::Rejected;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+index 78c4e931f06..58621c4b5c4 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/MainWindow/MainWindow.h
+@@ -48,7 +48,6 @@ public:
+     void updateIntanceParameter(const QString&);
+     NSDockWidget* getInstanceDock() { return instanceDock; } 
+     bool isTooltipEnable() const { return tooltip->isChecked(); }
+-    void toggleWireButton(bool state) const { showWires->setChecked(state); }
+     bool isShowWiresChecked() { return showWires->isChecked(); }
+ 
+  protected:
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.cpp
+index c488919b8fa..043e508db88 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.cpp
+@@ -120,6 +120,7 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
+     Q_UNUSED(option)
+     Q_UNUSED(widget)
+ 
++    if (_text.isEmpty()) return;
+     if ((type() != GroupHeader &&
+             QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform()) < 0.2) || _text.isEmpty()) {
+         return;
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.h b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.h
+index cc7c050be87..fb8c92a05b0 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/label.h
+@@ -34,7 +34,7 @@ class Label : public Item
+         void setConnectionPoint(const QPointF& connectionPoint);    // Parent coordinates
+         QRectF textRect() const;
+         void setHighLight(bool enabled) { _highlight = enabled; }
+-        void setAlwaysHighlight() { _alwaysHighlight = true; }
++        void setAlwaysHighlight(bool highlight) { _alwaysHighlight = highlight; }
+         void setMovable(bool enabled);
+ 
+     protected:
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+index 14bca3e94d0..2a66289c142 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.cpp
+@@ -477,10 +477,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+         {
+             // Reset stuff
+             _newWire = {};
+-
+-            // Handle selections
+-            QGraphicsScene::mousePressEvent(event);
+-
+             // Check if moving nodes
+             QGraphicsItem* item = itemAt(event->scenePos(), QTransform());
+             if (item) {
+@@ -493,9 +489,26 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+                 auto inst = dynamic_cast<IPInstance*>(item);
+                 if (inst) {
+                     auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
+-                    mw->getInstanceDock()->setWidget(mw->getModulesTab());
+-                    mw->getInstanceDock()->setWindowTitle("Instances");
++                    if (mw) {
++                        auto items = selectedItems();
++                        mw->getInstanceDock()->setWidget(mw->getModulesTab());
++                        mw->getInstanceDock()->setWindowTitle("Instances");
++                        auto proper = mw->getPropertyPanel();
++                        if (proper) {
++                            if (event->modifiers().testFlag(Qt::ControlModifier)) {
++                                if (!first) {
++                                    proper->clearAll();
++                                    first = true;
++                                }
++                            } else {
++                                first = false;
++                                proper->clearAll();
++                            }
++                        }
++                    }
+                 }
++                // Handle selections
++                QGraphicsScene::mousePressEvent(event);
+                 // Prevent the scene from detecting changes in the wires origin
+                 // when the bouding rect is resized by a wire_point that moved
+                 Wire* wire = dynamic_cast<Wire*>(item);
+@@ -550,7 +563,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+                         }
+                         auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
+                         if (mw && ipconn) {
+-                            QList<QString> ifce_name = {label->text()};
++                            QString ifce_name = label->text();
+                             _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
+                             auto ipDesign = mw->getIPDesign();
+                             if (ipDesign) {
+@@ -608,6 +621,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+                 }               
+             } else {
+                 _movingNodes = false;
++                QGraphicsScene::mousePressEvent(event);             // Handle selections
+                 if (!event->modifiers().testFlag(Qt::ControlModifier)) {
+                     for (auto const& it : _items) {
+                         if (it->isHighlighting()) {
+@@ -622,14 +636,14 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+                     if (mw) {
+                         auto proper = mw->getPropertyPanel();
+                         if (proper) {
+-                            proper->clearAll();
++                            first = false;
+                         }
+                     }
+                 }
+ 
+                 if (event->button() == Qt::LeftButton) {
+                     /* Clear _renderWireList */
+-                    for (auto item : _renderWireList) {
++                    for (auto& item : _renderWireList) {
+                         removeWire(item);
+                     }
+                     _renderWireList.clear();
+@@ -1249,9 +1263,20 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+                     if (auto ins = dynamic_cast<IPInstance*>(it.get())) {
+                         auto instName = ins->getinstanceName();
+                         instNames.append(instName);
++                        if (ins->parentItem()) {
++                            if (auto hugeIns = dynamic_cast<IPInstance*>(ins->parentItem())) {
++                                instNames.append(instName);
++                                hugeIns->updateBoundingRect();
++                            }
++                        }
+                         // Set instance parameters
+                         if (mw) {
+-                            mw->updateIntanceParameter(instName);
++                            if (mw->getIPDesign()->getWiresDialog() &&
++                                !mw->getIPDesign()->getWiresDialog()->getCheckedValues().isEmpty()) {
++                                mw->getIPDesign()->refreshWires();
++                            } else if (mw->isShowWiresChecked()) {
++                                mw->getIPDesign()->showWires(true);
++                            }
+                         }
+                         /* Marked higlighted instance */
+                         if (!_selectedItems.contains(it.get())) {
+@@ -1261,15 +1286,19 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+                             emit ins->highlightChanged(*it, true);
+                             _selectedItems.push_back(it.get());
+                         }
+-                        if (ins->parentItem()) {
+-                            if (auto hugeIns = dynamic_cast<IPInstance*>(ins->parentItem())) hugeIns->updateBoundingRect();
+-                        }
+-                    } else if (auto conn = dynamic_cast<IPConnectivity*>(it.get())) {
+-                        if (auto hugeIns = dynamic_cast<IPInstance*>(conn->parentItem()->parentItem())) hugeIns->updateBoundingRect();
+                     }
+                 }
+ 
+                 if (!instNames.isEmpty()) {
++                    if (mw) {
++                        auto proper = mw->getPropertyPanel();
++                        if (proper) {
++                            proper->clearAll();
++                        }
++                        for (auto const& it : instNames) {
++                             mw->updateIntanceParameter(it);
++                        }
++                    }
+                     // Highlight QTreeWidget
+                     emit setSelectedItems(instNames);
+                 }
+@@ -1280,27 +1309,27 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+                 _highlightedItem = nullptr;
+             }
+             drag = false;
+-            auto item = itemAt(event->scenePos(), QTransform());
++            /* auto item = itemAt(event->scenePos(), QTransform());
+             if (dynamic_cast<IPInstance*>(item) || dynamic_cast<IPConnectivity*>(item)) {
+                 if (mw) {
+                     if (mw->getIPDesign()->getWiresDialog()) mw->getIPDesign()->refreshWires();
+                     else if (mw->isShowWiresChecked()) mw->getIPDesign()->showWires(true);
+                     else {
+-                        for (auto item : _renderWireList) {
++                        for (auto& item : _renderWireList) {
+                             removeWire(item);
+                         }
+                         _renderWireList.clear();
+                         if (item) {
+                             if (auto label = dynamic_cast<Label*>(item)) {
+                                 if (auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem())) {
+-                                    QList<QString> ifce_name = {label->text()};
++                                    QString ifce_name = label->text();
+                                     _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
+                                 }
+                             }
+                         }
+                     }
+                 }
+-            }
++            }*/
+         }
+         break;
+     }
+@@ -1440,11 +1469,13 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+                     // Apply the custom scene snapping
+                     moveBy = itemsMoveSnap(item, QVector2D(moveBy)).toPointF();
+                     item->setPos(item->pos() + moveBy);
+-                    auto parentItem = dynamic_cast<IPInstance*>(item->parentItem());
+-                    if (parentItem) {
+-                        parentItem->updateBoundingRect();
+-                        parentItem->update();
+-                    } else parentMoving = true;
++                    if (auto insItem = dynamic_cast<IPInstance*>(item.get())) {
++                        if (auto parentItem = dynamic_cast<IPInstance*>(insItem->parentItem())) {
++                            parentItem->updateBoundingRect();
++                            parentItem->update();
++                        } else
++                            parentMoving = true;
++                    }
+                 }
+                 // Simplify all the wires
+                 for (auto& wire : m_wire_manager->wires()) {
+@@ -1457,22 +1488,46 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+ 
+             drag = true; /* Select multi instances */
+             if (!parentMoving) {
+-                auto item = itemAt(event->scenePos(), QTransform());
+-                if (dynamic_cast<IPInstance*>(item) || dynamic_cast<IPConnectivity*>(item)) {
++                if (!_renderWireList.isEmpty()) {
++                    for (auto item : _renderWireList) {
++                        removeWire(item);
++                    }
++                    _renderWireList.clear();
++                }
++                if (!_highlightedList.first.isEmpty()) {
++                    /* Remove wires*/
++                    for (auto& it : _highlightedList.first) {
++                        removeWire(it);
++                    } 
++                }
++                auto items = selectedItems();
++                if (items.size() < 3) {
+                     if (auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow())) {
+-                        if (mw->getIPDesign()->getWiresDialog()) mw->getIPDesign()->refreshWires();
+-                        else if (mw->isShowWiresChecked()) mw->getIPDesign()->showWires(true);
+-                        else {
+-                            for (auto item : _renderWireList) {
+-                                removeWire(item);
+-                            }
+-                            _renderWireList.clear();
+-                            if (item) {
+-                                if (auto label = dynamic_cast<Label*>(item)) {
+-                                    if (auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem())) {
+-                                        QList<QString> ifce_name = {label->text()};
+-                                        _renderWireList = mw->getIPDesign()->renderWires(ipconn->getInstanceName(), ifce_name, _renderWireList);
++                        for (auto const& it : items) {
++                            if (dynamic_cast<IPInstance*>(it.get())) {
++                                if (mw->getIPDesign()->getWiresDialog() &&
++                                    !mw->getIPDesign()->getWiresDialog()->getCheckedValues().isEmpty())
++                                    mw->getIPDesign()->refreshWires();
++                                else if (mw->isShowWiresChecked())
++                                    mw->getIPDesign()->showWires(true);
++                            } else if (auto conn = dynamic_cast<IPConnectivity*>(it.get())) {
++                                if (mw->isShowWiresChecked() || (mw->getIPDesign()->getWiresDialog() &&
++                                     !mw->getIPDesign()->getWiresDialog()->getCheckedValues().isEmpty())) {
++                                    std::shared_ptr<QSchematic::Wire> wireOfCurrentPin = conn->getWire();
++                                    if (!wireOfCurrentPin) {
++                                        if (conn->getSource()) {
++                                            wireOfCurrentPin = conn->getSource()->getWire();
++                                        }
+                                     }
++                                    if (wireOfCurrentPin) {
++                                        if (m_wire_manager->wires().contains(wireOfCurrentPin)) {
++                                            removeWire(wireOfCurrentPin);
++                                        }
++                                        mw->getIPDesign()->updateWireOfCurrentPin(conn->getInstanceName(), conn->getLabel()->text());
++                                    }
++                                } else {
++                                    auto ifce_name = conn->getLabel()->text();
++                                    _renderWireList = mw->getIPDesign()->renderWires(conn->getInstanceName(), ifce_name, _renderWireList);
+                                 }
+                             }
+                         }
+@@ -1491,6 +1546,13 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+                 break;
+             }
+ 
++            if (auto w = dynamic_cast<Wire*>(item);
++                std::any_of(_renderWireList.begin(), _renderWireList.end(),
++                            [w](const auto& wire) { return wire.get() == w; })) {
++                // Found matching wire
++                break;
++            }
++
+             // Disable the highlighting on the previous item
+             if (_highlightedItem) {
+                 if (!event->modifiers().testFlag(Qt::ControlModifier)) {
+@@ -1519,29 +1581,46 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+             }
+             if (!(event->buttons() & Qt::LeftButton)) {
+                 if (!event->modifiers().testFlag(Qt::ControlModifier)) {
+-                    if (!item->isHighlighting()) {
+-                        Label* label = dynamic_cast<Label*>(item);
++                    if (!item->isHighlighting()) {                        
+                         auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
+-                        if (label && mw) {
+-                            auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem());
+-                            if (ipconn && mw->isTooltipEnable()) {
+-                                auto ipDesign = mw->getIPDesign();
+-                                if (ipDesign) {
+-                                    auto mp = ipDesign->findInstanceAndInterface(ipconn->getInstanceName().toStdString(),
+-                                                                                 label->text().toStdString());
+-                                    if (!mp.isEmpty()) {
+-                                        auto mod = ipDesign->getModule();
+-                                        if (mod) {
+-                                            auto inst = mp.firstKey();
+-                                            auto ifce = mp[inst];
+-                                            auto md   = const_cast<NetSpeed::BDS::Module*>(mod);
+-                                            std::string html = "<span style='font-size:10pt';>" + md->GetToolTip(inst, ifce) + "</span>";
+-                                            item->setToolTip(QString::fromStdString(html));
++                        if (mw) {
++                            Label* label = dynamic_cast<Label*>(item);
++                            if (label) {
++                                auto ipconn = dynamic_cast<IPConnectivity*>(label->parentItem());
++                                if (ipconn && mw->isTooltipEnable()) {
++                                    auto ipDesign = mw->getIPDesign();
++                                    if (ipDesign) {
++                                        auto mp = ipDesign->findInstanceAndInterface(
++                                            ipconn->getInstanceName().toStdString(),
++                                            label->text().toStdString());
++                                        if (!mp.isEmpty()) {
++                                            auto design = ipDesign->getModule();
++                                            if (design) {
++                                                auto inst = mp.firstKey();
++                                                auto ifce = mp[inst];
++                                                auto mod = const_cast<NetSpeed::BDS::Module*>(design);
++                                                std::string html = "<span style='font-size:10pt';>" +
++                                                                    mod->GetToolTip(inst, ifce) + "</span>";
++                                                item->setToolTip(QString::fromStdString(html));
++                                            }
+                                         }
+                                     }
++                                } else {
++                                    item->setToolTip(QString());
+                                 }
+                             } else {
+-                                item->setToolTip(QString());
++                                Wire* wire = dynamic_cast<Wire*>(item);
++                                if (wire) {
++                                    if (auto wireNet = std::dynamic_pointer_cast<WireNet>(wire->net())) {
++                                        auto net_name = wireNet->name();
++                                        if (!net_name.isEmpty()) {
++                                            QString html = "<span style='font-size:10pt';>" + net_name + "</span>";
++                                            item->setToolTip(html);
++                                        } else {
++                                            item->setToolTip("");
++                                        }
++                                    }
++                                }
+                             }
+                         }
+                         // Highlight the item
+@@ -1559,7 +1638,7 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+                     /* Show connectivity net of interface */
+                     auto mw = dynamic_cast<IPMainWindow*>(QApplication::activeWindow());
+                     if (mw) {
+-                        QList<QString> ifce_name = {lb->text()};
++                        QString ifce_name = lb->text();
+                         if (ifce_name.size() > 0) {
+                             _highlightedList = mw->getIPDesign()->highlightWires(ipconn->getInstanceName(), ifce_name);
+                             for (auto& it : _highlightedList.first) {
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.h b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.h
+index 09db9bf8c6a..5849df5d1a9 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/scene.h
+@@ -87,6 +87,7 @@ namespace QSchematic {
+         bool isWireMode() { return _mode == WireMode; }
+         void setFileName(QString filename) { fileName = filename; }
+         void updateLayout(QList<itemProperty>, QList<QString>);
++        bool first = false;
+ 
+     signals:
+         void modeChanged(int newMode);
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.cpp
+index 6725ea3ac38..eab05c8f748 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.cpp
+@@ -73,6 +73,15 @@ void WireNet::simplify()
+     }
+ }
+ 
++void WireNet::set_net_name_visible(bool visible)
++{
++    if (!_label->text().isEmpty()) {
++        _label->setVisible(visible);
++    }    
++}
++
++
++
+ void WireNet::set_name(const QString& name)
+ {
+     net::set_name(name);
+@@ -82,6 +91,8 @@ void WireNet::set_name(const QString& name)
+     updateLabelPos(true);
+ }
+ 
++
++
+ void WireNet::setHighlighted(bool highlighted)
+ {
+     // Wires
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.h b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.h
+index 66b74cea4da..b27cce5a08f 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireItem/wirenet.h
+@@ -34,9 +34,10 @@ namespace QSchematic {
+         void simplify();
+         void set_name(const QString& name) override;
+         void set_newName(const QString& name) { _newName = name; }
++        void set_net_name_visible(bool visible);
+         QString get_newName() const { return _newName; }
+         void setHighlighted(bool highlighted);
+-        void setScene(Scene* scene);
++        void setScene(Scene* scene);     
+         void updateLabelPos(bool updateParent = false) const;
+         void wirePointMoved();
+         void setPosLabel(QPointF pf);
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp
+index 62389c6a991..d9474890e62 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.cpp
+@@ -532,9 +532,9 @@ void wire::move(const QVector2D& movedBy)
+     //}
+ }
+ 
+-void wire::remove_duplicate_points()
++void wire::remove_duplicate_points(int index)
+ {
+-    int i = 0;
++    int i = index;
+     while (i < points_count() - 1 && points_count() > 2) {
+         point p1 = points().at(i);
+         point p2 = points().at(i + 1);
+@@ -549,9 +549,17 @@ void wire::remove_duplicate_points()
+                 m_manager->point_removed(this, i + 1);
+             }
+             m_points.removeAt(i + 1);
+-        } else {
++        } /*else if (auto idx = points().indexOf(p1, index) >= 0) {
++            if (!p1.is_junction()) {
++                set_point_is_junction(i, true);
++            }
++            if (m_manager) {
++                m_manager->point_removed(this, idx);
++            }
++            m_points.removeAt(idx);
+             i++;
+-        }
++        }*/
++        else i++;
+     }
+ }
+ 
+@@ -580,10 +588,10 @@ void wire::remove_obsolete_points()
+     }
+ }
+ 
+-void wire::simplify()
++void wire::simplify(int index)
+ {
+     about_to_change();
+-    remove_duplicate_points();
++    remove_duplicate_points(index);
+     remove_obsolete_points();
+     has_changed();
+ }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h
+index 083d9f3f523..71691ddd643 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h
++++ b/src/sw/noc_dev/IPStudio_qt6/GUI/WireSystem/wire.h
+@@ -38,13 +38,14 @@ namespace wire_system
+         void move_point_by(int index, const QVector2D& moveBy);
+         bool point_is_on_wire(const QPointF& point) const;
+         void move(const QVector2D& movedBy);
+-        void simplify();
++        void simplify(int index = 0);
+         bool connect_wire(wire* wire);
+         void setNet(const std::shared_ptr<wire_system::net>& net);
+         std::shared_ptr<wire_system::net> net();
+         void disconnectWire(wire* wire);
+         virtual void add_segment(int index);
+         void remove_point(int index);
++        QVector<point> getVectorPoints() { return m_points; }
+ 
+     protected:
+         void move_junctions_to_new_segment(const line& oldSegment, const line& newSegment);
+@@ -54,7 +55,7 @@ namespace wire_system
+         QVector<point> m_points;
+ 
+     private:
+-        void remove_duplicate_points();
++        void remove_duplicate_points(int index = 0);
+         void remove_obsolete_points();
+         virtual void about_to_change();
+         virtual void has_changed();
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPConnectivity.h b/src/sw/noc_dev/IPStudio_qt6/include/IPConnectivity.h
+index 648bb1b77a9..7678128e1f8 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPConnectivity.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPConnectivity.h
+@@ -31,15 +31,21 @@ public:
+     const QString getInstanceName() const;
+     std::shared_ptr<QSchematic::Label> getLabel() const { return ifceLabel; }
+     std::string get_net_name() const { return netName; }
++    void setWire(std::shared_ptr<QSchematic::Wire>& w) { wire = w; }
++    std::shared_ptr<QSchematic::Wire> getWire() const { return wire; }
++    void setSource(IPConnectivity* source) { src = source; }
++    IPConnectivity* getSource() { return src; }
+     int dir = -1;
+ 
+     protected:
+     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value) override;
+     void copyAttributes(IPConnectivity& dest) const;
+-    bool g = false;
++
+ private:
+     std::shared_ptr<QSchematic::Label> ifceLabel;
+     std::string netName;
+     NetSpeed::BDS::Conn_mode mode;
++    std::shared_ptr<QSchematic::Wire> wire = nullptr;
++    IPConnectivity* src;
+ };
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+index 6c890f36733..b813d67c39f 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPDesign.h
+@@ -40,18 +40,19 @@ public:
+     }
+     void refresh();
+     void refresh(const NetSpeed::BDS::Module*);
+-    QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> highlightWires(QString instName, QList<QString> ifces);
++    QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> highlightWires(QString instName, QString& ifce);
+     void renderWires(const QMap<QString, QList<QString>> map, bool obstacle_avoidance);
+-    QList<std::shared_ptr<Wire>> renderWires(QString instName, QList<QString> ifces, QList<std::shared_ptr<Wire>> renderedWireList);
++    QList<std::shared_ptr<Wire>> renderWires(QString instName, QString& ifce, QList<std::shared_ptr<Wire>> renderedWireList);
+     const NetSpeed::BDS::Module* getModule() const { return module; }
+     const std::shared_ptr<IPObject>& getIPObject() const { return object; }
+     bool showWiresDialog(QAction*);
+     void showWires(bool visibleWires);
++    void updateWireOfCurrentPin(QString instName, QString ifce);
+     void refreshWires();
+     void attachWireToNet(std::shared_ptr<QSchematic::Wire>& wire);
+     void attachWireToConnector(std::shared_ptr<QSchematic::Wire>& wire, QSchematic::Node* node, const QPointF& scenePos);
+     Avoid::ConnRef* computeWire(IPConnectivity* start, IPConnectivity* end, Avoid::Router* router);
+-    std::shared_ptr<Wire> constructWire(IPConnectivity* start, IPConnectivity* end, bool highlight);
++    std::shared_ptr<Wire> constructWire(IPConnectivity* start, IPConnectivity* end, bool highlight, std::shared_ptr<Wire>onlyWire = nullptr);
+     void constructWire(IPConnectivity* start, QPointF& scenePos);
+     std::shared_ptr<Wire> constructWire(IPConnectivity* start, IPConnectivity* end, Avoid::ConnRef* router);
+     QSchematic::Scene* getScene() { return scene; }
+diff --git a/src/sw/noc_dev/IPStudio_qt6/include/IPInstance.h b/src/sw/noc_dev/IPStudio_qt6/include/IPInstance.h
+index 908a77b8d90..a7b700365e9 100644
+--- a/src/sw/noc_dev/IPStudio_qt6/include/IPInstance.h
++++ b/src/sw/noc_dev/IPStudio_qt6/include/IPInstance.h
+@@ -36,7 +36,6 @@ public:
+     QRectF extraBoundingRect();
+     void updateBoundingRect();
+     QRectF cachedBoundingRect;
+-    bool dragChild  = false;
+     QPointF topleftsave = QPointF(0, 0);
+ 
+ private:

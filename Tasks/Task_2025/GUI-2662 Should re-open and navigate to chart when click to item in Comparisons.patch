@@ -1,0 +1,112 @@
+ src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp | 64 +++++++++++++---------
+ 1 file changed, 38 insertions(+), 26 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp b/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
+index ede4997ca3a..fd791e93484 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/statdashboard.cpp
+@@ -115,12 +115,8 @@ void StatDashboard::updateStatDashboardContent()
+         }
+         itm->setText(0, itemName);
+         itm->setFlags(itm->flags() | Qt::ItemIsUserCheckable);
+-        itm->setCheckState(0,
+-            (currentStatTab->groups[itemName.toStdString()].enabled) ?
+-            Qt::Checked : Qt::Unchecked);
+-        itm->setToolTip(0,
+-            PropertyPanel::wrapTextForTooltip(QString::fromStdString(
+-                currentStatTab->groups[itemName.toStdString()].fullname), 400));
++        itm->setCheckState(0, (currentStatTab->groups[itemName.toStdString()].enabled) ? Qt::Checked : Qt::Unchecked);
++        itm->setToolTip(0, PropertyPanel::wrapTextForTooltip(QString::fromStdString(currentStatTab->groups[itemName.toStdString()].fullname), 400));
+ 
+         // display it's child item
+         std::vector<bucket_label> buckets = currentStatTab->groups[parent].buckets;
+@@ -133,16 +129,11 @@ void StatDashboard::updateStatDashboardContent()
+             // if the item is a child of a transaction (not of a merge)
+             if (!(currentStatTab->groups[parent].updateMerge)) {
+                 itm2->setFlags(itm2->flags() | Qt::ItemIsUserCheckable);
+-                itm2->setCheckState(0,
+-                    (currentStatTab->groups[(bucket)].enabled == true)
+-                    ? Qt::Checked : Qt::Unchecked);
++                itm2->setCheckState(0, (currentStatTab->groups[(bucket)].enabled == true) ? Qt::Checked : Qt::Unchecked);
+             }
+             else itm2->setFlags(itm2->flags() & ~Qt::ItemIsUserCheckable);
+             itm->addChild(itm2);
+-            itm2->setToolTip(0, PropertyPanel::wrapTextForTooltip(
+-                QString::fromStdString(
+-                    currentStatTab->groups[(bucket)].fullname),
+-                400));
++            itm2->setToolTip(0, PropertyPanel::wrapTextForTooltip(QString::fromStdString(currentStatTab->groups[(bucket)].fullname), 400));
+         }
+         itm->setExpanded(currentStatTab->groups[parent].expanded);
+     }
+@@ -161,9 +152,11 @@ void StatDashboard::updateStatDashboardContent()
+         plotsTree->addTopLevelItem(itm);
+         // display it's children items which are group labels
+         for (auto const& group : plot.second.groups) {
+-            QTreeWidgetItem* itm2 = new QTreeWidgetItem(itm);
++            QTreeWidgetItem* itm2 = new QTreeWidgetItem();
+             itm2->setText(0, QString::fromStdString(group.first));
++            itm2->setFlags(itm2->flags() & ~Qt::ItemIsUserCheckable);
+             itm2->setToolTip(0, PropertyPanel::wrapTextForTooltip(QString::fromStdString(group.first), 400));
++            itm->addChild(itm2);
+         }
+     }
+     setCkStt4SelAllCkBox();
+@@ -238,19 +231,14 @@ void StatDashboard::changeStatDashboardAct(QTreeWidgetItem * item, int col)
+     auto label = item->text(0).toStdString();
+     selectedItem = label;
+     auto checkState = (item->checkState(0) == Qt::Checked) ? true : false;
+-    // comparisons
+-    if (treeWidget == plotsTree) {
+-        // this item is a root item
+-        if (item->parent() == nullptr && item->flags().operator&=(Qt::ItemIsUserCheckable)) {
+-            currentStatTab->plots[label].enabled = checkState;
+-        }
+-        emit changed();
+-    }
+-    else if (treeWidget == eventGroupsTree || treeWidget == mergesTree) {
+-        // if item is child of a merge (expressed by it is not usercheckable)
+-        if (item->flags().operator&=(Qt::ItemIsUserCheckable)) currentStatTab->groups[label].enabled = checkState;
+-        else {
++    if (treeWidget == eventGroupsTree || treeWidget == mergesTree || treeWidget == plotsTree) {
++        // If item is child of a merge or compare (expressed by it is not usercheckable)
++        if (item->flags().operator&=(Qt::ItemIsUserCheckable)) {
++            if (treeWidget == plotsTree) currentStatTab->plots[label].enabled = checkState;
++            else currentStatTab->groups[label].enabled = checkState;
++        } else {
+             bool ret = false;
++            /* Find into Select/Unselect All dashboard */
+             for (int i = 0; i < eventGroupsTree->topLevelItemCount(); i++) {
+                 auto item = eventGroupsTree->topLevelItem(i);
+                 if (item->text(0).toStdString() == label) {
+@@ -273,6 +261,30 @@ void StatDashboard::changeStatDashboardAct(QTreeWidgetItem * item, int col)
+                     break;
+                 }
+             }
++            /* Find into Merges dashboard */
++            if (!ret) {
++                if (mergesTree->topLevelItemCount() == 1) {
++                    auto item = mergesTree->topLevelItem(0); 
++                    if (item->text(0).toStdString() == label) {
++                        auto checkState = item->checkState(0);
++                        if (checkState == Qt::Unchecked) item->setCheckState(0, Qt::Checked);
++                        currentStatTab->groups[label].enabled = true;
++                    }
++                } else {
++                    for (int i = 0; i < mergesTree->topLevelItemCount(); i++) {
++                        auto item = mergesTree->topLevelItem(i);
++                        if (item->text(0).toStdString() == label) {
++                            auto checkState = item->checkState(0);
++                            if (checkState == Qt::Unchecked) item->setCheckState(0, Qt::Checked);
++                            ret = true;
++                        }
++                        if (ret) {
++                            currentStatTab->groups[label].enabled = true;
++                            break;
++                        }
++                    }
++                }
++            }
+         }
+         // following commented code is used for changing a parent item's children according to its checkstate
+         if (treeWidget == eventGroupsTree) setCkStt4SelAllCkBox();

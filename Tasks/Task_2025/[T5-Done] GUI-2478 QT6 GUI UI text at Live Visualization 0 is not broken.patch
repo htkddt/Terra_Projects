@@ -1,0 +1,24 @@
+ src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+index 3644fcc093a..11b511988f5 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+@@ -5046,7 +5046,6 @@ void PropertyPanel::updateNormalPlot(QSharedPointer<StatTab> st, EventGroup & eg
+         customPlot->graph(3)->setVisible(false);
+     }
+     // re-draw plot
+-    customPlot->rescaleAxes();
+     customPlot->replot();
+ }
+ 
+@@ -5372,8 +5371,6 @@ void PropertyPanel::updateComparisonPlot(QSharedPointer<StatTab> st, Plot & p, Q
+         if (customPlot->axisRect(0)->axes()[i]->label().contains("Data Size"))
+             customPlot->axisRect(0)->axes()[i]->setRange(0, maxPkt * 8);
+     }
+-
+-    customPlot->rescaleAxes();
+     customPlot->replot();
+ }
+ 

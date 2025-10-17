@@ -1,0 +1,91 @@
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 29 ++++++++++++++--------
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp        |  5 ++--
+ 2 files changed, 21 insertions(+), 13 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index e85e9adf1bb..8301095d4a2 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -133,11 +133,17 @@ bool NsNocViewScene::findOnBridge(NetSpeed::Bridge* bridge, int layId, bool sttB
+                 }
+                 NsMultipleBridges* mulBr = plus->getMulBr();
+                 if (mulBr) {
+-                    auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(mulBr->childItems().first());
+-                    diagram->ensureBrVisible(QString::fromStdString(bridge->name()));
+-                    for (const auto& name : diagram->bridgeNameList) {
+-                        if (name->toPlainText() == QString::fromStdString(bridge->name())) {
+-                            bridgeItem = getItem<T>(QString::fromStdString(bridge->name()), layId);
++                    for (const auto& it : mulBr->childItems()) {
++                        if (it->type() != MULTIPLE_BRIDGE) continue;
++                        auto diagram = dynamic_cast<NsMultipleBridgesDiagram*>(it);
++                        if (diagram) {
++                            diagram->ensureBrVisible(QString::fromStdString(bridge->name()));
++                            for (const auto& name : diagram->bridgeNameList) {
++                                if (name->toPlainText() == QString::fromStdString(bridge->name())) {
++                                    bridgeItem = getItem<T>(QString::fromStdString(bridge->name()), layId);
++                                    break;
++                                }
++                            }
+                             break;
+                         }
+                     }
+@@ -148,6 +154,7 @@ bool NsNocViewScene::findOnBridge(NetSpeed::Bridge* bridge, int layId, bool sttB
+     if (bridgeItem) {
+         if (sttBridgeLink && bridgeLink && !chanName.empty()) {
+             auto diagram = new NsRSSBDiagram(bridge, bridgeItem);
++            mw->appendListDiagrams(diagram);
+             diagram->showFlowData(bridgeLink, false);
+             diagram->showTooltip(chanName);
+             nsWorkArea->centerOn(diagram);
+@@ -678,6 +685,9 @@ bool NsNocViewScene::findOn(QString compName, int layId)
+             }
+             if (!routerItem->isVisible()) return false;
+             auto diagram = NsRouterDiagramManager::manager(this)->createDiagramFromRouter(routerItem);
++            if (diagram) {
++                mw->appendListDiagrams(diagram);
++            }
+             VC* vc = dynamic_cast<VC*>(routerLink);
+             if (vc) {
+                 diagram->showFlowData(vc);
+@@ -1798,15 +1808,12 @@ bool NsNocViewScene::filterVC(NetSpeed::VC& vc, NetSpeed::Node_id in, NetSpeed::
+ 
+ void NsNocViewScene::deleteAllDiagram()
+ {
+-    auto is_diagram = [](auto i) { return i->type() == BRIDGE_DIAGRAM
+-        || i->type() == ROUTER_DIAGRAM
+-        || i->type() == RING_VISUALIZATION
+-        || i->type() == LINK_DIAGRAM
+-        || i->type() == STORAGE_DIAGRAM;};
+     vector<QGraphicsItem*>to_be_deleted;
+     for (auto& item : items()) {
+-        if (is_diagram(item))
++        if (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION,
++                                               LINK_DIAGRAM, STORAGE_DIAGRAM})) {
+             to_be_deleted.push_back(item);
++        }
+     }
+     qDeleteAll(to_be_deleted);
+ }
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 9d0afb9f536..e452dbba42a 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -9294,7 +9294,7 @@ void MainWindow::clearListDiagrams()
+ void MainWindow::updateZValueOfListDiagrams(QGraphicsItem* diagram)
+ {
+     if (listDiagrams.isEmpty()) return;
+-    int itemIndex  = listDiagrams.indexOf(diagram);
++    int itemIndex = listDiagrams.indexOf(diagram);
+     if (itemIndex == -1) return;
+     // Move diagram to end of list
+     listDiagrams.move(itemIndex, listDiagrams.count() - 1);
+@@ -9307,7 +9307,8 @@ void MainWindow::updateZValueOfListDiagrams(QGraphicsItem* diagram)
+ void MainWindow::appendListDiagrams(QGraphicsItem* item)
+ {
+     if (!item) return;
+-    listDiagrams.append(item);
++    int itemIndex = listDiagrams.indexOf(item);
++    if (itemIndex < 0) listDiagrams.append(item);
+     updateZValueOfListDiagrams(item);
+ }
+ 

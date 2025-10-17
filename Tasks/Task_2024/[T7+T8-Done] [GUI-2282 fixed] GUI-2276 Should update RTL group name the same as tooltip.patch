@@ -1,0 +1,33 @@
+ src/sw/noc_dev/prototype/Utils/initabwidget.cpp | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+index 125ed1540ed..5b127ba56da 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+@@ -49,10 +49,21 @@ void INITabWidget::onTabChanged(int index)
+ 
+         emit tabIsActive(tabName);
+         auto view = mw->getNsWorkArea();
+-        if (!view) return;
+-        auto scene = dynamic_cast<NsNocViewScene*>(view->scene());
+-        if (!scene) return;
+-        scene->deleteAllCustomizeItems();
++        if (!view) {
++            return;
++        }
++        auto nocScene = dynamic_cast<NsNocViewScene*>(view->scene());
++        auto meshScene = dynamic_cast<NsMeshViewScene*>(view->scene());
++        if (nocScene) {
++            nocScene->deleteAllCustomizeItems();
++        }
++        if (meshScene) {
++            if (mw->isDisplayingMeshView() && meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
++                if (auto rtlDialog = meshScene->getRtlDialog()) {
++                    rtlDialog->updateContent();
++                }
++            }
++        }
+     }
+ }
+ void INITabWidget::keyPressEvent(QKeyEvent* event)

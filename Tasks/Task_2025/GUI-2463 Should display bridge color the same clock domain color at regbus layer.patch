@@ -1,0 +1,309 @@
+ .../noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp  | 106 +++++++++++++++++++--
+ src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.h |   7 ++
+ .../prototype_qt6/Gui/Item/NsRegbusBridge.cpp      | 106 +++++++++++++++++++--
+ .../prototype_qt6/Gui/Item/NsRegbusBridge.h        |   7 ++
+ 4 files changed, 209 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+index 65a580c2366..f7eadac6c9a 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.cpp
+@@ -25,11 +25,14 @@
+ NsRegbusBridge::NsRegbusBridge(NetSpeed::Bridge* bridge, NetSpeed::Layer_id layerID)
+ : NsBridge(bridge), l(layerID)
+ {
+-    /* Get necessary params as color, position,... to display Regbus slave/master bridge */
+-    initData();
+-
+     /* Set flag to enable tooltip */
+     setAcceptHoverEvents(true);
++    setOpacity(REGBUS_BRIDGE_OPACITY);
++    setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges |
++             QGraphicsItem::ItemDoesntPropagateOpacityToChildren);
++
++    /* Get necessary params as color, position,... to display Regbus slave/master bridge */
++    initData();
+ }
+ 
+ /**
+@@ -59,12 +62,97 @@ void NsRegbusBridge::initData()
+     rec = QRect(portTopLeft, QSize(BRIDGE_SIZE, BRIDGE_SIZE));
+     setRect(rec);
+ 	color = QColor(QString::fromStdString(bridge->get_color()));
+-    setPen(Qt::NoPen);
+-	setBrush(color);
+-    setOpacity(REGBUS_BRIDGE_OPACITY);
+-    setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable |
+-             QGraphicsItem::ItemSendsGeometryChanges | QGraphicsItem::ItemDoesntPropagateOpacityToChildren |
+-             QGraphicsItem::ItemSendsScenePositionChanges);
++    clockDomainBridge = bridge->get_clock_domain();
++    volateDomainBridge = bridge->get_voltage_domainp();
++    powerDomainBridge = bridge->get_power_domainp();
++}
++
++QColor NsRegbusBridge::getBridgeColor()
++{
++    // Get color
++    auto meshScene = dynamic_cast<NsMeshViewScene*>(this->scene());
++    if (!meshScene) return color;
++    auto viewMode = meshScene->viewMode();
++    // color's bridge in  Noc mode
++    if (NetSpeed::is_member(viewMode, {NsScene::NOC})) return color;
++    // color's bridge in view mode
++    auto setNameColor = [&](auto domain) {
++        if (!domain) return;
++        color = meshScene->getDomainBackGroundColor(domain->color, domain->name, viewMode);
++    };
++    /* Get name and color of domain */
++    if (meshScene->isViewMode(NsScene::CLOCK_DOMAIN) || meshScene->isViewMode(NsScene::MERGE_DOMAIN)) {
++        if (clockDomainBridge)
++            color = meshScene->getDomainBackGroundColor(clockDomainBridge->color,
++                                                        clockDomainBridge->clock_domain_name, viewMode);
++        else
++            color = multiDomains;
++    } else if (meshScene->isViewMode(NsScene::VOLTAGE_DOMAIN))
++        setNameColor(volateDomainBridge);
++    else if (meshScene->isViewMode(NsScene::POWER_DOMAIN))
++        setNameColor(powerDomainBridge);
++    else if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
++        auto mw = meshScene->getNsWorkArea()->getMainWindow();
++        if (!mw) return color;
++        QList<QString> rtlMeshList = mw->getRtlGroupsTree().keys();
++        QList<QString> rtlBridgeList;
++        QList<QString> rtlMeshSelected = meshScene->getRtlSelected();
++
++        std::string bridgeRtlGroup = bridge->get_module_group()->name;
++        if (NetSpeed::has_beginning(bridgeRtlGroup, "ns_")) {
++            bridgeRtlGroup = bridgeRtlGroup.substr(3);
++        }
++        if (rtlMeshList.contains(QString::fromStdString(bridgeRtlGroup))) {
++            rtlBridgeList.push_back(QString::fromStdString(bridgeRtlGroup));
++        }
++
++        std::string nspsRtlGroup = bridge->get_power_domainp()->get_nsps_rtl_group()->name;
++        if (NetSpeed::has_beginning(nspsRtlGroup, "ns_")) {
++            nspsRtlGroup = nspsRtlGroup.substr(3);
++        }
++        if (rtlMeshList.contains(QString::fromStdString(nspsRtlGroup))) {
++            rtlBridgeList.push_back(QString::fromStdString(nspsRtlGroup));
++        }
++
++        auto spgroup            = bridge->get_spine_cg_mod();
++        std::string rtlGateName = spgroup ? (spgroup->get_module_group()->name) : "";
++        if (NetSpeed::has_beginning(rtlGateName, "ns_")) {
++            rtlGateName = rtlGateName.substr(3);
++        }
++        QString rtlGate = QString::fromStdString(rtlGateName);
++        if (rtlGate != "fabric") {
++            if (rtlMeshList.contains(rtlGate)) {
++                rtlBridgeList.push_back(rtlGate);
++            }
++        }
++
++        if (!rtlBridgeList.isEmpty()) {
++            QColor pickColor = meshScene->getRTLColor(rtlBridgeList.last());
++            if (pickColor.isValid()) {
++                color = pickColor;
++            }
++        }
++
++        QList<QString> rtlBridgeSelList;
++        for (auto const& rtlName : rtlBridgeList) {
++            if (rtlMeshSelected.contains(rtlName) || rtlMeshSelected.contains("*")) {
++                rtlBridgeSelList.push_back(rtlName);
++            }
++        }
++
++        if (!rtlBridgeSelList.empty()) {
++            QColor selectedColor = meshScene->getRTLColor(rtlBridgeSelList.last());
++            if (selectedColor.isValid()) {
++                color = selectedColor;
++            }
++        }
++    }
++    return color;
++}
++
++void NsRegbusBridge::setBridgeColor()
++{
++    setBrush(getBridgeColor());
+ }
+ 
+ std::string NsRegbusBridge::getRTLGroup()
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.h b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.h
+index 58196938f56..9da6aef1af9 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.h
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsRegbusBridge.h
+@@ -81,10 +81,17 @@ protected:
+ 
+     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
++
++    QColor getBridgeColor();
++    void setBridgeColor();
++
+ private:
+     QString portName;
+     QString bridgeName;
+     NetSpeed::Layer_id l;
++    const NetSpeed::Clock_domain_props_t* clockDomainBridge    = nullptr;
++    const NetSpeed::Voltage_domain_props_t* volateDomainBridge = nullptr;
++    const NetSpeed::Power_domain_props_t* powerDomainBridge    = nullptr;
+     QRectF rec  = QRectF();  
+ };
+ #endif // NS_REGBUSBRIDGE_H
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp
+index db1ca34da9c..66a8c1961bc 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.cpp
+@@ -25,11 +25,14 @@
+ NsRegbusBridge::NsRegbusBridge(NetSpeed::Bridge* bridge, NetSpeed::Layer_id layerID)
+ : NsBridge(bridge), l(layerID)
+ {
+-    /* Get necessary params as color, position,... to display Regbus slave/master bridge */
+-    initData();
+-
+     /* Set flag to enable tooltip */
+     setAcceptHoverEvents(true);
++    setOpacity(REGBUS_BRIDGE_OPACITY);
++    setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges |
++             QGraphicsItem::ItemDoesntPropagateOpacityToChildren);
++
++    /* Get necessary params as color, position,... to display Regbus slave/master bridge */
++    initData();
+ }
+ 
+ /**
+@@ -59,11 +62,97 @@ void NsRegbusBridge::initData()
+     rec = QRect(portTopLeft, QSize(BRIDGE_SIZE, BRIDGE_SIZE));
+     setRect(rec);
+ 	color = QColor(QString::fromStdString(bridge->get_color()));
+-    setPen(Qt::NoPen);
+-	setBrush(color);
+-    setOpacity(REGBUS_BRIDGE_OPACITY);
+-    setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges |
+-             QGraphicsItem::ItemDoesntPropagateOpacityToChildren);
++    clockDomainBridge  = bridge->get_clock_domain();
++    volateDomainBridge = bridge->get_voltage_domainp();
++    powerDomainBridge  = bridge->get_power_domainp();
++}
++
++QColor NsRegbusBridge::getBridgeColor()
++{
++    // Get color
++    auto meshScene = dynamic_cast<NsMeshViewScene*>(this->scene());
++    if (!meshScene) return color;
++    auto viewMode = meshScene->viewMode();
++    // color's bridge in  Noc mode
++    if (NetSpeed::is_member(viewMode, {NsScene::NOC})) return color;
++    // color's bridge in view mode
++    auto setNameColor = [&](auto domain) {
++        if (!domain) return;
++        color = meshScene->getDomainBackGroundColor(domain->color, domain->name, viewMode);
++    };
++    /* Get name and color of domain */
++    if (meshScene->isViewMode(NsScene::CLOCK_DOMAIN) || meshScene->isViewMode(NsScene::MERGE_DOMAIN)) {
++        if (clockDomainBridge)
++            color = meshScene->getDomainBackGroundColor(clockDomainBridge->color,
++                                                        clockDomainBridge->clock_domain_name, viewMode);
++        else
++            color = multiDomains;
++    } else if (meshScene->isViewMode(NsScene::VOLTAGE_DOMAIN))
++        setNameColor(volateDomainBridge);
++    else if (meshScene->isViewMode(NsScene::POWER_DOMAIN))
++        setNameColor(powerDomainBridge);
++    else if (meshScene->isViewMode(NsScene::RTL_GROUP_VIEW)) {
++        auto mw = meshScene->getNsWorkArea()->getMainWindow();
++        if (!mw) return color;
++        QList<QString> rtlMeshList = mw->getRtlGroupsTree().keys();
++        QList<QString> rtlBridgeList;
++        QList<QString> rtlMeshSelected = meshScene->getRtlSelected();
++
++        std::string bridgeRtlGroup = bridge->get_module_group()->name;
++        if (NetSpeed::has_beginning(bridgeRtlGroup, "ns_")) {
++            bridgeRtlGroup = bridgeRtlGroup.substr(3);
++        }
++        if (rtlMeshList.contains(QString::fromStdString(bridgeRtlGroup))) {
++            rtlBridgeList.push_back(QString::fromStdString(bridgeRtlGroup));
++        }
++
++        std::string nspsRtlGroup = bridge->get_power_domainp()->get_nsps_rtl_group()->name;
++        if (NetSpeed::has_beginning(nspsRtlGroup, "ns_")) {
++            nspsRtlGroup = nspsRtlGroup.substr(3);
++        }
++        if (rtlMeshList.contains(QString::fromStdString(nspsRtlGroup))) {
++            rtlBridgeList.push_back(QString::fromStdString(nspsRtlGroup));
++        }
++
++        auto spgroup            = bridge->get_spine_cg_mod();
++        std::string rtlGateName = spgroup ? (spgroup->get_module_group()->name) : "";
++        if (NetSpeed::has_beginning(rtlGateName, "ns_")) {
++            rtlGateName = rtlGateName.substr(3);
++        }
++        QString rtlGate = QString::fromStdString(rtlGateName);
++        if (rtlGate != "fabric") {
++            if (rtlMeshList.contains(rtlGate)) {
++                rtlBridgeList.push_back(rtlGate);
++            }
++        }
++
++        if (!rtlBridgeList.isEmpty()) {
++            QColor pickColor = meshScene->getRTLColor(rtlBridgeList.last());
++            if (pickColor.isValid()) {
++                color = pickColor;
++            }
++        }
++
++        QList<QString> rtlBridgeSelList;
++        for (auto const& rtlName : rtlBridgeList) {
++            if (rtlMeshSelected.contains(rtlName) || rtlMeshSelected.contains("*")) {
++                rtlBridgeSelList.push_back(rtlName);
++            }
++        }
++
++        if (!rtlBridgeSelList.empty()) {
++            QColor selectedColor = meshScene->getRTLColor(rtlBridgeSelList.last());
++            if (selectedColor.isValid()) {
++                color = selectedColor;
++            }
++        }
++    }
++    return color;
++}
++
++void NsRegbusBridge::setBridgeColor()
++{
++    setBrush(getBridgeColor());
+ }
+ 
+ std::string NsRegbusBridge::getRTLGroup()
+@@ -214,6 +303,7 @@ QVariant NsRegbusBridge::itemChange(GraphicsItemChange change, const QVariant &v
+     if(change == QGraphicsItem::ItemSceneHasChanged){
+         const bool isNocView = (dynamic_cast<NsNocViewScene*>(scene())) ? true : false;
+         if (!isNocView) setOpacity(1);
++        setBridgeColor();
+         if(auto mesh = dynamic_cast<NsMesh*>(this->parentItem()))
+             installSceneEventFilter(mesh);
+     }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.h b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.h
+index 25e36842dcc..80a2d24ab9d 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsRegbusBridge.h
+@@ -75,10 +75,17 @@ protected:
+ 
+     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+     void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
++
++    QColor getBridgeColor();
++    void setBridgeColor();
++
+ private:
+     QString portName;
+     QString bridgeName;
+     NetSpeed::Layer_id l;
++    const NetSpeed::Clock_domain_props_t* clockDomainBridge    = nullptr;
++    const NetSpeed::Voltage_domain_props_t* volateDomainBridge = nullptr;
++    const NetSpeed::Power_domain_props_t* powerDomainBridge    = nullptr;
+     QRectF rec  = QRectF();  
+ };
+ #endif // NS_REGBUSBRIDGE_H

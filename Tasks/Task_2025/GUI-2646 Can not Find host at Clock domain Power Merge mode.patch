@@ -1,0 +1,154 @@
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp     |  1 +
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp              | 11 ++++++++---
+ src/sw/noc_dev/prototype/Utils/initabwidget.cpp          |  2 ++
+ src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp |  4 +++-
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp          | 11 ++++++++---
+ src/sw/noc_dev/prototype_qt6/Utils/initabwidget.cpp      |  2 ++
+ 6 files changed, 24 insertions(+), 7 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index 49dec66b580..0b42e1034da 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -1640,6 +1640,7 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
+         return;
+     }
+     setInstrumentType(type);
++    if (mw->getNocFinder()->isVisible()) mw->closeNocFinder();
+     switch (type) {
+         case ADD_CONNECT:
+         {
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 3a3cf99742c..96a70915fd1 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -2072,6 +2072,7 @@ void MainWindow::toggleDomainAct(bool state)
+         propPanel->clearData();
+         propPanel->clearSelection();
+     }
++    if (nocFinder->isVisible()) closeNocFinder();
+     QAction* currentAction = static_cast<QAction*>(sender());
+     InstrumentsEnum ins = getInstrumentsEnum(currentAction);
+     InstrumentsEnum currentIns = DataSingleton::Instance()->getInstrument();
+@@ -2179,6 +2180,7 @@ void MainWindow::toggleDomainAct(bool state)
+ void MainWindow::toggleLinkBlockageAct(bool state)
+ {
+     if (propPanel) propPanel->clearSelection();
++    if (nocFinder->isVisible()) closeNocFinder();
+     QAction* currentAction = static_cast<QAction*>(sender());
+     InstrumentsEnum ins = getInstrumentsEnum(currentAction);
+     if (ins != TOGGLE_LAYER_BLOCKAGE_VIEW) return;
+@@ -2776,7 +2778,11 @@ void MainWindow::nocFinderButtonSlot()
+     }
+ }
+ 
+-void MainWindow::nocFinderFocus() {
++void MainWindow::nocFinderFocus()
++{
++    if (nsWorkArea->getMeshViewScene()->isDomainView() || instrumentsActMap[ADD_CONNECT]->isChecked() ||
++        instrumentsActMap[ADD_DEPENDENCY]->isChecked() || instrumentsActMap[ADD_ROUTER_CONN]->isChecked())
++        return;
+     QWidget* currentFocus = this->focusWidget();
+     if (!currentFocus) return;
+     auto parent = currentFocus->parentWidget();
+@@ -2790,8 +2796,7 @@ void MainWindow::nocFinderFocus() {
+             nocFinder->setFocus();
+             indexLayer = 0;
+             indexChop = 0;
+-        }
+-        else closeNocFinder();
++        } else closeNocFinder();
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+index 5123a757197..f402e927790 100644
+--- a/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
++++ b/src/sw/noc_dev/prototype/Utils/initabwidget.cpp
+@@ -58,6 +58,8 @@ void INITabWidget::onTabChanged(int index)
+                 isEnabledZoom = false;
+             } else if (dynamic_cast<QTextBrowser*>(mw->displayPanel->currentWidget())) {
+                 isQTextBrowser = true;
++            } else if (dynamic_cast<QScrollArea*>(mw->displayPanel->currentWidget())) {
++                if (mw->getNocFinder()->isVisible()) mw->closeNocFinder();
+             }
+             emit enableZoom(isQTextBrowser, isEnabledZoom);
+         }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 0ec5e37d1f5..0171c5dffae 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -1506,7 +1506,8 @@ void NsNocViewScene::toggleAddRouter2RouterConn()
+     }
+ }
+ 
+-void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
++void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
++{
+     auto togglePlusItem = [&]() -> void {
+         whenMatched(items(), {PLUS}, [this](QGraphicsItem* item) {
+             auto plus = dynamic_cast<NsPlusItem*>(item);
+@@ -1644,6 +1645,7 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
+         return;
+     }
+     setInstrumentType(type);
++    if (mw->getNocFinder()->isVisible()) mw->closeNocFinder();
+     switch (type) {
+     case ADD_CONNECT: {
+         deleteAllDiagrams();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 8572a883a3a..a67c1eb4a46 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -2112,6 +2112,7 @@ void MainWindow::toggleDomainAct(bool state)
+         propPanel->clearData();
+         propPanel->clearSelection();
+     }
++    if (nocFinder->isVisible()) closeNocFinder();
+     QAction* currentAction = static_cast<QAction*>(sender());
+     InstrumentsEnum ins = getInstrumentsEnum(currentAction);
+     InstrumentsEnum currentIns = DataSingleton::Instance()->getInstrument();
+@@ -2219,6 +2220,7 @@ void MainWindow::toggleDomainAct(bool state)
+ void MainWindow::toggleLinkBlockageAct(bool state)
+ {
+     if (propPanel) propPanel->clearSelection();
++    if (nocFinder->isVisible()) closeNocFinder();
+     QAction* currentAction = static_cast<QAction*>(sender());
+     InstrumentsEnum ins = getInstrumentsEnum(currentAction);
+     if (ins != TOGGLE_LAYER_BLOCKAGE_VIEW) return;
+@@ -2818,7 +2820,11 @@ void MainWindow::nocFinderButtonSlot()
+     }
+ }
+ 
+-void MainWindow::nocFinderFocus() {
++void MainWindow::nocFinderFocus()
++{
++    if (nsWorkArea->getMeshViewScene()->isDomainView() || instrumentsActMap[ADD_CONNECT]->isChecked() ||
++        instrumentsActMap[ADD_DEPENDENCY]->isChecked() || instrumentsActMap[ADD_ROUTER_CONN]->isChecked())
++        return;
+     QWidget* currentFocus = this->focusWidget();
+     if (!currentFocus) return;
+     auto parent = currentFocus->parentWidget();
+@@ -2832,8 +2838,7 @@ void MainWindow::nocFinderFocus() {
+             nocFinder->setFocus();
+             indexLayer = 0;
+             indexChop = 0;
+-        }
+-        else closeNocFinder();
++        } else closeNocFinder();
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Utils/initabwidget.cpp b/src/sw/noc_dev/prototype_qt6/Utils/initabwidget.cpp
+index 5123a757197..f402e927790 100644
+--- a/src/sw/noc_dev/prototype_qt6/Utils/initabwidget.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Utils/initabwidget.cpp
+@@ -58,6 +58,8 @@ void INITabWidget::onTabChanged(int index)
+                 isEnabledZoom = false;
+             } else if (dynamic_cast<QTextBrowser*>(mw->displayPanel->currentWidget())) {
+                 isQTextBrowser = true;
++            } else if (dynamic_cast<QScrollArea*>(mw->displayPanel->currentWidget())) {
++                if (mw->getNocFinder()->isVisible()) mw->closeNocFinder();
+             }
+             emit enableZoom(isQTextBrowser, isEnabledZoom);
+         }

@@ -1,0 +1,43 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index a3b97d5fe85..9da93815651 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -5180,9 +5180,32 @@ void MainWindow::refreshChopView(){
+     if(displayPanel) {
+         std::map<NsChopView*, QFuture<QGraphicsRectItem*>> futures;
+         const int count = displayPanel->count();
+-        for(int i = 0; i < count; ++i) if(auto chopView = dynamic_cast<NsChopView*>(displayPanel->widget(i)))
+-            futures[chopView] = (QtConcurrent::run([chopView]() { chopView->refresh(); return chopView->getBoundingBox(); }));
+-        for(auto& future : futures) future.first->addBoundingBox(future.second.result());
++        for (int i = 0; i < count; ++i) {
++            if (auto chopView = dynamic_cast<NsChopView*>(displayPanel->widget(i))) {
++                futures[chopView] = (QtConcurrent::run([chopView]() {
++                    chopView->refresh();
++                    return chopView->getBoundingBox();
++                }));
++            }
++        }
++        for (auto& future : futures) {
++            future.first->addBoundingBox(future.second.result());
++        }
++        if (tooltipDialogs.size() > 0) {
++            for (int i = 0; i < tooltipDialogs.size(); i++) {
++                if (auto tooltipApp = dynamic_cast<ToolTipAppDialog*>(tooltipDialogs[i])) {
++                    if (auto chopDialog = dynamic_cast<NsChopView*>(tooltipApp->getMainWidget())) {
++                        futures[chopDialog] = (QtConcurrent::run([chopDialog]() {
++                            chopDialog->refresh();
++                            return chopDialog->getBoundingBox();
++                        }));
++                    }
++                }
++            }
++            for (auto& future : futures) {
++                future.first->addBoundingBox(future.second.result());
++            }
++        }
+     }
+ }
+ 

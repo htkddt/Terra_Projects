@@ -1,0 +1,170 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp    |  4 ++
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 52 +++++++++-----------------
+ 2 files changed, 21 insertions(+), 35 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 877813af2f0..2cc13b4e0b4 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -3722,6 +3722,10 @@ QWidget* MainWindow::createPropTable(QString propName, string cate)
+         return nullptr;
+     }
+ 
++    if ((ns_propTbl->row_names.size() == 0) && (ns_propTbl->col_names.size() == 0)) {
++        return nullptr;
++    }
++
+     //    QString tabName = QString::fromStdString(propTbl->p->table_name);
+     QString tabName = QString::fromStdString(ns_propTbl->table_name);
+     if (!cate.empty() && cate != ALL_PROP) {
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 3dc67f3af22..c531b1d345b 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -1370,18 +1370,15 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+                 }
+                 propName = IFCE_PROP;
+                 // if cafe is emoty then set cate = all to show all prop
+-                if (cate.isEmpty())
+-                {
++                if (cate.isEmpty()) {
+                     cate = ALL_PROP;
+                 }
+-            }
+-            else {
++            } else {
+                 ps.push_back(NetSpeed::Property::ifce_props[key].get());
+             }
+ 
+             nsPropTbl = new NetSpeed::IfcePropTbl(shared_grid, ps);
+-        }
+-        else if (propName == VC_PROP || parentName == VC_PROP) {
++        } else if (propName == VC_PROP || parentName == VC_PROP) {
+             std::vector<NetSpeed::VCProperty*> ps;
+             // Get Categories
+             string key = propName.toStdString();
+@@ -1391,18 +1388,15 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+                 }
+                 propName = VC_PROP;
+                 // if cafe is emoty then set cate = all to show all prop
+-                if (cate.isEmpty())
+-                {
++                if (cate.isEmpty()) {
+                     cate = ALL_PROP;
+                 }
+-            }
+-            else {
++            } else {
+                 ps.push_back(NetSpeed::Property::vc_props[key].get());
+             }
+ 
+             nsPropTbl = new NetSpeed::VCPropTbl(shared_grid, ps);
+-        }
+-        else if (propName == LINK_PROP || parentName == LINK_PROP) {
++        } else if (propName == LINK_PROP || parentName == LINK_PROP) {
+             std::vector<NetSpeed::LinkProperty*> ps;
+             // Get Categories
+             string key = propName.toStdString();
+@@ -1412,8 +1406,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+                 }
+                 propName = LINK_PROP;
+                 // if cafe is emoty then set cate = all to show all prop
+-                if (cate.isEmpty())
+-                {
++                if (cate.isEmpty()) {
+                     cate = ALL_PROP;
+                 }
+             }
+@@ -1422,8 +1415,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+             }
+ 
+             nsPropTbl = new NetSpeed::LinkPropTbl(shared_grid, ps);
+-        }
+-        else if (objName == BRIDGE_PROP || propName == BRIDGE_PROP) {
++        } else if (objName == BRIDGE_PROP || propName == BRIDGE_PROP) {
+             std::vector<NetSpeed::BridgeProperty*> ps;
+             // Get Categories
+             string key = propName.toStdString();
+@@ -1438,14 +1430,12 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+                 {
+                     cate = ALL_PROP;
+                 }
+-            }
+-            else {
++            } else {
+                 ps.push_back(NetSpeed::Property::bridge_props[key].get());
+             }
+ 
+             nsPropTbl = new NetSpeed::BridgePropTbl(shared_grid, ps);
+-        }
+-        else if (objName == HOST_PROP) {
++        } else if (objName == HOST_PROP) {
+             std::vector<NetSpeed::HostProperty*> ps;
+             // Get Categories
+             string key = propName.toStdString();
+@@ -1465,8 +1455,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+             }
+ 
+             nsPropTbl = new NetSpeed::HostPropTbl(shared_grid, ps);
+-        }
+-        else if (objName == ROUTER_PROP) {
++        } else if (objName == ROUTER_PROP) {
+             std::vector<NetSpeed::RouterProperty*> ps;
+             // Get Categories
+             string key = propName.toStdString();
+@@ -1476,12 +1465,10 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+                 }
+                 propName = ROUTER_PROP;
+                 // if cafe is emoty then set cate = all to show all prop
+-                if (cate.isEmpty())
+-                {
++                if (cate.isEmpty()) {
+                     cate = ALL_PROP;
+                 }
+-            }
+-            else {
++            } else {
+                 ps.push_back(NetSpeed::Property::router_props[key].get());
+             }
+ 
+@@ -1496,8 +1483,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+         break;
+     }
+ 
+-    if (nsPropTbl != nullptr && cate.isEmpty())
+-    {
++    if (nsPropTbl && (nsPropTbl->row_names.size() != 0) && (nsPropTbl->col_names.size() != 0) && cate.isEmpty()) {
+         tblView2DTable = new TableView;
+         model = new PropertyTableModel;
+         model->setPropTbl(nsPropTbl);
+@@ -1520,8 +1506,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+     }
+ 
+     // Show property table
+-    if (tblView2DTable)
+-    {
++    if (tblView2DTable) {
+         tblView2DTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+         QString appendName = "";
+         for (unsigned int i = 0; i < model->m_propTbl->col_names.size(); i++) {
+@@ -1529,8 +1514,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+         }
+ 
+         QString activeTabName = QString::fromStdString(model->m_propTbl->table_name) + appendName;
+-        if (mw->tblMap.find(activeTabName) != mw->tblMap.end())
+-        {
++        if (mw->tblMap.find(activeTabName) != mw->tblMap.end()) {
+             mw->displayPanel->setCurrentWidget(mw->tblMap[activeTabName]);
+             return;
+         }
+@@ -1540,9 +1524,7 @@ void PropertyPanel::handleDoubleClickSelectionPropertySlot(QTreeWidgetItem * cli
+ 
+         Q_ASSERT(model != nullptr);
+         emit addingPropertyModel(activeTabName, model);
+-    }
+-    else
+-    {
++    } else {
+         mw->createPropTable(propName, cate.toStdString());
+     }
+ }

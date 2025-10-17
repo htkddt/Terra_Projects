@@ -1,0 +1,30 @@
+ src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp     | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+index 4d41b997441..64445cbbd89 100644
+--- a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -381,7 +381,7 @@ CustomHighLightDialog::CustomHighLightDialog(QWidget* parent, const NetSpeed::Gr
+     // set main layout
+     setLayout(mainLayout);
+     for (auto& combobox : comboboxList) {
+-        connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
++        connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+                 [=]() { highLightValueSelected(combobox); });
+     }
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+index 3b0b0010f63..fd028985e6d 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -405,7 +405,7 @@ CustomHighLightDialog::CustomHighLightDialog(QWidget* parent, const NetSpeed::Gr
+     // set main layout
+     setLayout(mainLayout);
+     for (auto& combobox : comboboxList) {
+-        connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
++        connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+                 [=]() { highLightValueSelected(combobox); });
+     }
+ }

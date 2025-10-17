@@ -1,0 +1,249 @@
+ .../prototype_qt6/Gui/View/NsNocViewScene.cpp      |   7 +-
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp       | 125 ++++++++++++++++++---
+ src/sw/noc_dev/prototype_qt6/Gui/dialogs.h         |   6 +-
+ 3 files changed, 116 insertions(+), 22 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+index 1f6340d4126..0180e3a4a5d 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/View/NsNocViewScene.cpp
+@@ -2310,8 +2310,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                 auto bridge_src = nocScene->instrumentMediator->src;
+                 if (bridge_src) {
+                     auto listLayer = checkRegbusLayers(nocScene->getLayers().keys());
+-                    chooseArgumentDialog* msgBox = new chooseArgumentDialog(listLayer.size(), int(g->get_nodes().size()),
+-                                                   int(NetSpeed::id_range<NetSpeed::Port_id>().size()), true, m_router, m_port);
++                    chooseArgumentDialog* msgBox = new chooseArgumentDialog(g, listLayer.size(), true, m_router, m_port);
+                     if (msgBox->exec() == QDialog::Accepted) {
+                         QString destRouter = m_router + m_port;
+                         auto textOption = msgBox->getTextRouterDest();
+@@ -2332,7 +2331,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                 break;
+             }
+             case TYPE_ITEM::ROUTER_CONNECTION: {
+-                chooseArgumentDialog* msgBox = new chooseArgumentDialog();
++                chooseArgumentDialog* msgBox = new chooseArgumentDialog(g);
+                 if (msgBox->exec() == QDialog::Accepted) {
+                     QString extra_arg  = msgBox->getArgument();
+                     QString srcRouter  = nocScene->instrumentMediator->data(ITEM_NAME).toString();
+@@ -2351,7 +2350,7 @@ void NsPortDrawingSetConnection::mousePressEvent(QGraphicsSceneMouseEvent* /*eve
+                 break;
+             }
+             case TYPE_ITEM::ROUTER: {
+-                chooseArgumentDialog* msgBox = new chooseArgumentDialog();
++                chooseArgumentDialog* msgBox = new chooseArgumentDialog(g);
+                 if (msgBox->exec() == QDialog::Accepted) {
+                     QString extra_arg = msgBox->getArgument();
+                     QString router    = nocScene->instrumentMediator->data(ITEM_NAME).toString();
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+index f00da53b734..b7d8da1e3f5 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.cpp
+@@ -5134,8 +5134,8 @@ QTableWidget* RouteDialog::createTable(NetSpeed::DataTable dt) {
+     return m_pTableWidget;
+ }
+ 
+-chooseArgumentDialog::chooseArgumentDialog(int numberOfLayers, int numberOfRouters, int numberOfPorts, bool compBr,
+-    QString m_router, QString m_port, QWidget* parent) : QDialog(parent)
++chooseArgumentDialog::chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayers, bool compBr,
++    QString m_router, QString m_port, QWidget* parent) : QDialog(parent), grid(g)
+ {
+     QString itemRouterComboBox = QString();
+     QString itemLayerComboBox  = QString();
+@@ -5167,19 +5167,32 @@ chooseArgumentDialog::chooseArgumentDialog(int numberOfLayers, int numberOfRoute
+     for (int i = 0; i < numberOfLayers; i++) {
+         layers->addItem("Layer " + QString::number(i));
+     }
+-    connect(layers, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
++    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(layers) + 1); });
+ 
+     QComboBox* routers = new QComboBox;
+     routers->addItem("-");
+-    for (int i = 0; i < numberOfRouters; i++) {
+-        routers->addItem(QString::number(i));
++    for (NetSpeed::Node_id nodeId : g->get_nodes()) {
++        routers->addItem(QString::number(nodeId));
+     }
+-    connect(routers, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
++    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(routers)); });
+ 
+     QComboBox* ports = new QComboBox;
+     ports->addItem("-");
+-    for (int i = 0; i < numberOfPorts; i++) {
+-        switch (i) {
++    NetSpeed::Router* rtr = g->router(NetSpeed::Layer_id(QString(itemLayerComboBox).toInt()),
++                                      NetSpeed::Node_id(itemRouterComboBox.toInt()));
++    for (NetSpeed::Port_id portId : NetSpeed::id_range<NetSpeed::Port_id>()) {
++        NetSpeed::Tx_Port* tx_port = rtr->get_tx_portp(NetSpeed::Port_id(portId));
++        if (tx_port) {
++            auto rxp = tx_port->get_adj_rx_port();
++            if (rxp && (!rxp->get_parent()->is_router())) continue;
++        }
++
++        NetSpeed::Rx_Port* rx_port = rtr->get_rx_portp(NetSpeed::Port_id(portId));
++        if (rx_port) {
++            auto txp = rx_port->get_adj_tx_port();
++            if (txp && (!txp->get_parent()->is_router())) continue;
++        }
++        switch (portId) {
+         case NetSpeed::EAST_:
+             ports->addItem(QString("E"));
+             break;
+@@ -5224,7 +5237,7 @@ chooseArgumentDialog::chooseArgumentDialog(int numberOfLayers, int numberOfRoute
+                              "}");
+     connect(addButton, &QPushButton::clicked, this, [=]() {
+         ++row;
+-        addComboBox(numberOfLayers, numberOfRouters, numberOfPorts);
++        addComboBox(numberOfLayers);
+     });
+     QGridLayout* addButtonLayout = new QGridLayout;
+     addButtonLayout->addWidget(addButton, 0, 0, Qt::AlignCenter);
+@@ -5344,26 +5357,26 @@ chooseArgumentDialog::chooseArgumentDialog(int numberOfLayers, int numberOfRoute
+     }
+ }
+ 
+-void chooseArgumentDialog::addComboBox(int cntLayer, int cntRouter, int cntPort)
++void chooseArgumentDialog::addComboBox(int cntLayer)
+ {
+     QComboBox* layers = new QComboBox;
+     layers->addItem("-");
+     for (int i = 0; i < cntLayer; i++) {
+         layers->addItem("Layer " + QString::number(i));
+     }
+-    connect(layers, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
++    connect(layers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(layers) + 1); });
+ 
+     QComboBox* routers = new QComboBox;
+     routers->addItem("-");
+-    for (int i = 0; i < cntRouter; i++) {
+-        routers->addItem(QString::number(i));
++    for (NetSpeed::Node_id nodeId : grid->get_nodes()) {
++        routers->addItem(QString::number(nodeId));
+     }
+-    connect(routers, &QComboBox::currentTextChanged, this, &chooseArgumentDialog::itemComboBoxChanged);
++    connect(routers, &QComboBox::currentTextChanged, this, [=]() { updatePortComboBox(layoutOfLayers->indexOf(routers)); });
+ 
+     QComboBox* ports = new QComboBox;
+     ports->addItem("-");
+-    for (int i = 0; i < cntPort; i++) {
+-        switch (i) {
++    for (NetSpeed::Port_id portId : NetSpeed::id_range<NetSpeed::Port_id>()) {
++        switch (portId) {
+         case NetSpeed::EAST_:
+             ports->addItem(QString("E"));
+             break;
+@@ -5474,6 +5487,86 @@ void chooseArgumentDialog::itemComboBoxChanged()
+     }
+ }
+ 
++void chooseArgumentDialog::updatePortComboBox(int index) {
++    auto itemLayer = layoutOfLayers->itemAt(index - 1);
++    if (!itemLayer) return;
++    auto widgetLayer = itemLayer->widget();
++    if (!widgetLayer) return;
++    auto comboBoxLayer = dynamic_cast<QComboBox*>(widgetLayer);
++    if (!comboBoxLayer) return;
++    auto textLayer            = comboBoxLayer->currentText();
++    QString itemLayerComboBox = QString();
++    if (textLayer != "-") {
++        auto splitLayer   = textLayer.split(" ");
++        itemLayerComboBox = splitLayer.last();
++    }
++
++    auto itemRouter = layoutOfLayers->itemAt(index);
++    if (!itemRouter) return;
++    auto widgetRouter = itemRouter->widget();
++    if (!widgetRouter) return;
++    auto comboBoxRouter = dynamic_cast<QComboBox*>(widgetRouter);
++    if (!comboBoxRouter) return;
++    auto textRouter = comboBoxRouter->currentText();
++
++    auto itemPort = layoutOfLayers->itemAt(index + 1);
++    if (!itemPort) return;
++    auto widgetPort = itemPort->widget();
++    if (!widgetPort) return;
++    auto comboBoxPort = dynamic_cast<QComboBox*>(widgetPort);
++    if (!comboBoxPort) return;
++    comboBoxPort->clear();
++
++    comboBoxPort->addItem("-");
++    NetSpeed::Router* rtr = nullptr;
++    if (!itemLayerComboBox.isEmpty() && textRouter != "-") {
++        rtr = grid->router(NetSpeed::Layer_id(itemLayerComboBox.toInt()),
++                           NetSpeed::Node_id(textRouter.toInt()));
++    }
++
++    for (NetSpeed::Port_id portId : NetSpeed::id_range<NetSpeed::Port_id>()) {
++        if (rtr != nullptr) {
++            NetSpeed::Tx_Port* tx_port = rtr->get_tx_portp(NetSpeed::Port_id(portId));
++            if (tx_port) {
++                auto rxp = tx_port->get_adj_rx_port();
++                if (rxp && (!rxp->get_parent()->is_router())) continue;
++            }
++
++            NetSpeed::Rx_Port* rx_port = rtr->get_rx_portp(NetSpeed::Port_id(portId));
++            if (rx_port) {
++                auto txp = rx_port->get_adj_tx_port();
++                if (txp && (!txp->get_parent()->is_router())) continue;
++            }
++        }
++        switch (portId) {
++        case NetSpeed::EAST_:
++            comboBoxPort->addItem(QString("E"));
++            break;
++        case NetSpeed::SOUTH_:
++            comboBoxPort->addItem(QString("S"));
++            break;
++        case NetSpeed::WEST_:
++            comboBoxPort->addItem(QString("W"));
++            break;
++        case NetSpeed::NORTH_:
++            comboBoxPort->addItem(QString("N"));
++            break;
++        case NetSpeed::H_PORT_SE_:
++            comboBoxPort->addItem(QString("H"));
++            break;
++        case NetSpeed::H_PORT_SW_:
++            comboBoxPort->addItem(QString("I"));
++            break;
++        case NetSpeed::H_PORT_NW_:
++            comboBoxPort->addItem(QString("J"));
++            break;
++        case NetSpeed::H_PORT_NE_:
++            comboBoxPort->addItem(QString("K"));
++            break;
++        }
++    }
++}
++
+ chooseOptionDialog::chooseOptionDialog(const QString& title, const QStringList& listArg, QWidget* parent)
+ : QDialog(parent) {
+     QGridLayout* layout  = new QGridLayout;   
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+index 4c9e08e480a..22b91390131 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/dialogs.h
+@@ -1169,9 +1169,9 @@ class chooseArgumentDialog : public QDialog
+ {
+     Q_OBJECT
+ public:
+-    chooseArgumentDialog(int numberOfLayer = 0, int numberOfRouters = 0, int numberOfPorts = 0, bool compBr = false,
++    chooseArgumentDialog(NetSpeed::Grid* g, int numberOfLayer = 0, bool compBr = false,
+                          QString m_router = QString(), QString m_port = QString(), QWidget* parent = nullptr);
+-    void addComboBox(int cntLayer, int cntRouter, int cntPort);
++    void addComboBox(int cntLayer);
+     bool getStateComboBoxAll() { return cbAll->isChecked(); }
+     QString getArgument() const { return argument; }
+     QString getTextRouterDest() { return textRouterDest->text(); }
+@@ -1182,9 +1182,11 @@ private:
+     QCheckBox* cbAll = nullptr;
+     QGridLayout* layoutOfLayers = nullptr;
+     QLineEdit* textRouterDest = nullptr;
++    NetSpeed::Grid* grid;
+ 
+ public slots:
+     void itemComboBoxChanged();
++    void updatePortComboBox(int index);
+ };
+ 
+ class chooseOptionDialog : public QDialog

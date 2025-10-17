@@ -1,0 +1,66 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp | 23 +++++++++++++++--------
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp      | 17 +++++++++++------
+ 2 files changed, 26 insertions(+), 14 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+index 4e5e89fa14d..17eba0cdc46 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsPlusItem.cpp
+@@ -130,14 +130,21 @@ void NsPlusItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+         && !isAddBridgeNoc(meshScene->getInsType()))
+     {
+         /* Only create multibridges when click on plus item */
+-        if (isChecked() && mulBris) {
+-            toggleChecked();
+-            update();
+-            emit triggered(isChecked());
+-            disconnect(this, SIGNAL(triggered(bool)), mulBris, SLOT(visibleChanged(bool)));
+-            disconnect(this, SIGNAL(plusPositionChange(QPointF)), mulBris, SLOT(updatePosition(QPointF)));
+-            mulBris->deleteLater();
+-            mulBris = nullptr;
++        if (mulBris) {
++            if (isChecked()) {
++                toggleChecked();
++                update();
++                emit triggered(isChecked());
++                disconnect(this, SIGNAL(triggered(bool)), mulBris, SLOT(visibleChanged(bool)));
++                disconnect(this, SIGNAL(plusPositionChange(QPointF)), mulBris, SLOT(updatePosition(QPointF)));
++                mulBris->deleteLater();
++                mulBris = nullptr;
++            } else {
++                toggleChecked();
++                update();
++                emit plusPositionChange(sceneBoundingRect().center());
++                emit triggered(isChecked());
++            }
+             return;
+         }
+ 
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 841074256ef..877813af2f0 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -5932,12 +5932,17 @@ void MainWindow::toggleAddHost(bool state) {
+ 
+         if (nsWorkArea) {
+             if (auto currentScene = nsWorkArea->scene()) {
+-                whenMatched(currentScene->items(), {PLUS}, [](QGraphicsItem* item) {
+-                    auto plus = static_cast<NsPlusItem*>(item);
+-                    if (!plus->isChecked()) return;
+-                    plus->toggleChecked();
+-                    emit plus->triggered(false);
+-                    item->update();
++                whenMatched(currentScene->items(), {PLUS}, [this](QGraphicsItem* item) {
++                    auto plus = dynamic_cast<NsPlusItem*>(item);
++                    if (plus) {
++                        if (!plus->isChecked()) return;
++                        plus->toggleChecked();
++                        emit plus->triggered(false);
++                        item->update();
++                        if (plus->getMulBr()) {
++                            removeDiagramItem(plus->getMulBr());
++                        }
++                    }
+                 });
+             }
+         }

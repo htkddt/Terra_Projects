@@ -1,0 +1,566 @@
+diff --git i/src/sw/noc_dev/GUICore/NSDockWidget.cpp w/src/sw/noc_dev/GUICore/NSDockWidget.cpp
+index 72d952afe6a..cafcbfaf58f 100644
+--- i/src/sw/noc_dev/GUICore/NSDockWidget.cpp
++++ w/src/sw/noc_dev/GUICore/NSDockWidget.cpp
+@@ -27,7 +27,8 @@ NSDockWidget::NSDockWidget(const QString& title, QWidget* parent, Qt::WindowFlag
+         }
+     });
+     connect(this, &NSDockWidget::visibilityChanged, this, [this](){
+-        emit dockWidgetChanged();
++        //emit dockWidgetChanged();
++	return;
+     });
+ }
+  
+diff --git i/src/sw/noc_dev/GUICore/Qtproperty/qttreepropertybrowser.cpp w/src/sw/noc_dev/GUICore/Qtproperty/qttreepropertybrowser.cpp
+index b1f1159f83f..3518ac08efc 100644
+--- i/src/sw/noc_dev/GUICore/Qtproperty/qttreepropertybrowser.cpp
++++ w/src/sw/noc_dev/GUICore/Qtproperty/qttreepropertybrowser.cpp
+@@ -757,7 +757,7 @@ void QtTreePropertyBrowserPrivate::updateItem(QTreeWidgetItem * item)
+     if(property->isEnabled()) {
+         for (int col = 0; col < cols; ++col) {
+             auto font = item->font(col);
+-            QColor color = QColor(Qt::black);
++            //QColor color = QColor(Qt::black);
+             if (!defaultVal.isEmpty() && (defaultVal != property->valueText())) {
+                 font.setBold(true);
+             } else {
+diff --git i/src/sw/noc_dev/GUICore/genericconsole.h w/src/sw/noc_dev/GUICore/genericconsole.h
+index ed7138ff964..994da25bf1d 100644
+--- i/src/sw/noc_dev/GUICore/genericconsole.h
++++ w/src/sw/noc_dev/GUICore/genericconsole.h
+@@ -266,7 +266,7 @@ inline void MainConsole::handleTabKeys(T* getComp, const char* promptText)
+                     cmdList.push_back(cmd);
+                 }
+ 
+-                auto longestCmd = std::max_element(cmdList.begin(), cmdList.end(), [](QString left, QString right) { return left.count() < right.count(); });
++                auto longestCmd = std::max_element(cmdList.begin(), cmdList.end(), [](QString left, QString right) { return left.length() < right.length(); });
+                 command = promptText + *longestCmd;
+                 this->appendPlainText(command);
+                 moveCursor(QTextCursor::StartOfLine);
+diff --git i/src/sw/noc_dev/Infra/include/Property_impl.h w/src/sw/noc_dev/Infra/include/Property_impl.h
+index 445cca20374..3ac1ffd8f6a 100644
+--- i/src/sw/noc_dev/Infra/include/Property_impl.h
++++ w/src/sw/noc_dev/Infra/include/Property_impl.h
+@@ -123,13 +123,13 @@ struct ObjProperty : ObjProperty_base<OBJECT> {
+                 std::function<std::string(const OBJECT*)> gf,
+                 std::string lh, eco_t es, prop_cat_t cat,
+                 std::function<allowed_t(const OBJECT*)> ga)
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
+       set_func(sf), get_func(gf) {}
+     ObjProperty(std::string c, std::string a, std::string d,
+                 std::function<bool(OBJECT*, const std::string& val)> sf,
+                 std::function<std::string(const OBJECT*)> gf, std::string lh, eco_t es,
+                 prop_cat_t cat, const allowed_t& av)
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, av),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, av),
+       set_func(sf), get_func(gf) {}
+ 
+     std::function<bool(OBJECT*, const std::string& val)> set_func; //! the setter function
+@@ -146,7 +146,7 @@ struct DummyProperty : ObjProperty_base<OBJECT> {
+     allowed_t get_allowed(const OBJECT* o) const override { _unused(o); return allowed_t(); }
+     DummyProperty(std::string c, std::string a, std::string d, std::string lh, eco_t es, prop_cat_t cat,
+                   std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh}, cat, es, allowed_t(), ga) {}
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga) {}
+ };
+ 
+ //! base class for typed actions on an object
+@@ -293,17 +293,17 @@ public:
+               std::function<bool(OBJECT*, T val)> set_func, std::function<T(const OBJECT*)> get_func,
+               T* default_value, std::function<bool(OBJECT*, T val)> check_func,
+               std::function<optional<T>(std::string_view)> parse, std::function<std::string(T)> unparse)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable, allowed_t(), get_allowed),
+       default_value(default_value), acts(std::make_unique<F_pack<OBJECT,T>>(set_func, get_func, check_func)) {}
+ 
+-    TProperty(help_description_t help, std::string category, eco_t eco_settable, T* default_value,
++    TProperty(NetSpeed::help_description_t help, std::string category, eco_t eco_settable, T* default_value,
+               std::function<allowed_t(const OBJECT*)> get_allowed,
+               std::unique_ptr<T_action_pack<OBJECT, T>> ap)
+     : ObjProperty_base<OBJECT>(std::move(help), category, eco_settable, allowed_t(), get_allowed),
+       default_value(default_value), acts(std::move(ap)) {}
+ 
+-    TProperty(help_description_t help, std::string category, eco_t eco_settable, T* default_value,
++    TProperty(NetSpeed::help_description_t help, std::string category, eco_t eco_settable, T* default_value,
+               std::unique_ptr<T_action_pack<OBJECT, T>> ap)
+     : ObjProperty_base<OBJECT>(std::move(help), category, eco_settable, allowed_t(), {}),
+       default_value(default_value), acts(std::move(ap)) {}
+@@ -313,7 +313,7 @@ public:
+               std::function<bool(OBJECT*, T val)> set_func, std::function<T(const OBJECT*)> get_func,
+               T* default_value, std::string long_help, eco_t eco_settable, prop_cat_t category,
+               std::function<allowed_t(const OBJECT*)> get_allowed, std::function<bool(OBJECT*, T val)> check_func)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable, allowed_t(), get_allowed),
+       default_value(default_value), acts(std::make_unique<F_pack<OBJECT,T>>(set_func, get_func, check_func)) {}
+ 
+@@ -322,7 +322,7 @@ public:
+               std::function<bool(OBJECT*, T val)> set_func, std::function<T(const OBJECT*)> get_func,
+               T* default_value, std::string long_help, eco_t eco_settable, prop_cat_t category,
+               allowed_t allowed, std::function<bool(OBJECT*, T val)> check_func)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable, std::move(allowed), {}),
+       default_value(default_value), acts(std::make_unique<F_pack<OBJECT,T>>(set_func, get_func, check_func)) {}
+ 
+@@ -330,7 +330,7 @@ public:
+     TProperty(std::string name, std::string arg, std::string desc, std::string long_help,
+               eco_t eco_settable, prop_cat_t category, T OBJECT::*ptr_member_var,
+               std::function<allowed_t(const OBJECT*)> get_allowed, T* default_value = nullptr)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable, allowed_t(), get_allowed),
+       default_value(default_value), acts(std::make_unique<Pmv_pack<OBJECT, T>>(ptr_member_var)) {}
+ 
+@@ -338,7 +338,7 @@ public:
+     TProperty(std::string name, std::string arg, std::string desc, T OBJECT::*pmv, T* default_value,
+               std::string long_help, eco_t eco_settable, prop_cat_t category,
+               std::function<allowed_t(const OBJECT*)> get_allowed, Check_f<OBJECT,T> check_func)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable, allowed_t(), get_allowed),
+       default_value(default_value), acts(std::make_unique<Pmv_pack<OBJECT,T>>(pmv, check_func)) {}
+ 
+@@ -347,7 +347,7 @@ public:
+               std::function<T(const OBJECT*)> get_func, T& default_value, std::string long_help,
+               eco_t eco_settable, prop_cat_t category, std::function<allowed_t(const OBJECT*)> get_allowed,
+               std::function<bool(OBJECT*, T val)> check_func)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable,
+                                allowed_t(), get_allowed),
+       default_value(&default_value), acts(std::make_unique<Opmv_pack<OBJECT,T>>(pmv, get_func, check_func)) {}
+@@ -356,7 +356,7 @@ public:
+               eco_t eco_settable, prop_cat_t category, std::function<allowed_t(const OBJECT*)> get_allowed,
+               std::function<bool(OBJECT*, T val)> set_func, std::function<T(const OBJECT*)> get_func,
+               T* default_value)
+-    : ObjProperty_base<OBJECT>(help_description_t{name, arg, desc, long_help, category.groups, ""},
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{name, arg, desc, long_help, category.groups, ""},
+                                category.cat, eco_settable, allowed_t(), get_allowed),
+       default_value(default_value), acts(std::make_unique<F_pack<OBJECT,T>>(set_func, get_func, set_func)) {}
+ 
+@@ -394,14 +394,14 @@ struct StringProperty : ObjProperty_base<OBJECT> {
+                    bool (OBJECT::*sf)(const std::string& val), std::string (OBJECT::*gf)() const,
+                    std::string* def, std::string lh, eco_t es, prop_cat_t cat,
+                    std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
+       set_func(sf), get_func(gf), default_value(def) {}
+     StringProperty(std::string c, std::string a, std::string d,
+                    std::function<bool(OBJECT*, const std::string&)> sf,
+                    std::function<std::string(const OBJECT*)> gf, std::string* def, std::string lh,
+                    eco_t es, prop_cat_t cat,
+                    std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
+       set_func(sf), get_func(gf), default_value(def) {}
+ 
+     std::function<bool(OBJECT*, const std::string&)> set_func; //! the setter function 
+@@ -446,13 +446,13 @@ struct CustProperty : ObjProperty_base<OBJECT> {
+                  prop_cat_t cat, std::function<bool(OBJECT*, const std::string& val)> sf,
+                  std::function<std::string(const OBJECT*)> gf, T* def,
+                  std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
+       set_func(std::move(sf)), get_func(std::move(gf)), default_value(def) {}
+     // old argument order; TODO(remove)
+     CustProperty(std::string c, std::string a, std::string d, bool (OBJECT::*sf)(const std::string& val),
+                  std::string (OBJECT::*gf)() const, T* def, std::string lh, eco_t es, prop_cat_t cat,
+                  std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
+       set_func(mem_fn(sf)), get_func(mem_fn(gf)), default_value(def) {}
+ 
+     std::function<bool(OBJECT*, std::string val)> set_func; //! un-typed setter
+@@ -484,7 +484,7 @@ struct CustPropertyNoDefault : ObjProperty_base<OBJECT> {
+                  std::string(OBJECT::*gf)() const, std::string lh,
+                  eco_t es, prop_cat_t cat,
+                  std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, allowed_t(), ga),
+       set_func(mem_fn(sf)), get_func(mem_fn(gf)) {}
+ 
+     std::function<bool(OBJECT*, std::string val)> set_func; //! un-typed setter
+@@ -573,20 +573,20 @@ struct IntProperty : ObjProperty_base<OBJECT> {
+     IntProperty(std::string c, std::string a, int minv, int maxv, std::string d, bool (OBJECT::*sf)(int val),
+                 int (OBJECT::*gf)() const, int& def, std::string lh, eco_t es, prop_cat_t cat,
+                 std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(minv, maxv), ga),
+       set_func(std::mem_fn(sf)), get_func(std::mem_fn(gf)), default_value(&def) {}
+     IntProperty(std::string c, std::string a, int minv, int maxv, std::string d,
+                 std::function<bool(OBJECT*, int val)> sf, std::function<int(const OBJECT*)> gf,
+                 int* def, std::string lh, eco_t es, prop_cat_t cat,
+                 std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(minv, maxv), ga),
+       set_func(sf), get_func(gf), default_value(def) {}
+     IntProperty(std::string c, std::string a, allowed_t at, std::string d,
+                 std::function<bool(OBJECT*, int val)> sf, std::function<int(const OBJECT*)> gf,
+                 int* def, std::string lh, eco_t es, prop_cat_t cat)
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, at,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es, at,
+                                std::function<allowed_t(const OBJECT*)>()),
+       set_func(sf), get_func(gf), default_value(def) {}
+ 
+@@ -655,13 +655,13 @@ struct BoolProperty : ObjProperty_base<OBJECT> {
+ 
+     BoolProperty(std::string c, std::string d, bool (OBJECT::*sf)(bool val),
+                  bool (OBJECT::*gf)() const, bool* def, std::string lh, eco_t es, prop_cat_t cat)
+-    : ObjProperty_base<OBJECT>(help_description_t{c, "yes/no", d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, "yes/no", d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(allowed_cat::yes_no)),
+       set_func(std::mem_fn(sf)), get_func(std::mem_fn(gf)),
+             default_value(def) {}
+     BoolProperty(std::string c, std::string d, std::function<bool(OBJECT*,bool val)> sf,
+         std::function<bool(const OBJECT*)> gf, bool* def, std::string lh, eco_t es, prop_cat_t cat)
+-    : ObjProperty_base<OBJECT>(help_description_t{c, "yes/no", d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, "yes/no", d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(allowed_cat::yes_no)),
+       set_func(sf), get_func(gf),
+         default_value(def) {}
+@@ -705,7 +705,7 @@ struct RateProperty : ObjProperty_base<OBJECT> {
+ 
+     RateProperty(std::string c, std::string a, std::string d, bool (OBJECT::*sf)(RATE_T val),
+                  RATE_T (OBJECT::*gf)() const, RATE_T& def, std::string lh, eco_t es, prop_cat_t cat)
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(0.0, 1.0)),
+       set_func(sf), get_func(gf), default_value(&def) {}
+ 
+@@ -749,7 +749,7 @@ struct DoubleProperty : ObjProperty_base<OBJECT> {
+                    bool (OBJECT::*sf)(double val), double (OBJECT::*gf)() const, double& def,
+                    std::string lh, eco_t es, prop_cat_t cat,
+                    std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(mn_v, mx_v), ga),
+       set_func(std::mem_fn(sf)), get_func(std::mem_fn(gf)), default_value(&def) {}
+ 
+@@ -757,7 +757,7 @@ struct DoubleProperty : ObjProperty_base<OBJECT> {
+                    std::function<bool(OBJECT*, double val)> sf, std::function<double(const OBJECT*)> gf,
+                    double* def, std::string lh, eco_t es, prop_cat_t cat,
+                    std::function<allowed_t(const OBJECT*)> ga = std::function<allowed_t(const OBJECT*)>())
+-    : ObjProperty_base<OBJECT>(help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
++    : ObjProperty_base<OBJECT>(NetSpeed::help_description_t{c, a, d, lh, cat.groups, ""}, cat.cat, es,
+                                allowed_t(mn_v, mx_v), ga),
+       set_func(sf), get_func(gf), default_value(def) {}
+ 
+@@ -772,7 +772,7 @@ struct CustDefault final : PropDefault {
+                 T& v, prop_cat_t cat, std::string exp,
+                 std::function<std::string(T)> to_str,
+                  std::function<optional<T>(const std::string&)> of_str)
+-    : PropDefault(help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, allowed_t()), var(&v),
++    : PropDefault(NetSpeed::help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, allowed_t()), var(&v),
+       to_str(to_str), of_str(of_str), explanation(exp) {}
+     std::string get_default() const override { return to_str(*var); }
+     bool set_default(std::string s, bool is_default_settable, optional<std::string> default_is_modifiable) override {
+@@ -805,7 +805,7 @@ private:
+ struct BoolDefault : public PropDefault {
+ public:
+     BoolDefault(std::string n, std::string d, std::string lh, bool& b, prop_cat_t cat)
+-    : PropDefault(help_description_t{n, "yes/no", d, lh, cat.groups, ""}, cat.cat,
++    : PropDefault(NetSpeed::help_description_t{n, "yes/no", d, lh, cat.groups, ""}, cat.cat,
+                   allowed_t(allowed_cat::yes_no)),
+       var(&b) {}
+     std::string get_default() const override { return stringify_b(*var); }
+@@ -833,7 +833,7 @@ private:
+ struct IntDefault : public PropDefault {
+ public:
+     IntDefault(std::string n, std::string a, std::string d, std::string lh, int& v, prop_cat_t cat, allowed_t av)
+-    : PropDefault(help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, av), var(&v) {}
++    : PropDefault(NetSpeed::help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, av), var(&v) {}
+     std::string get_default() const override { return stringify(*var); }
+     bool set_default(std::string s, bool is_default_settable, optional<std::string> default_is_modifiable) override {
+         if (!is_int(s)) {
+@@ -862,7 +862,7 @@ private:
+ struct FloatDefault : public PropDefault {
+ public:
+     FloatDefault(std::string n, std::string a, std::string d, std::string lh, double& v, prop_cat_t cat, allowed_t av)
+-    : PropDefault(help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, av), var(&v) {}
++    : PropDefault(NetSpeed::help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, av), var(&v) {}
+     std::string get_default() const override { return stringify_f(*var); }
+     bool set_default(std::string s, bool is_default_settable, optional<std::string> default_is_modifiable) override {
+         const optional<double> value = parse<double>(s);
+@@ -892,7 +892,7 @@ struct StringEmptyDefault : public PropDefault {
+ public:
+     StringEmptyDefault(std::string n, std::string a, std::string d, std::string lh, std::string& v,
+                        prop_cat_t cat, allowed_t av)
+-    : PropDefault(help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, av), var(&v) {}
++    : PropDefault(NetSpeed::help_description_t{n, a, d, lh, cat.groups, ""}, cat.cat, av), var(&v) {}
+     std::string get_default() const override { return var->empty() ? empty_val : *var; }
+     bool set_default(std::string s, bool is_default_settable, optional<std::string> default_is_modifiable) override {
+         if (s == empty_val) { *var = ""; return true; }
+diff --git i/src/sw/noc_dev/NocCore/src/Axi4S.genrtl.cpp w/src/sw/noc_dev/NocCore/src/Axi4S.genrtl.cpp
+index 9493dc9b7d4..c2d5acb490a 100644
+--- i/src/sw/noc_dev/NocCore/src/Axi4S.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/Axi4S.genrtl.cpp
+@@ -914,7 +914,7 @@ void Axi4S::ace_rtl_parameters(map<string, RTL_param>& params) const {
+ 
+     std::vector<hash_function_t> all_hash_functions = get_hash_fn_and_hash_bits(rtbl, this, nullptr, grid->get_all_hash_fns()); // convert slice bits to hash bits and get the hashing functions
+     vector<hash_function_t> ns_hash_functions, idi_hash_functions, mod3_hash_functions;
+-    for (const auto hf : all_hash_functions)
++    for (const auto& hf : all_hash_functions)
+         if (hf.hash_type == hash_t::idi_hash)
+             idi_hash_functions.push_back(hf);
+         else if (hf.hash_type == hash_t::mod3_hash)
+diff --git i/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp w/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp
+index 7214f1a800e..6e1d05e7de1 100644
+--- i/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp
++++ w/src/sw/noc_dev/NocCore/src/CHI_slave.genrtl.cpp
+@@ -556,7 +556,7 @@ void CHI_slave_bridge::rtl_parameters(map<string, RTL_param>& params) const {
+         auto make_mstid_ptid_list = [&]() {
+             vector<Rtl_valueP> ret;
+             std::set<int> uniq_req_entries;
+-            int mstid_ptid_tbl_size = isize(mstid_ptid_tbl);
++            //int mstid_ptid_tbl_size = isize(mstid_ptid_tbl);
+ 
+             for (auto& e : mstid_ptid_tbl) {
+                 auto st = make_v({make_v(agn_id_width, 'b', e.first), make_v(ptid_width, 'b', e.second)});
+diff --git i/src/sw/noc_dev/NocCore/src/GenAxiUvmBench.cpp w/src/sw/noc_dev/NocCore/src/GenAxiUvmBench.cpp
+index 0ffa9299828..54d0857f75b 100644
+--- i/src/sw/noc_dev/NocCore/src/GenAxiUvmBench.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenAxiUvmBench.cpp
+@@ -2338,7 +2338,7 @@ bool Gen_axi_uvm_testconfig::gen_stream(const Grid& g, const Gen_rtl_state& grs,
+ 
+                         // Determine which host shared interface bridge is attached to
+                         Json::Value sib_host;
+-                        for (const Json::Value& host_candidate : grs.json["hosts"]) {
++                        for (const Json::Value host_candidate : grs.json["hosts"]) {
+                             // if (!host_candidate["bridge"][sib_br_name].isNull()) {  // Found host
+                             if (host_candidate["bridge"].contains(sib_br_name)) {
+                                 // found host
+diff --git i/src/sw/noc_dev/NocCore/src/GenSDC.cpp w/src/sw/noc_dev/NocCore/src/GenSDC.cpp
+index db484def004..eedd2e37814 100644
+--- i/src/sw/noc_dev/NocCore/src/GenSDC.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenSDC.cpp
+@@ -3006,7 +3006,7 @@ NsJson GenSdc::gen_soc_ip_json(const Grid& g, const Gen_rtl_state& grs) {
+             if (!virtual_clk_to_pin.empty()) {
+                 set<string> virtual_clocks_added_pins_top;
+                 for (const auto& vc : virtual_clk_to_pin) {
+-                    for (const auto vp : vc.second) {
++                    for (const auto& vp : vc.second) {
+                         NsJson virtual_clock_delay_content = print_set_delay_simple_json(prefix,Sig_dir::Input,"virtual_clk",vc.first,vp,virtual_clocks_added_pins_top);
+                         virtual_clk_io_constraint_content_json["delays"] += virtual_clock_delay_content;
+                     }
+diff --git i/src/sw/noc_dev/NocCore/src/GenSysc.cpp w/src/sw/noc_dev/NocCore/src/GenSysc.cpp
+index 8b724500966..e0950cce85f 100644
+--- i/src/sw/noc_dev/NocCore/src/GenSysc.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenSysc.cpp
+@@ -2633,7 +2633,7 @@ class ns_soc_ip : public sc_module {
+         if (g.sys_is_nsip_present() && g.is_any_alternate_priority_set() && !pd.priority_pins.empty()) {
+             y << "\n      fabric.pri_sel_socket(pri_sel_socket);\n";
+ 
+-            for (const auto p_pin : pd.priority_pins) {
++            for (const auto& p_pin : pd.priority_pins) {
+                 y << "\n      SC_METHOD(set_" << p_pin << ");\n";
+                 y << "      sensitive<<" << p_pin << ";\n";
+                 y << "      dont_initialize();\n";
+diff --git i/src/sw/noc_dev/NocCore/src/GenUPF.cpp w/src/sw/noc_dev/NocCore/src/GenUPF.cpp
+index 731809460d2..3b9a6418e72 100644
+--- i/src/sw/noc_dev/NocCore/src/GenUPF.cpp
++++ w/src/sw/noc_dev/NocCore/src/GenUPF.cpp
+@@ -3232,7 +3232,7 @@ bool Gen_upf::write_upf(const Grid& g, const string& upf_dir, Upf_supported_ver
+         if (ConsoleParsing::use_project_dir) of.close();
+     }
+ 
+-    for (const auto child : node->get_children()) success &= write_upf(g, upf_dir, upf_ver, child.second, depth + 1, max_depth);
++    for (const auto& child : node->get_children()) success &= write_upf(g, upf_dir, upf_ver, child.second, depth + 1, max_depth);
+ 
+     return success;
+ }
+diff --git i/src/sw/noc_dev/NocCore/src/Grid.grp.cpp w/src/sw/noc_dev/NocCore/src/Grid.grp.cpp
+index 7a9dd7fb24f..15d18ae54f7 100644
+--- i/src/sw/noc_dev/NocCore/src/Grid.grp.cpp
++++ w/src/sw/noc_dev/NocCore/src/Grid.grp.cpp
+@@ -1334,7 +1334,7 @@ bool Grid::select_best_route_lookup_strategy() {
+ 
+     // id-based routing for regbus
+     if (is_regbus_enabled()) {
+-        auto effective_regbus_routing_scheme = get_route_lookup_scheme_regbus();
++        //auto effective_regbus_routing_scheme = get_route_lookup_scheme_regbus();
+         auto specified_regbus_routing_scheme = get_route_lookup_scheme_regbus_specified();
+         const auto auto_regbus_routing_scheme = specified_regbus_routing_scheme == route_lookup_scheme_t::automatic;
+         bitcount max_idbr_key_width_needed = 0;
+diff --git i/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp w/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+index 41d9a3c18d2..f67b102372e 100644
+--- i/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
++++ w/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.cpp
+@@ -981,20 +981,20 @@ void CustomHighLightDialog::refreshDialog() {
+     l.sort();
+     comboBoxChannel->addItems(l);
+ 
+-    for (const auto sp : g->get_spine_cg_mods()) {
++    for (const auto& sp : g->get_spine_cg_mods()) {
+         if (!sp.second->name().empty()) {
+             comboBoxSpineClockGate->addItem(QString::fromStdString(sp.second->name()));
+         }
+     }
+ 
+-    for (const auto srm : g->get_sync_reset_mods()) {
++    for (const auto& srm : g->get_sync_reset_mods()) {
+         if (!srm.first.empty()) {
+             comboBoxSyncReset->addItem(QString::fromStdString(srm.first));
+         }
+     }
+ 
+     QList<QString> listProto;
+-    for (const auto p : NetSpeed::supported_protocols(NetSpeed::nullopt)) {
++    for (const auto& p : NetSpeed::supported_protocols(NetSpeed::nullopt)) {
+         auto proto   = NetSpeed::to_string(p);
+         if (!proto.empty()) {
+             listProto.append(QString::fromStdString(proto));
+diff --git i/src/sw/noc_dev/prototype/Gui/View/NsSocView.cpp w/src/sw/noc_dev/prototype/Gui/View/NsSocView.cpp
+index 321fcc23ec7..f8ebeb5a1b2 100644
+--- i/src/sw/noc_dev/prototype/Gui/View/NsSocView.cpp
++++ w/src/sw/noc_dev/prototype/Gui/View/NsSocView.cpp
+@@ -238,7 +238,7 @@ void NsSocView::mousePressEvent(QMouseEvent * event) {
+                 }
+             }
+             // excute menu and apply command
+-            QAction* selectedAction = menu->exec(event->globalPos());
++            QAction* selectedAction = menu->exec(event->globalPosition().toPoint());
+             if (selectedAction == nullptr) return;
+             auto cmd = selectedAction->data().toString();
+             if (mainWindow != nullptr && !cmd.isEmpty()) mainWindow->getConsole()->applyCmd(cmd);
+diff --git i/src/sw/noc_dev/prototype/Gui/mainwindow.cpp w/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 0d20ce29920..e8baf9b393b 100644
+--- i/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ w/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -9101,7 +9101,7 @@ void MainWindow::createToolbars()
+     powerProfilesComboBox = new QComboBox;
+     powerProfilesComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+     powerProfilesComboBox->setToolTip(TOOLBAR_ENTER_EXIT_POWER_PROFILE);
+-    connect(powerProfilesComboBox, SIGNAL(activated(QString)), this, SLOT(activevatedPowerProfilesComboBox(QString)));
++    connect(powerProfilesComboBox, SIGNAL(textActivated(QString)), this, SLOT(activevatedPowerProfilesComboBox(QString)));
+ 
+     if (NetSpeed::Config::enable_power()) {
+         analyzeToolbar->addWidget(powerProfilesComboBox);
+diff --git i/src/sw/noc_dev/prototype/Gui/myconsole.cpp w/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+index 9d195642ebf..2952ef670e7 100644
+--- i/src/sw/noc_dev/prototype/Gui/myconsole.cpp
++++ w/src/sw/noc_dev/prototype/Gui/myconsole.cpp
+@@ -729,7 +729,8 @@ void INIConsole::executeExitApp(bool forcedExit)
+                 QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+             }
+         }       
+-        QApplication::quit();
++        //QApplication::quit();
++	QApplication::exit(0);
+     };
+ 
+     if (forcedExit) exit();
+diff --git i/src/sw/noc_dev/prototype/Gui/propertypanel.cpp w/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index bcd233d7567..903b311ab2b 100644
+--- i/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ w/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -404,7 +404,7 @@ PropertyPanel::PropertyPanel(MainWindow * mw)
+     /* Filter Flags */
+     proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+     connect(filter, SIGNAL(textEdited(QString)), proxyModel, SLOT(filterAction(QString)));
+-    connect(sim_profilesComboBox, SIGNAL(currentIndexChanged(QString)), proxyModel, SLOT(profileChanged(QString)));
++    connect(sim_profilesComboBox, SIGNAL(currentTextChanged(QString)), proxyModel, SLOT(profileChanged(QString)));
+     QObject::connect(sim_profilesComboBox, &QComboBox::currentTextChanged, this, [&]() {
+         updateSelectAllTransactionCheckBox();
+         });
+@@ -3141,13 +3141,13 @@ void PropertyPanel::showComparePointToolTip(QMouseEvent * event)
+         QString msg = "";
+         int graphix = -1, outsidecnt = 0;
+         if (!customPlot->axisRect(0) || !customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)) return;
+-        auto coord = customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)->pixelToCoord(event->localPos().x());
++        auto coord = customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)->pixelToCoord(event->position().x());
+         for (auto i = 0; i < customPlot->axisRect(0)->axes().size(); i++)
+         {
+             QString lbl = customPlot->axisRect(0)->axes()[i]->label();
+             if (lbl.contains("Time"))
+                 continue;
+-            double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->localPos().y());
++            double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->position().y());
+             for (graphix = 0; graphix < customPlot->graphCount(); graphix++)
+             {
+                 if (!customPlot->graph(graphix)->data()) continue;
+@@ -3273,10 +3273,10 @@ void PropertyPanel::showPointToolTip(QMouseEvent * event)
+         QString msg = "";
+         int graphix = -1, outsidecnt = 0;
+         if (!customPlot->axisRect(0) || !customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)) return;
+-        auto coord = customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)->pixelToCoord(event->localPos().x());
++        auto coord = customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0)->pixelToCoord(event->position().x());
+         for (auto i = 0; i < customPlot->axisRect(0)->axes().size(); i++)
+         {
+-            double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->localPos().y());
++            double coordy = customPlot->axisRect(0)->axes()[i]->pixelToCoord(event->position().y());
+             graphix = -1;
+             QString lbl = customPlot->axisRect(0)->axes()[i]->label();
+             if (lbl.contains("Time"))
+@@ -3383,8 +3383,8 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+         // Reset map title
+         QString graphName = QString::fromStdString(gl);
+         int graphNameLimit = 50;
+-        if (graphName.count() > graphNameLimit)
+-            graphName = graphName.remove(graphNameLimit, graphName.count()
++        if (graphName.length() > graphNameLimit)
++            graphName = graphName.remove(graphNameLimit, graphName.length()
+                 - graphNameLimit) + " ...";
+         QCPLayoutElement * lb = customPlot->plotLayout()->element(0, 0);
+         customPlot->plotLayout()->remove(lb);
+@@ -3439,7 +3439,7 @@ void PropertyPanel::initNormalPlot(QString name, QCustomPlot * customPlot)
+ 
+     int textSize = 50;
+     QString graphName = tr("%1").arg(name);
+-    if (graphName.count() > textSize) graphName = graphName.remove(textSize, graphName.count() - textSize) + " ...";
++    if (graphName.length() > textSize) graphName = graphName.remove(textSize, graphName.length() - textSize) + " ...";
+     customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, graphName));
+     customPlot->plotLayout()->addElement(1, 0, wideAxisRect); // insert axis rect in first row
+ 
+@@ -3505,7 +3505,7 @@ void PropertyPanel::initComparisonPlot(QString name, QCustomPlot * customPlot, P
+         mainGraph1->setPen(pen);
+         mainGraph1->setLineStyle(QCPGraph::lsImpulse);
+         QString graphName = QString::fromStdString(it->first);
+-        if (graphName.count() > 30) graphName = graphName.remove(25, graphName.count() - 20) + " ...";
++        if (graphName.length() > 30) graphName = graphName.remove(25, graphName.length() - 20) + " ...";
+         customPlot->graph()->setName(graphName);
+ 
+         // Latency
+@@ -3820,7 +3820,7 @@ void PropertyPanel::showLatencyFrequencyToolTip(QMouseEvent * event)
+     auto & bdata = *bar->data();
+ 
+     // find which bar is under mouse
+-    auto x_coord = lat->xAxis->pixelToCoord(event->x());
++    auto x_coord = lat->xAxis->pixelToCoord(event->position().x());
+     double min_delta = std::numeric_limits<double>::max();
+     QMap<double, QCPBarData>::iterator preit = bdata.end();
+ 
+diff --git i/src/sw/noc_dev/prototype/Gui/treeitem.cpp w/src/sw/noc_dev/prototype/Gui/treeitem.cpp
+index 9a546d9e266..e7c9d89c822 100644
+--- i/src/sw/noc_dev/prototype/Gui/treeitem.cpp
++++ w/src/sw/noc_dev/prototype/Gui/treeitem.cpp
+@@ -80,7 +80,7 @@ TreeItem* TreeItem::child(int number)
+ 
+ int TreeItem::childCount() const
+ {
+-    return childItems.count();
++    return childItems.size();
+ }
+ 
+ int TreeItem::childNumber() const
+@@ -93,7 +93,7 @@ int TreeItem::childNumber() const
+ 
+ int TreeItem::columnCount() const
+ {
+-    return itemData.count();
++    return itemData.size();
+ }
+ 
+ QVariant TreeItem::data(int column) const
+@@ -186,4 +186,4 @@ bool TreeItem::setTooltipData(int column, const QVariant & value)
+ 
+     tooltip[column] = value;
+     return true;
+-}
+\ No newline at end of file
++}

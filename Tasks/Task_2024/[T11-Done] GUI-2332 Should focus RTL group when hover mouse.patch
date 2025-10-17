@@ -1,0 +1,188 @@
+ src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.cpp |  6 ++
+ src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.h   |  4 ++
+ src/sw/noc_dev/prototype/Gui/dialogs.cpp           | 65 +++++++++++++++++++++-
+ src/sw/noc_dev/prototype/Gui/dialogs.h             | 20 ++++++-
+ 4 files changed, 92 insertions(+), 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.cpp b/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.cpp
+index a1875c3a77a..7ab615d3a52 100644
+--- a/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.cpp
++++ b/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.cpp
+@@ -37,6 +37,12 @@ void QtColorPushButton::clickedSlot()
+     emit colorChanged();
+ }
+ 
++void QtColorPushButton::enterEvent(QEvent* event)
++{
++    Q_UNUSED(event);
++    emit hoverEnter();
++}
++
+ QColor QtColorPushButton::getColor()
+ {
+     return m_color;
+diff --git a/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.h b/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.h
+index fc37d2cc461..1cfb7c9824f 100644
+--- a/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.h
++++ b/src/sw/noc_dev/GUICore/Utils/qtcolorpushbutton.h
+@@ -13,7 +13,11 @@ public Q_SLOTS:
+ 
+ signals:
+     void colorChanged();
++    void hoverEnter();
+ 
+ private:
+     QColor m_color;
++
++protected:
++    void enterEvent(QEvent* event);
+ };
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.cpp b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+index 18cb9e3a541..17fae035798 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.cpp
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.cpp
+@@ -2853,14 +2853,21 @@ RtlDialog::RtlDialog(QStringList* selectedItem, QMap<QString, QColor>* rtlGroupC
+     selectAllCheckbox->setCheckState(Qt::Unchecked);
+     connect(selectAllCheckbox, SIGNAL(clicked(bool)), this, SLOT(toggleSelectAll(bool)));
+ 
+-    rtlGroupsTree = new QTreeWidget;
++    rtlGroupsTree = new RtlTreeWidget;
+     rtlGroupsTree->setColumnCount(3);
+     rtlGroupsTree->setHeaderHidden(true);
++    rtlGroupsTree->setAttribute(Qt::WA_Hover);
++    rtlGroupsTree->setMouseTracking(true);
+     connect(rtlGroupsTree, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this,
+             SLOT(changeItemAct(QTreeWidgetItem*, int)));
+ 
+     mw = dynamic_cast<MainWindow*>(parent);
+     if (!mw) return;
++    auto nsWorkArea = mw->getNsWorkArea();
++    if (!nsWorkArea) return;
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (!meshScene) return;
++    rtlGroupsTree->setMainWindow(mw);
+ 
+     QMap<QString, QString> rtlTree = mw->getRtlGroupsTree();
+     QMap<QString, QTreeWidgetItem*> itemList;
+@@ -2892,6 +2899,13 @@ RtlDialog::RtlDialog(QStringList* selectedItem, QMap<QString, QColor>* rtlGroupC
+         connect(colorButton, &QtColorPushButton::colorChanged, this, [this](){
+             emit updated();
+         });
++        connect(colorButton, &QtColorPushButton::hoverEnter, this, [this, meshScene, rtlName]() {
++            if (rtlName != rtlGroupsTree->getRtlLastName()) {
++                meshScene->resetSizeComponents();
++                meshScene->updateSizeComponents(rtlName);
++                rtlGroupsTree->setRtlLastName(rtlName);
++            }
++        });
+         if (m_rtlGroupColor->contains(rtlName)) {
+             colorButton->setColorButton(m_rtlGroupColor->value(rtlName));
+         }
+@@ -2948,6 +2962,10 @@ void RtlDialog::updateContent()
+ {
+     rtlGroupsTree->clear();
+     if (!mw) return;
++    auto nsWorkArea = mw->getNsWorkArea();
++    if (!nsWorkArea) return;
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (!meshScene) return;
+ 
+     QMap<QString, QString> rtlTree = mw->getRtlGroupsTree();
+     QMap<QString, QTreeWidgetItem*> itemList;
+@@ -2976,7 +2994,16 @@ void RtlDialog::updateContent()
+         }
+ 
+         QtColorPushButton* colorButton = new QtColorPushButton();
+-        connect(colorButton, &QtColorPushButton::colorChanged, this, [this]() { emit updated(); });
++        connect(colorButton, &QtColorPushButton::colorChanged, this, [this]() {
++            emit updated();
++        });
++        connect(colorButton, &QtColorPushButton::hoverEnter, this, [this, meshScene, rtlName]() {
++            if (rtlName != rtlGroupsTree->getRtlLastName()) {
++                meshScene->resetSizeComponents();
++                meshScene->updateSizeComponents(rtlName);
++                rtlGroupsTree->setRtlLastName(rtlName);
++            }
++        });
+         if (m_rtlGroupColor->contains(rtlName)) {
+             colorButton->setColorButton(m_rtlGroupColor->value(rtlName));
+         }
+@@ -3048,6 +3075,40 @@ void RtlDialog::setCkStt4SelAllCkBox()
+     selectAllCheckbox->setCheckState(setState);
+ }
+ 
++void RtlTreeWidget::leaveEvent(QEvent* event)
++{
++    event->accept();
++    if (!mainWindow) return;
++    auto nsWorkArea = mainWindow->getNsWorkArea();
++    if (!nsWorkArea) return;
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (!meshScene) return;
++    meshScene->resetSizeComponents();
++    rtlLastName = "";
++}
++
++void RtlTreeWidget::mouseMoveEvent(QMouseEvent* event)
++{
++    if (!mainWindow) return;
++    auto nsWorkArea = mainWindow->getNsWorkArea();
++    if (!nsWorkArea) return;
++    auto meshScene = nsWorkArea->getMeshViewScene();
++    if (!meshScene) return;
++    QTreeWidgetItem* item = itemAt(event->pos());
++    if (item) {
++        auto rtlName = item->text(0);
++        if (rtlName != rtlLastName) {
++            meshScene->resetSizeComponents();
++            meshScene->updateSizeComponents(rtlName);
++            rtlLastName = rtlName;
++        }
++    } else {
++        meshScene->resetSizeComponents();
++        rtlLastName = "";
++    }
++    event->accept();
++}
++
+ ToolTipAppDialog::ToolTipAppDialog(QString content, QString name, int count)
+ {
+     isTable = false;
+diff --git a/src/sw/noc_dev/prototype/Gui/dialogs.h b/src/sw/noc_dev/prototype/Gui/dialogs.h
+index c81847d722b..f0dfcef019e 100644
+--- a/src/sw/noc_dev/prototype/Gui/dialogs.h
++++ b/src/sw/noc_dev/prototype/Gui/dialogs.h
+@@ -223,6 +223,24 @@ private:
+     QTableWidget* m_pTableWidget;
+ };
+ 
++//////////////////////////////////////
++class RtlTreeWidget : public QTreeWidget
++{
++    Q_OBJECT
++public:
++    void setMainWindow(MainWindow* mw) { mainWindow = mw; }
++    QString getRtlLastName() { return rtlLastName; }
++    void setRtlLastName(QString value) { rtlLastName = value; }
++
++private:
++    MainWindow* mainWindow = nullptr;
++    QString rtlLastName = "";
++
++protected:
++    void mouseMoveEvent(QMouseEvent* event) override;
++    void leaveEvent(QEvent* event) override;
++};
++
+ //////////////////////////////////////
+ class RtlDialog : public QDialog
+ {
+@@ -245,7 +263,7 @@ private:
+     void checkedChildsItem(QTreeWidgetItem* item);
+     void uncheckedParentItem(QTreeWidgetItem* item);
+     void setCkStt4SelAllCkBox();
+-    QTreeWidget* rtlGroupsTree;
++    RtlTreeWidget* rtlGroupsTree;
+     QCheckBox* selectAllCheckbox;
+     QStringList* m_selectedItem;
+     QMap<QString, QColor>* m_rtlGroupColor;

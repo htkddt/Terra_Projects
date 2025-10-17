@@ -1,0 +1,79 @@
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp     | 1 +
+ src/sw/noc_dev/prototype/Gui/myconsole.h        | 2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp | 5 +++--
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.h    | 2 +-
+ 4 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index aeaf9350f23..9a978afcccf 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -4946,6 +4946,7 @@ void MainWindow::addTypeDomainAct()
+ void MainWindow::clearRecentlySourced()
+ {
+     lockRecentlySource = false;
++    console->pathSaveRecentlySource.clear();
+     recentlySourcedMenu->clear();
+     recentlySourcedAction->setEnabled(false);
+     saveRecentlySourcedHistory();
+diff --git a/src/sw/noc_dev/prototype/Gui/myconsole.h b/src/sw/noc_dev/prototype/Gui/myconsole.h
+index 279038ba039..87109f03955 100644
+--- a/src/sw/noc_dev/prototype/Gui/myconsole.h
++++ b/src/sw/noc_dev/prototype/Gui/myconsole.h
+@@ -106,13 +106,13 @@ private:
+     bool newProject = false; //New project command flag
+     bool newSoc = false; //New soc/mesh flag
+     
+-    QString pathSaveRecentlySource;
+     bool isRunScriptByTerimal = false; // using to no save recent config embedded in file script when run by terminal
+ 
+ public:
+     bool readyExit = false;
+     int cmdCounter = 0; //! number of processed cmd
+     QString fileSourcePath;
++    QString pathSaveRecentlySource;
+     bool updateProgress = false;
+     bool updateLint = false;
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index 4d177270eec..9eb1055bda0 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -4943,6 +4943,7 @@ void MainWindow::addTypeDomainAct()
+ void MainWindow::clearRecentlySourced()
+ {
+     lockRecentlySource = false;
++    console->pathSaveRecentlySource.clear();
+     recentlySourcedMenu->clear();
+     recentlySourcedAction->setEnabled(false);
+     saveRecentlySourcedHistory();
+@@ -6687,8 +6688,8 @@ void MainWindow::readSettings()
+     QSettings settings(settingFilePath, QSettings::IniFormat);
+ 
+     /*----------------------------------------------------------------------------------------------
+-        - Replace fields "xGerneral" with fields "NotForUser" without affecting user configuration
+-        - This code will be removed in 25Q4
++    Replacing the field "xGerneral" by the field "NotForUser" to help user understand purpose of this field
++    and to avoid lossing "Sourced List" on the end user, NSGUI should keep below code util 25Q4
+     ------------------------------------------------------------------------------------------------*/
+     if (settings.childGroups().contains("xGerneral")) {
+         const QString source = "Source";
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.h b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.h
+index 94b4ce0c7ae..b13c8d8490f 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.h
+@@ -106,13 +106,13 @@ private:
+     bool newProject = false; //New project command flag
+     bool newSoc = false; //New soc/mesh flag
+     
+-    QString pathSaveRecentlySource;
+     bool isRunScriptByTerimal = false; // using to no save recent config embedded in file script when run by terminal
+ 
+ public:
+     bool readyExit = false;
+     int cmdCounter = 0; //! number of processed cmd
+     QString fileSourcePath;
++    QString pathSaveRecentlySource;
+     bool updateProgress = false;
+     bool updateLint = false;
+ 

@@ -1,0 +1,25 @@
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 3d5baef6b95..397e39a8b37 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -3795,7 +3795,7 @@ void INIConsole::postCommandDeclaration()
+         if (!propPanel) return;
+         // Get property value
+         auto null_val = std::unique_ptr<NetSpeed::PropDefault>{};
+-        const auto& cp = get_ref_default(NetSpeed::Property::prop_defs, params.empty() ? "" : params[0], null_val);
++        auto& cp = get_ref_default(NetSpeed::Property::prop_defs, params.empty() ? "" : params[0], null_val);
+         if (!cp) return;
+         // if command: prop_default <name>: show value property
+         if (ok && params.size() == 1){
+@@ -3842,7 +3842,7 @@ void INIConsole::postCommandDeclaration()
+         if (!propPanel) return;
+         // Get property value
+         auto null_val = std::unique_ptr<NetSpeed::MeshProperty>{};
+-        const  auto& cp = get_ref_default(NetSpeed::Property::mesh_props, params.empty() ? "" : params[0], null_val);
++        auto& cp = get_ref_default(NetSpeed::Property::mesh_props, params.empty() ? "" : params[0], null_val);
+         if (!cp) return;
+         auto grid = c->get_container().get_grid();
+         if (!grid) return;

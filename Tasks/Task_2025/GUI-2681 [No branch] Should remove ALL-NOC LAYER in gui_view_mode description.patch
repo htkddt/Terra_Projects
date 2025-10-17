@@ -1,0 +1,16 @@
+ src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 01cee89f180..67654908665 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -2929,7 +2929,7 @@ void INIConsole::registerGuiCommands()
+     const char* const CMD_VIEW_MODE_SHORT_HELP 			= "Switch to a view mode";
+     const char* const CMD_VIEW_MODE_LONG_HELP 			= "\tSwitch to a view mode with mode_id."
+                                                             "  The view modes can be: NOC view, CLOCK DOMAIN "
+-                                                            "view, VOLTAGE DOMAIN view, POWER DOMAIN view, ALL-NOC LAYER, "
++                                                            "view, VOLTAGE DOMAIN view, POWER DOMAIN view, "
+                                                             "BLOCKAGE view, MERGE view and RTL GROUP view.\n\n"
+                                                             "Arguments:\n\n";
+     const char* const CMD_VIEW_MODE_LONG_HELP_HTML =  "<table width=\"500\" border=1 cellspacing=1>"

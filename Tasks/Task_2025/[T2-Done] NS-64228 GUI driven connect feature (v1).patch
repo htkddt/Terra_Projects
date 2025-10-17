@@ -1,0 +1,299 @@
+ src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp     |   5 +-
+ .../noc_dev/prototype/Gui/View/NsNocViewScene.cpp  | 153 ++++++++++++++++-----
+ src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h |   4 +
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp     |  11 ++
+ 4 files changed, 139 insertions(+), 34 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+index fb8efad3b2a..4e2652c3ff9 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsBridge.cpp
+@@ -429,7 +429,10 @@ void NsNormalBridge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+                         mw->appendListDiagrams(diagram);
+                     }
+                 }
+-            } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() && !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked()) {
++            } else if (!mw->getInstrumentsActMap()[ADD_DEPENDENCY]->isChecked() &&
++                       !mw->getInstrumentsActMap()[ADD_BRIDGE]->isChecked() &&
++                       !mw->getInstrumentsActMap()[ADD_CONNECT]->isChecked() &&
++                       !mw->getInstrumentsActMap()[ADD_ROUTER_CONN]->isChecked()) {
+                 if (bridgeHasRSSB) {
+                     auto diagram = new NsRSSBDiagram(bridge, this);
+                     mw->appendListDiagrams(diagram);
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+index e256d01fa8a..652b23a5c4f 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.cpp
+@@ -958,12 +958,25 @@ void NsNocViewScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
+                 auto nsBridge = getFirst<NsBridge>(items(event->scenePos()), BRIDGE);
+                 if ((!nsHost) && (!nsBridge)) {
+                     if (instrumentMediator) {
+-                        propPanel->showButtonsAddConnection(true, true);
+-                        auto nsRouterConnection = getFirst<NsRouterSetConnection>(items(event->scenePos()), ROUTER_CONNECTION);
+-                        if (nsRouterConnection) {
++                        /* Set connect between router and bridge in multiple bridge */
++                        auto mulBrisDiagram = getFirst<NsMultipleBridgesDiagram>(items(event->scenePos()), MULTIPLE_BRIDGE);
++                        if (mulBrisDiagram) {
+                             NsMeshViewScene::mousePressEvent(event);
+                             break;
+                         }
++
++                        /* Set connect between router and router */
++                        auto nsPortDrawing = getFirst<NsPortDrawingSetConnection>(items(event->scenePos()), ROUTER_CONNECTION);
++                        if (nsPortDrawing && nsPortDrawing->parentItem()) {
++                            if (nsPortDrawing->parentItem()->type() == MESH) {
++                                propPanel->showButtonsAddConnection(true, true);
++                                auto nsRouterConnection = getFirst<NsRouterSetConnection>(items(event->scenePos()), ROUTER_CONNECTION);
++                                if (nsRouterConnection) {
++                                    NsMeshViewScene::mousePressEvent(event);
++                                    break;
++                                }
++                            }
++                        }
+                         int type_item = instrumentMediator->data(ITEM_TYPE).toInt();
+                         switch (type_item) {
+                         case TYPE_ITEM::HOST: {
+@@ -1149,9 +1162,27 @@ void NsNocViewScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+                                mesh->mapFromScene(event->scenePos()));
+             auto path = drawNormalArrow(line);
+             instrumentMediator->updatePath(path);
++            auto nodeId = pointToNodeID(mesh, event->scenePos());
++            for (const auto& item : items()) {
++                if (item->type() == ROUTER_CONNECTION) {
++                    auto nsRouterConnection = dynamic_cast<NsRouterSetConnection*>(item);
++                    if (nsRouterConnection) {
++                        auto circle = nsRouterConnection->getCircle();
++                        if (circle) {
++                            if (nsRouterConnection->getNodeId() == nodeId) {
++                                circle->setVisible(true);
++                            } else {
++                                circle->setVisible(false);
++                            }
++                        }
++                    }
++                }
++            }
+         };
+         switch (insType) {
+         case ADD_CONNECT:
++            updateMediatorPath();
++            break;
+         case ADD_ROUTER_CONN:
+             updateMediatorPath();
+             break;
+@@ -1273,7 +1304,12 @@ void NsNocViewScene::toggleAddRouter2RouterConn()
+     }
+ }
+ 
+-void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
++void NsNocViewScene::toggleAddDependencyRouterConn(bool state)
++{
++    auto is_diagram = [](QGraphicsItem* item) -> bool {
++        return (NetSpeed::is_member(item->type(), {BRIDGE_DIAGRAM, ROUTER_DIAGRAM, RING_VISUALIZATION}));
++    };
++
+     auto action = sender();
+     if (!action) return;
+     Q_ASSERT(mw);
+@@ -1300,6 +1336,14 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
+     switch (type) {
+         case ADD_CONNECT:
+         {
++            vector<QGraphicsItem*> to_be_deleted;
++            for (auto& item : items()) {
++                if (is_diagram(item)) {
++                    to_be_deleted.push_back(item);
++                    mw->removeDiagramItem(item);
++                }
++            }
++            qDeleteAll(to_be_deleted);
+             propPanel->showButtonsAddConnection(state, false);
+             auto g = console->get_container().get_grid();
+             if (!g) return;
+@@ -1317,6 +1361,14 @@ void NsNocViewScene::toggleAddDependencyRouterConn(bool state) {
+ 
+         case ADD_ROUTER_CONN:
+         {
++            vector<QGraphicsItem*> to_be_deleted;
++            for (auto& item : items()) {
++                if (is_diagram(item)) {
++                    to_be_deleted.push_back(item);
++                    mw->removeDiagramItem(item);
++                }
++            }
++            qDeleteAll(to_be_deleted);
+             propPanel->showButtonsAddConnection(true, false);
+             auto g = console->get_container().get_grid();
+             if (!g) return;
+@@ -1787,6 +1839,21 @@ NsRouterSetConnection::NsRouterSetConnection(QRectF rect, NetSpeed::Node_id& id,
+         nodeIdText = nodeId.str_xy();
+     }
+     addTextItem(rect, new QGraphicsTextItem(QString::fromStdString(nodeIdText), this));
++
++    if (mw && mw->getInstrumentsActMap()[ADD_CONNECT]->isChecked()) {
++        /* Draw circle */
++        const int offset = 3;
++        QRectF circleRect = QRectF((scenePos.x() + rect.width() + offset), (scenePos.y() + offset),
++                                    rect.width() - 2 * offset, (rect.height() - offset) * 2);
++        const qreal xRadius = 35;
++        const qreal yRadius = 15;
++        QPainterPath circlePath;
++        circlePath.addRoundedRect(circleRect, xRadius, yRadius);
++        circle = new QGraphicsPathItem(circlePath, this);
++        circle->setPen(QPen(Qt::gray, 0.5));
++        circle->setBrush(Qt::transparent);
++        circle->setVisible(false);
++    }
+ }
+ 
+ void NsRouterSetConnection::mousePressEvent(QGraphicsSceneMouseEvent * event)
+@@ -1859,35 +1926,51 @@ void NsRouterSetConnection::mousePressEvent(QGraphicsSceneMouseEvent * event)
+ 
+         auto mesh = getFirst<NsMesh>(nocScene->items(event->scenePos()), MESH);
+         if (mesh) {
+-            for (NetSpeed::Port_id portId : NetSpeed::id_range<NetSpeed::Port_id>()) {
+-                switch (portId) {
+-                case NetSpeed::EAST_:
+-                    portName = "E";
+-                    break;
+-                case NetSpeed::SOUTH_:
+-                    portName = "S";
+-                    break;
+-                case NetSpeed::WEST_:
+-                    portName = "W";
+-                    break;
+-                case NetSpeed::NORTH_:
+-                    portName = "N";
+-                    break;
+-                default:
+-                    break;
+-                }
++            auto g = mesh->getGrid();
++            if (g) {
++                NetSpeed::Router* rtr = g->router(mesh->getLayerID(), nodeId);
++                for (NetSpeed::Port_id portId : NetSpeed::id_range<NetSpeed::Port_id>()) {
++                    /* Not support direction H, I, J and K */
++                    if (NetSpeed::is_member(portId, {H_PORT_SE_, H_PORT_SW_, H_PORT_NW_, H_PORT_NE_})) continue;
++
++                    Tx_Port* tx_port = rtr->get_tx_portp(portId);
++                    if (tx_port) {
++                        auto rxp = tx_port->get_adj_rx_port();
++                        if (rxp && (!rxp->get_parent()->is_router())) continue;
++                    }
+ 
+-                /* Not support direction H, I, J and K */
+-                if (NetSpeed::is_member(portId, {H_PORT_SE_, H_PORT_SW_, H_PORT_NW_, H_PORT_NE_}))
+-                    continue;
++                    Rx_Port* rx_port = rtr->get_rx_portp(portId);
++                    if (rx_port) {
++                        auto txp = rx_port->get_adj_tx_port();
++                        if (txp && (!txp->get_parent()->is_router())) continue;
++                    }
+ 
+-                /* Create 4 ports of this router */
+-                QString router_name = "R" + QString::number(mesh->getLayerID()) + QString(".") +
+-                                      QString::number(nodeId.as_int());
+-                auto vBRect = QRectF(scenePos + nsPortIDToPoint(&portId), QSizeF(BRIDGE_SIZE, BRIDGE_SIZE));
+-                auto portDrawing = new NsPortDrawingSetConnection(vBRect, portName, NULL, router_name);
+-                portDrawing->setParentItem(mesh);
+-                nocScene->storePortDrawingItems(portDrawing);
++                    switch (portId) {
++                    case NetSpeed::EAST_:
++                        portName = "E";
++                        break;
++                    case NetSpeed::SOUTH_:
++                        portName = "S";
++                        break;
++                    case NetSpeed::WEST_:
++                        portName = "W";
++                        break;
++                    case NetSpeed::NORTH_:
++                        portName = "N";
++                        break;
++                    default:
++                        break;
++                    }
++
++                    /* Create 4 ports of this router */
++                    QString router_name = "R" + QString::number(mesh->getLayerID()) + QString(".") +
++                                          QString::number(nodeId.as_int());
++                    auto vBRect =
++                        QRectF(scenePos + nsPortIDToPoint(&portId), QSizeF(BRIDGE_SIZE, BRIDGE_SIZE));
++                    auto portDrawing = new NsPortDrawingSetConnection(vBRect, portName, NULL, router_name);
++                    portDrawing->setParentItem(mesh);
++                    nocScene->storePortDrawingItems(portDrawing);
++                }
+             }
+ 
+             /* A bridge cannot connect to a router, it just connects to router ports */
+@@ -2139,7 +2222,9 @@ void NsPortDrawingSetConnection::hoverEnterEvent(QGraphicsSceneHoverEvent * even
+ {
+     setBrush(Qt::yellow);
+     if (connection_type == TYPE_ITEM::ROUTER) {
+-        routerID->setVisible(true);    
++        if (routerID) {
++            routerID->setVisible(true);
++        }
+         setOpacity(1);
+     }
+     update();
+@@ -2151,7 +2236,9 @@ void NsPortDrawingSetConnection::hoverLeaveEvent(QGraphicsSceneHoverEvent * even
+     if (!selected_port) {
+         setBrush(Qt::transparent);
+         if (connection_type == TYPE_ITEM::ROUTER) {
+-            routerID->setVisible(false); 
++            if (routerID) {
++                routerID->setVisible(false);
++            }
+             setOpacity(0.3);
+         }
+         update();
+diff --git a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+index 0cc515b2e77..162c9604d2c 100644
+--- a/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
++++ b/src/sw/noc_dev/prototype/Gui/View/NsNocViewScene.h
+@@ -47,11 +47,14 @@ class NsRouterSetConnection : public QGraphicsRectItem
+ public:
+     NsRouterSetConnection(QRectF, NetSpeed::Node_id&, NetSpeed::Bridge* b);
+     QPointF nsPortIDToPoint(NetSpeed::Port_id* portId);
++    NetSpeed::Node_id getNodeId() { return nodeId; }
++    QGraphicsPathItem* getCircle() { return circle; }
+ 
+ private:
+     NetSpeed::Bridge* bridge = nullptr;
+     NetSpeed::Node_id nodeId;
+     QPointF scenePos;
++    QGraphicsPathItem* circle = nullptr;
+ 
+ protected:
+     friend class Test_NsNocViewScene;
+@@ -74,6 +77,7 @@ private:
+     bool    selected_port = false;
+     int     connection_type = TYPE_ITEM::ROUTER_CONNECTION;
+     QGraphicsTextItem* routerID = nullptr;
++    QGraphicsTextItem* nodeID = nullptr;
+ 
+ protected:
+     friend class Test_NsNocViewScene;
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index b8688cab60e..95eaa4a85bf 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -7961,6 +7961,17 @@ void PropertyPanel::resetButtonClickedMeshView()
+         scene->instrumentMediator = nullptr;
+         scene->setInstrumentType(ins);
+         if (nocScene) {
++            for (const auto& item : nocScene->items()) {
++                if (item->type() == ROUTER_CONNECTION) {
++                    auto nsRouterConnection = dynamic_cast<NsRouterSetConnection*>(item);
++                    if (nsRouterConnection) {
++                        auto circle = nsRouterConnection->getCircle();
++                        if (circle) {
++                            circle->setVisible(false);
++                        }
++                    }
++                }
++            }
+             if (!nocScene->getPortDrawingItems().empty()) {
+                 qDeleteAll(nocScene->getPortDrawingItems());
+                 nocScene->clearPortDrawingItems();

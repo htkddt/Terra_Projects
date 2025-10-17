@@ -1,0 +1,151 @@
+ src/sw/noc_dev/GUICore_qt6/genericconsole.cpp   |  7 ++----
+ src/sw/noc_dev/GUICore_qt6/genericdialog.h      | 32 ++++++++++++++++---------
+ src/sw/noc_dev/NocCore/src/NocContainer.cpp     |  2 +-
+ src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp |  2 ++
+ 4 files changed, 26 insertions(+), 17 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+index ff0fb36cf95..8abd3c91769 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore_qt6/genericconsole.cpp
+@@ -18,11 +18,8 @@ namespace NetSpeed {
+ 
+ GenericConsole::GenericConsole(const QString& prompText, const char* textColor, QWidget* parent, bool mouseTracking, bool readOnly) : QPlainTextEdit(parent)
+ {
+-    QString consoleStyleSheet = 
+-        QString("QPlainTextEdit {"
+-        "font-family:\"Courier New\",\"Lucida Console\",\"Monospace\",\"Sans\""
+-        ";"
+-        "background-color:%1; color:%2;padding:10px}").arg(BG_COLOR).arg(textColor);
++    QString consoleStyleSheet = QString("QPlainTextEdit {font-family:\"Consolas\";"
++                                        "background-color:%1; color:%2;padding:10px}").arg(BG_COLOR).arg(textColor);
+     setStyleSheet(consoleStyleSheet);
+     setReadOnly(readOnly);
+     setMouseTracking(mouseTracking);
+diff --git a/src/sw/noc_dev/GUICore_qt6/genericdialog.h b/src/sw/noc_dev/GUICore_qt6/genericdialog.h
+index c8aa975394f..c91836f4808 100644
+--- a/src/sw/noc_dev/GUICore_qt6/genericdialog.h
++++ b/src/sw/noc_dev/GUICore_qt6/genericdialog.h
+@@ -350,11 +350,15 @@ protected:
+ template<typename T, typename T2>
+ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) : QDialog(parent)
+ {
++    QFont textBrowserFont;
++    textBrowserFont.setFamily("Consolas");
++
+     /* item finder widget */
+     QHBoxLayout* itemFinderLayout = new QHBoxLayout;
+     QWidget* itemFinderWidget = new QWidget;
+     itemFinderWidget->setLayout(itemFinderLayout);
+     itemFinder = new QLineEdit;
++    itemFinder->setFont(textBrowserFont);
+     itemFinder->setFixedHeight(25);
+     QAction* clearButtonItemFinder = new QAction(this);
+     clearButtonItemFinder->setIcon(QIcon(ICON_CLEAR));
+@@ -365,17 +369,22 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+         });
+ 
+     QLabel* searchLabel = new QLabel("\tSearch : ");
++    searchLabel->setFont(textBrowserFont);
+     QToolButton* button = new QToolButton;
+-    button->setFixedWidth(60);
+-    button->setFixedHeight(25);
++    button->setFont(textBrowserFont);
++    button->setFixedWidth(80);
++    button->setFixedHeight(30);
+     button->setText("Filter");
+     button->setPopupMode(QToolButton::InstantPopup);
+     filterOptions = new LayerMenu;
++    filterOptions->setFont(textBrowserFont);
+     button->setMenu(filterOptions);
+     back = new QPushButton(QIcon(":/images/icons/close_left.png"), "");
+-    back->setFixedSize(30, 25);
++    back->setFont(textBrowserFont);
++    back->setFixedSize(30, 30);
+     forward = new QPushButton(QIcon(":/images/icons/close_right.png"), "");
+-    forward->setFixedSize(30, 25);
++    forward->setFont(textBrowserFont);
++    forward->setFixedSize(30, 30);
+     back->setVisible(false);
+     forward->setVisible(false);
+     itemFinderLayout->addWidget(button);
+@@ -389,6 +398,7 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     treeViewWidget->setColumnCount(1);
+     treeViewWidget->setHeaderHidden(true);
+     treeViewWidget->setMinimumWidth(100);
++    treeViewWidget->setFont(textBrowserFont);
+ 
+     /* left layout contains itemFinderWidget & treeViewWidget */
+     QVBoxLayout* leftLayout = new QVBoxLayout;
+@@ -402,14 +412,16 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     /* text finder widget */
+     QHBoxLayout* finderLayout = new QHBoxLayout;
+     finderWidget = new QWidget;
+-    finderWidget->setFixedHeight(25);
++    finderWidget->setFixedHeight(30);
+     finderWidget->setLayout(finderLayout);
+     finderLayout->setContentsMargins(0, 0, 0, 1);
+     QPushButton* findButton = new QPushButton("Find");
+-    findButton->setFixedHeight(25);
+-    findButton->setFixedWidth(60);
++    findButton->setFont(textBrowserFont);
++    findButton->setFixedHeight(30);
++    findButton->setFixedWidth(70);
+     textFinder = new QLineEdit;
+-    textFinder->setFixedHeight(25);
++    textFinder->setFont(textBrowserFont);
++    textFinder->setFixedHeight(30);
+     QAction* clearButtonTextFinder = new QAction(this);
+     clearButtonTextFinder->setIcon(QIcon(ICON_CLEAR));
+     textFinder->addAction(clearButtonTextFinder, QLineEdit::TrailingPosition);
+@@ -427,8 +439,6 @@ inline HelpAppDialog::HelpAppDialog(T* guiHelp, T2* htmlHelp, QWidget* parent) :
+     info = new NsTextBrowser;
+     info->setReadOnly(true);
+     info->setWordWrapMode(QTextOption::WordWrap);
+-    QFont textBrowserFont;
+-    textBrowserFont.setFamily("Courier New");
+     info->setFont(textBrowserFont);
+     standardCharFormat = info->currentCharFormat();
+     info->setOpenLinks(false);
+@@ -716,7 +726,7 @@ void HelpAppDialog::currentItemChanged(T* htmlHelp, QTreeWidgetItem* item)
+     QString htm = item->text(2).replace(pRoot, "://../");
+     info->insertHtml(htm);
+     if (showVideo && videoInstruction.contains(item->text(0))) {
+-        info->insertHtml("<br><br><font face = \"Courier New\" size = \"5\">Video Instruction : " + videoInstruction[item->text(0)]);
++        info->insertHtml("<br><br><font face = \"Consolas\" size = \"5\">Video Instruction : " + videoInstruction[item->text(0)]);
+     }
+     info->setTextCursor(prev_cursor);
+     info->moveCursor(QTextCursor::Start);
+diff --git a/src/sw/noc_dev/NocCore/src/NocContainer.cpp b/src/sw/noc_dev/NocCore/src/NocContainer.cpp
+index 15322429f80..80f3aed4245 100644
+--- a/src/sw/noc_dev/NocCore/src/NocContainer.cpp
++++ b/src/sw/noc_dev/NocCore/src/NocContainer.cpp
+@@ -740,7 +740,7 @@ void set_related_commands_html(help_description_t* cmd_help, const std::map<help
+ 
+     if (cmds_to_add.empty()) return;
+ 
+-    cmd_help->html_help += "<br><br><font face = \"Courier New\" size = \"5\">Related Commands : ";
++    cmd_help->html_help += "<br><br><font face = \"Consolas\" size = \"5\">Related Commands : ";
+     for (const auto& related_cmd : cmds_to_add)
+         cmd_help->html_help += "<a href=\"" + related_cmd + "\">" + related_cmd + "</a> &nbsp;";
+ }
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+index b6e9884ee9c..ceefb9976a3 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/mainwindow.cpp
+@@ -2431,6 +2431,7 @@ void MainWindow::createPanels()
+     /* text finder widget */
+     QFont font;
+     font.setPointSize(10);
++    font.setFamily("Consolas");
+     QHBoxLayout* finderLayout = new QHBoxLayout;
+     finderWidget = new QWidget;
+     finderWidget->setFixedHeight(50);
+@@ -2484,6 +2485,7 @@ void MainWindow::createPanels()
+     QVBoxLayout* consoleLayout = new QVBoxLayout;
+     QWidget* consoleWidget = new QWidget;
+     nConsole = new QTabWidget;
++    nConsole->setFont(font);
+     console->setTabWidget(nConsole);
+ #ifdef ROTATE_TEXT_TAB_WIDGET
+     nConsole->tabBar()->setStyle(new MyProxyStyle);

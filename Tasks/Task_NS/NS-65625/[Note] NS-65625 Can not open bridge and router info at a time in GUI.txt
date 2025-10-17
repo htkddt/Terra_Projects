@@ -1,0 +1,15 @@
+I have resolved this ticket.
+
+DESCRIPTION:
+- When user right click on the router item and bridge item, GUI will create a router diagram and bridge diagram. When user left
+click on the plus item, GUI will create a multiple bridge diagram.
+- User can open router, bridge and multiple bridge info at a time in GUI.
+- When user click any diagram that diagram will be displayed above.
+- For router diagrams and bridge diagrams it will be turned off when user click on the X symbol in that diagram.
+- For multiple bridge diagrams, it will be turned off when user click on the plus item.
+- When user click on mesh or host, diagrams will be hidden except for multiple bridge diagrams.
+- In bridge diagrams, when user right click on the arrow item, GUI will create a link diagram and it will be turned off when
+bridge diagram have been turned off.
+
+NOTE: In ticket GUI-2365, issue at the cfg-turnin51169 has been resolved in NS-65818, so that ticket 
+fix "App crashes when searching bridgeLink and routerLink in Multiple bridge".

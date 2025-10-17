@@ -1,0 +1,37 @@
+diff --git i/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp w/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+index 5212cc48225..63c28aa734d 100644
+--- i/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
++++ w/src/sw/noc_dev/prototype_qt6/Gui/myconsole.cpp
+@@ -3490,10 +3490,10 @@ void INIConsole::preCommandDeclaration()
+             fileSourcePath = QString::fromStdString(args[0]);
+         }
+         /* Clear "all" console */
+-        clear();
+-        setBeginOfCurrentTyping();
++        //clear();
++        //setBeginOfCurrentTyping();
+         /*---------------------*/
+-        deletedBlockCnt = 0;
++        //deletedBlockCnt = 0;
+         updateProgress = true;
+         return true;
+     });
+@@ -3502,13 +3502,13 @@ void INIConsole::preCommandDeclaration()
+         emit mainWindow->showWaypointInGridView("", "", false);
+         mainWindow->destroyAllStatTabPlots();
+         mainWindow->resetPreLiveId();
+-        if (!updateProgress) {
++        //if (!updateProgress) {
+             /* Clear "all" console */
+-            clear();
+-            setBeginOfCurrentTyping();
++        //    clear();
++        //    setBeginOfCurrentTyping();
+             /*---------------------*/
+-            deletedBlockCnt = 0;
+-        }
++        //    deletedBlockCnt = 0;
++        //}
+         mainWindow->clearErrorConsole();
+         mainWindow->clearWarningConsole();
+         mainWindow->clearCmdConsole();

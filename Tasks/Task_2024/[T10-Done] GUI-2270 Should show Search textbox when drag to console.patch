@@ -1,0 +1,182 @@
+ src/sw/noc_dev/GUICore/NSDockWidget.cpp     | 26 ++++++++++++++++++++++++++
+ src/sw/noc_dev/GUICore/NSDockWidget.h       |  3 +++
+ src/sw/noc_dev/GUICore/genericconsole.cpp   | 21 +++++++++++++++++++--
+ src/sw/noc_dev/GUICore/genericconsole.h     |  1 +
+ src/sw/noc_dev/prototype/Gui/mainwindow.cpp | 13 +++++++++----
+ 5 files changed, 58 insertions(+), 6 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/NSDockWidget.cpp b/src/sw/noc_dev/GUICore/NSDockWidget.cpp
+index 13eb5beddb9..72d952afe6a 100644
+--- a/src/sw/noc_dev/GUICore/NSDockWidget.cpp
++++ b/src/sw/noc_dev/GUICore/NSDockWidget.cpp
+@@ -50,6 +50,32 @@ void NSDockWidget::floatingChanged(bool floating)
+ void NSDockWidget::keyPressEvent(QKeyEvent* event) {
+     if (isFloating()) {
+         emit keyPress(event);
++        if (event->modifiers().testFlag(Qt::ControlModifier)) {
++            switch (event->key()) {
++            case Qt::Key_F: {
++                emit consoleFinderSignal();
++                break;
++            }
++            default: {
++                break;
++            }
++            }
++        } else {
++            switch (event->key()) {
++            case Qt::Key_Enter:
++            case Qt::Key_Return: {
++                emit consoleFinderButtonSignal();
++                break;
++            }
++            case Qt::Key_Escape: {
++                emit closeConsoleFinderSignal();
++                break;
++            }
++            default: {
++                break;
++            }
++            }
++        }
+     }
+     QDockWidget::keyPressEvent(event);
+ }
+diff --git a/src/sw/noc_dev/GUICore/NSDockWidget.h b/src/sw/noc_dev/GUICore/NSDockWidget.h
+index 5f98ea362e5..ae2f8fbaa25 100644
+--- a/src/sw/noc_dev/GUICore/NSDockWidget.h
++++ b/src/sw/noc_dev/GUICore/NSDockWidget.h
+@@ -19,6 +19,9 @@ signals:
+     void dockWidgetChanged();
+     void dockFloating();
+     void keyPress(QKeyEvent* event);
++    void consoleFinderSignal();
++    void consoleFinderButtonSignal();
++    void closeConsoleFinderSignal();
+ 
+ protected:
+     void changeEvent(QEvent* event) override;
+diff --git a/src/sw/noc_dev/GUICore/genericconsole.cpp b/src/sw/noc_dev/GUICore/genericconsole.cpp
+index bbb6403c48d..9efe76ad1c9 100644
+--- a/src/sw/noc_dev/GUICore/genericconsole.cpp
++++ b/src/sw/noc_dev/GUICore/genericconsole.cpp
+@@ -256,8 +256,8 @@ void MainConsole::setLineLimit()
+ 
+ void MainConsole::onTabIndexChanged(int index)
+ {
+-    if (index == NS::WARN)
+-    {
++    this->setFocus();
++    if (index == NS::WARN) {
+         QString tmp;
+         QVectorIterator<QString> iter(warningBuff.buff);
+         while (iter.hasNext()) {
+@@ -281,6 +281,9 @@ int MainConsole::handleKeyControlEvent(QKeyEvent* e)
+         case Qt::Key_A:
+             selectAll();
+             break;
++        case Qt::Key_F:
++            GenericConsole::keyPressEvent(e);
++            break;
+         default:
+             break;
+         }
+@@ -337,6 +340,20 @@ void MainConsole::printOutput(const QString& message)
+     ensureCursorVisible();
+ }
+ 
++void LogConsole::keyPressEvent(QKeyEvent* e) {
++    if (e->modifiers().testFlag(Qt::ControlModifier)) {
++        switch (e->key()) {
++        case Qt::Key_F: {
++            GenericConsole::keyPressEvent(e);
++            break;
++        }
++        default: {
++            break;
++        }
++        }
++    }
++}
++
+ void LogConsole::wheelEvent(QWheelEvent* event) {
+     if (event->modifiers().testFlag(Qt::ControlModifier)) {
+         event->accept();
+diff --git a/src/sw/noc_dev/GUICore/genericconsole.h b/src/sw/noc_dev/GUICore/genericconsole.h
+index 5b878cddc17..ed7138ff964 100644
+--- a/src/sw/noc_dev/GUICore/genericconsole.h
++++ b/src/sw/noc_dev/GUICore/genericconsole.h
+@@ -314,6 +314,7 @@ protected:
+     void mouseMoveEvent(QMouseEvent* e) override;
+     void mousePressEvent(QMouseEvent* e) override;
+     void mouseReleaseEvent(QMouseEvent* e) override;
++    void keyPressEvent(QKeyEvent* e) override;
+     void wheelEvent(QWheelEvent* event) override;
+ public slots:
+     void printError(const QString&);
+diff --git a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+index 12375beed74..d9626572f5d 100644
+--- a/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
++++ b/src/sw/noc_dev/prototype/Gui/mainwindow.cpp
+@@ -190,6 +190,8 @@ MainWindow::MainWindow(NetSpeed::NocConsole* c, QWidget* parent)
+     progressBar->setMaximum(100);
+     setPrgrBarValue(100);
+     consoleDock = new NSDockWidget(OBJ_CONSOLE_MAINWINDOW, this, 0);
++    connect(consoleDock, SIGNAL(consoleFinderSignal()), this, SLOT(consoleFinderFocus()));
++    connect(consoleDock, &NSDockWidget::topLevelChanged, this, [this]() { console->setFocus(); });
+     consoleDock->setObjectName(OBJ_CONSOLE_DOCK);
+     connect(this, SIGNAL(updateLinttab()), this, SLOT(addLintTab()));
+     centerSplitter = new QSplitter(this);
+@@ -2270,6 +2272,7 @@ void MainWindow::closeConsoleFinder()
+ {
+     consoleFinder->clear();
+     finderWidget->setVisible(false);
++    console->setFocus();
+     isSearching = false;
+     socViewSearch = false;
+ 
+@@ -2352,6 +2355,7 @@ void MainWindow::createPanels()
+     QPushButton* closeButton = new QPushButton();
+     closeButton->setIcon(QIcon(ICON_CLOSE));
+     connect(closeButton, SIGNAL(clicked()), this, SLOT(closeConsoleFinder()));
++    connect(consoleDock, SIGNAL(closeConsoleFinderSignal()), this, SLOT(closeConsoleFinder()));
+     finderLayout->addWidget(closeButton);
+     finderLayout->setSpacing(1);
+     finderWidget->setVisible(false);
+@@ -2441,6 +2445,7 @@ void MainWindow::createPanels()
+ 
+     setCentralWidget(centerSplitter);
+     connect(findButton, SIGNAL(pressed()), this, SLOT(consoleFinderButtonSlot()));
++    connect(consoleDock, SIGNAL(consoleFinderButtonSignal()), this, SLOT(consoleFinderButtonSlot()));
+     connect(nocFindButton, SIGNAL(clicked()), this, SLOT(nocFinderButtonSlot()));
+ }
+ 
+@@ -2451,7 +2456,6 @@ void MainWindow::keyPressEvent(QKeyEvent * event)
+     case Qt::Key_Return:
+         if (consoleFinder == this->focusWidget() && consoleFinder->isVisible()) {
+             consoleFinderButtonSlot();
+-            consoleFinder->setFocus();
+             return;
+         }
+         else if (nocFinder == this->focusWidget() && nocFinder->isVisible())
+@@ -2534,6 +2538,7 @@ void MainWindow::consoleFinderButtonSlot()
+     } else {
+         find_log(console);
+     }
++    consoleFinder->setFocus();
+ }
+ 
+ void MainWindow::nocFinderButtonSlot()
+@@ -2640,9 +2645,9 @@ void MainWindow::nocFinderFocus() {
+     }
+ }
+ 
+-void MainWindow::consoleFinderFocus() {
+-    if ((console == this->focusWidget()) || (errorConsole == this->focusWidget()) ||
+-        (warningConsole == this->focusWidget()) || (cmdHistoryConsole == this->focusWidget())) {
++void MainWindow::consoleFinderFocus()
++{
++    if ((dynamic_cast<NSDockWidget*>(sender())) || (dynamic_cast<INIConsole*>(this->focusWidget()))) {
+         if (finderWidget->isVisible()) {
+             consoleFinder->setFocus();
+         } else {

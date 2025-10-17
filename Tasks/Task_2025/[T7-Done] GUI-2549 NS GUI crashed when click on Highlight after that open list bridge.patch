@@ -1,0 +1,76 @@
+ src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.h     | 1 +
+ src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp          | 5 +++++
+ src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.h | 1 +
+ src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp      | 5 +++++
+ 4 files changed, 12 insertions(+)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.h b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.h
+index c6577f48778..ea59e7b2fdb 100644
+--- a/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.h
++++ b/src/sw/noc_dev/prototype/Gui/Dialogs/CustomHighLightDialog.h
+@@ -20,6 +20,7 @@ class CustomHighLightDialog : public QDialog
+ public:
+     explicit CustomHighLightDialog(QWidget* parent = nullptr, const NetSpeed::Grid* grid = nullptr);
+     void resetValue();
++    MainWindow* getMainWindow() { return mw; }
+ 
+ private:
+     friend class Test_CustomHighLightDialog;
+diff --git a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+index 96392fb5f3d..06fe0ac8c90 100644
+--- a/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype/Gui/Item/NsMultipleBridges.cpp
+@@ -17,6 +17,7 @@
+ #include "Gui/View/NsSocViewScene.h"
+ #include "Gui/mainwindow.h"
+ #include "Gui/propertypanel.h"
++#include "Gui/Dialogs/CustomHighLightDialog.h"
+ 
+ #define DIAGRAM_NAME_SIZE 10
+ #define DIAGRAM_HEIGHT 300
+@@ -148,6 +149,10 @@ NsMultipleBridges::~NsMultipleBridges()
+ {
+     if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
+         mw->removeDiagramItem(this);
++    } else if (auto highlightDialog = dynamic_cast<CustomHighLightDialog*>(QApplication::activeWindow())) {
++        if (auto mw = highlightDialog->getMainWindow()) {
++            mw->removeDiagramItem(this);
++        }
+     }
+ }
+ 
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.h b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.h
+index c6577f48778..ea59e7b2fdb 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.h
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Dialogs/CustomHighLightDialog.h
+@@ -20,6 +20,7 @@ class CustomHighLightDialog : public QDialog
+ public:
+     explicit CustomHighLightDialog(QWidget* parent = nullptr, const NetSpeed::Grid* grid = nullptr);
+     void resetValue();
++    MainWindow* getMainWindow() { return mw; }
+ 
+ private:
+     friend class Test_CustomHighLightDialog;
+diff --git a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
+index 983f38c541f..0345023a53d 100644
+--- a/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
++++ b/src/sw/noc_dev/prototype_qt6/Gui/Item/NsMultipleBridges.cpp
+@@ -17,6 +17,7 @@
+ #include "Gui/View/NsSocViewScene.h"
+ #include "Gui/mainwindow.h"
+ #include "Gui/propertypanel.h"
++#include "Gui/Dialogs/CustomHighLightDialog.h"
+ 
+ #define DIAGRAM_NAME_SIZE 10
+ #define DIAGRAM_HEIGHT 300
+@@ -148,6 +149,10 @@ NsMultipleBridges::~NsMultipleBridges()
+ {
+     if (auto mw = dynamic_cast<MainWindow*>(QApplication::activeWindow())) {
+         mw->removeDiagramItem(this);
++    } else if (auto highlightDialog = dynamic_cast<CustomHighLightDialog*>(QApplication::activeWindow())) {
++        if (auto mw = highlightDialog->getMainWindow()) {
++            mw->removeDiagramItem(this);
++        }
+     }
+ }
+ 
