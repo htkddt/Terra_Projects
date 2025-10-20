@@ -1,12 +1,68 @@
- src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 213 +++++++++++++++++++--
- src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h   |  18 +-
- 2 files changed, 216 insertions(+), 15 deletions(-)
+ src/sw/noc_dev/NocCore/src/Trace_lib.cpp       |   1 +
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 231 +++++++++++++++++++++++--
+ src/sw/noc_dev/prototype/Gui/propertypanel.h   |  20 ++-
+ 3 files changed, 234 insertions(+), 18 deletions(-)
 
-diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
-index de903c6da3d..647c3cfb578 100644
---- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
-+++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
-@@ -3881,6 +3881,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+diff --git a/src/sw/noc_dev/NocCore/src/Trace_lib.cpp b/src/sw/noc_dev/NocCore/src/Trace_lib.cpp
+index a29611a4540..3af700b21fd 100644
+--- a/src/sw/noc_dev/NocCore/src/Trace_lib.cpp
++++ b/src/sw/noc_dev/NocCore/src/Trace_lib.cpp
+@@ -1419,6 +1419,7 @@ void write_trace_file_aux(const std::string& filename, const std::vector<command
+        // if(count < 50){
+             const std::string line = CALL_MEMBER_FN((*cmd), to_str)(time_elapsed);
+             tfile << line << (line.empty() ? "" : "\n");
++            cout << "\n" << line << "\n";
+        // }
+         count++;
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index de903c6da3d..bf0dc490518 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3653,6 +3653,7 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+ {
+     if (!statTab || !namePlotMap || !splitter) return;
+     getStatTabData(statTab);
++    std::vector<group_label> parents = statTab->parents;
+     // Display normal plots
+     for (auto const& it : statTab->sortedGroups) {
+         auto it1 = statTab->groups.find(it.name);
+@@ -3669,6 +3670,7 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+         setPlotVisible(customPlot, g.enabled);
+         if (!g.enabled) continue;
+         bool init = false;
++        bool isMaster = false;
+         // Init plot
+         if (!customPlot) {
+             customPlot = new QCustomPlot();
+@@ -3681,8 +3683,16 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+             namePlotMap->insert(name, customPlot);
+             initNormalPlot(name, customPlot);
+ 
++            for (auto const& parent : parents) {
++                QString itemName = QString::fromStdString(parent);
++                if (name == itemName) {
++                    isMaster = true;
++                    break;
++                }
++            }
++
+             // Create widget which include buttons and plot
+-            auto* plotSplitter = createButtonPlotWidget(customPlot, gl, name, statTab);
++            auto* plotSplitter = createButtonPlotWidget(customPlot, gl, name, statTab, isMaster);
+             splitter->layout()->addWidget(plotSplitter);
+ 
+             init = true;
+@@ -3865,7 +3875,7 @@ void PropertyPanel::initComparisonPlot(QString name, QCustomPlot * customPlot, P
+     customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
+ }
+ 
+-GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, const group_label gl, QString fullName, QSharedPointer<StatTab> stt)
++GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, const group_label gl, QString fullName, QSharedPointer<StatTab> stt, bool isMaster)
+ {
+     EventGroup eg;
+     std::map<group_label, EventGroup>& statTab = stt ? stt->groups : statDashboard->getCurrentStatTab()->groups;
+@@ -3881,6 +3891,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
      QPushButton* DwBtn = new QPushButton;
      QPushButton* ShowLatBtn = new QPushButton;
      QPushButton* ShowAllLatBtn = new QPushButton;
@@ -14,39 +70,45 @@ index de903c6da3d..647c3cfb578 100644
      QFrame* line = new QFrame;
      line->setFrameShape(QFrame::HLine);
      line->setFrameShadow(QFrame::Sunken);
-@@ -3902,8 +3903,14 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+@@ -3902,10 +3913,18 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
      ShowAllLatBtn->setMaximumSize(maxBttSize);
      ShowAllLatBtn->setToolTip("Show/Hide all latency histograms");
  
-+    ShowOpcode->setStyleSheet("QPushButton{background: transparent;border: 0px;margin:0px}");
-+    ShowOpcode->setIcon(QIcon("://images/icons/show_all_lat_histogram.png"));
-+    ShowOpcode->setMaximumSize(maxBttSize);
-+    ShowOpcode->setToolTip("Show/Hide opcode histogram");
++    if (isMaster) {
++        ShowOpcode->setStyleSheet("QPushButton{background: transparent;border: 0px;margin:0px}");
++        ShowOpcode->setIcon(QIcon("://images/icons/show_lat_histogram.png"));
++        ShowOpcode->setMaximumSize(maxBttSize);
++        ShowOpcode->setToolTip("Show/Hide opcode histogram");
++    }
 +
      reOrderLayout->setAlignment(Qt::AlignTop);
      reOrderLayout->setContentsMargins(contentsMargin);
-+    reOrderLayout->addWidget(ShowOpcode);
      reOrderLayout->addWidget(ShowAllLatBtn);
      reOrderLayout->addWidget(ShowLatBtn);
++    if (isMaster) reOrderLayout->addWidget(ShowOpcode);
      reOrderLayout->addWidget(line);
-@@ -3980,6 +3987,8 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     reOrderLayout->addWidget(UpBtn);
+     reOrderLayout->addWidget(DwBtn);
+@@ -3980,6 +3999,10 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
      ShowLatBtn->setDefault(false);
      ShowAllLatBtn->setAutoDefault(false);
      ShowAllLatBtn->setDefault(false);
-+    ShowOpcode->setAutoDefault(false);
-+    ShowOpcode->setDefault(false);
++    if (isMaster) {
++        ShowOpcode->setAutoDefault(false);
++        ShowOpcode->setDefault(false);
++    }
  
      QString tooltip = "Start time is the time at which the performance stats currently displayed in the plot begins. If start time is 109 and zoom level is for 1000ns, then performance stats between 109ns and 1109ns would be displayed.";
      INILineEdit* startTime = new INILineEdit(QString::number((long)eg.zoomLower), QString::fromStdString(gl), fullName, INILineEdit::StartTime);
-@@ -4047,6 +4056,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+@@ -4047,6 +4070,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
      connect(DwBtn, SIGNAL(clicked()), this, SLOT(movePlotDown()));
      connect(ShowLatBtn, SIGNAL(clicked()), this, SLOT(showLatencyButtonSlot()));
      connect(ShowAllLatBtn, SIGNAL(clicked()), this, SLOT(showAllLatencyHistogram()));
-+    connect(ShowOpcode, SIGNAL(clicked()), this, SLOT(showOpcodeButtonSlot()));
++    if (isMaster) connect(ShowOpcode, SIGNAL(clicked()), this, SLOT(showOpcodeButtonSlot()));
      connect(customPlot->axisRect(0)->axis(QCPAxis::atBottom, 0), SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphRangeChange()));
      connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(wheelOnCustomPlot(QWheelEvent*)));
  
-@@ -4244,7 +4254,7 @@ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot *
+@@ -4244,7 +4268,7 @@ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot *
          // Find child with class name is QCustomPlot
          if (QCustomPlot * cusplot = qobject_cast<QCustomPlot*>(it)) {
              // If that child is a Latency historam
@@ -55,7 +117,7 @@ index de903c6da3d..647c3cfb578 100644
                  latencyhistogram = qobject_cast<QCustomPlot*>(it);
                  if (latencyhistogram) updateLatencyData(eg, latencyhistogram, st);
                  break;
-@@ -4253,7 +4263,8 @@ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot *
+@@ -4253,7 +4277,8 @@ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot *
      }
  }
  
@@ -65,7 +127,7 @@ index de903c6da3d..647c3cfb578 100644
      //Get latency events
      const QMap<long, long> latency_events = eg.compute_latency_events(statTab, eg.zoomLower, eg.zoomUpper);
      if (latency_events.empty()) return;
-@@ -4302,16 +4313,14 @@ void PropertyPanel::updateLatencyData(const EventGroup & eg, QCustomPlot * custo
+@@ -4302,16 +4327,14 @@ void PropertyPanel::updateLatencyData(const EventGroup & eg, QCustomPlot * custo
      yAxis->setAutoTickCount(std::min(max_cnt, 5));
      yAxis->setAutoTicks(true);
      yAxis->grid()->setVisible(true);
@@ -83,7 +145,7 @@ index de903c6da3d..647c3cfb578 100644
          break;
      }
      customPlot->rescaleAxes();
-@@ -4322,7 +4331,7 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
+@@ -4322,7 +4345,7 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
  {
      //Create container
      QCustomPlot* customPlot = new QCustomPlot;
@@ -92,7 +154,7 @@ index de903c6da3d..647c3cfb578 100644
      title->setTextColor(Qt::blue);
      customPlot->setToolTip("Latency histogram for " + QString::fromStdString(eg.name));
      customPlot->plotLayout()->insertRow(0);
-@@ -4331,13 +4340,13 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
+@@ -4331,13 +4354,13 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
      customPlot->xAxis->setLabelColor(Qt::blue);
      customPlot->yAxis->setLabel("Frequency");
      customPlot->yAxis->setLabelColor(Qt::blue);
@@ -108,7 +170,7 @@ index de903c6da3d..647c3cfb578 100644
      bar->setVisible(true);
      bar->setPen(QPen(Qt::red));
      bar->setBrush(QBrush(Qt::blue));
-@@ -4369,7 +4378,7 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
+@@ -4369,7 +4392,7 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
      for (int i = 0; i < horizontalSplitter->count(); ++i) {
          auto child = horizontalSplitter->widget(i);
          if (QCustomPlot * customPlot = qobject_cast<QCustomPlot*>(child)) {
@@ -117,7 +179,7 @@ index de903c6da3d..647c3cfb578 100644
                  bool show = false;
                  if (customPlot->isVisible()) customPlot->hide();
                  else { customPlot->show(); show = true; }
-@@ -4396,7 +4405,8 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
+@@ -4396,7 +4419,8 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
          container->insertWidget(1, histogram);
  }
  
@@ -127,7 +189,7 @@ index de903c6da3d..647c3cfb578 100644
      // Get the show/hide button
      if (QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender())) {
          auto buttonLayout = btn->parentWidget();
-@@ -4407,6 +4417,181 @@ void PropertyPanel::showLatencyButtonSlot() {
+@@ -4407,6 +4431,181 @@ void PropertyPanel::showLatencyButtonSlot() {
      }
  }
  
@@ -222,12 +284,12 @@ index de903c6da3d..647c3cfb578 100644
 +    QCustomPlot* customPlot = new QCustomPlot;
 +    QCPPlotTitle* title = new QCPPlotTitle(customPlot, opcodeHistogramName);
 +    title->setTextColor(Qt::blue);
-+    customPlot->setToolTip("Latency histogram for " + QString::fromStdString(eg.name));
++    customPlot->setToolTip("Opcode histogram for " + QString::fromStdString(eg.name));
 +    customPlot->plotLayout()->insertRow(0);
 +    customPlot->plotLayout()->addElement(0, 0, title);
-+    customPlot->xAxis->setLabel("Latency (ns)");
++    customPlot->xAxis->setLabel("Opcode");
 +    customPlot->xAxis->setLabelColor(Qt::blue);
-+    customPlot->yAxis->setLabel("Frequency");
++    customPlot->yAxis->setLabel("Count");
 +    customPlot->yAxis->setLabelColor(Qt::blue);
 +    customPlot->setWindowTitle(opcodeHistogramName);
 +    customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
@@ -309,7 +371,7 @@ index de903c6da3d..647c3cfb578 100644
  QWidget* PropertyPanel::getParentWidgetInVisualizationTab(QWidget * widget) {
      if (!widget) return nullptr;
      QMap<QString, QCustomPlot*>* plotMap = mw->getTabPlotsMap().value(widget, nullptr);
-@@ -4477,7 +4662,7 @@ void PropertyPanel::showAllLatencyHistogram()
+@@ -4477,7 +4676,7 @@ void PropertyPanel::showAllLatencyHistogram()
                      for (int i = 0; i < horizontalSplitter->count(); ++i) {
                          auto it = horizontalSplitter->widget(i);
                          if (QCustomPlot * plot = dynamic_cast<QCustomPlot*>(it)) {
@@ -318,7 +380,7 @@ index de903c6da3d..647c3cfb578 100644
                                  plot->hide();
                                  updateLatencyHistogramStatus(customPlot, false);
                                  break;
-@@ -4497,7 +4682,7 @@ void PropertyPanel::showAllLatencyHistogram()
+@@ -4497,7 +4696,7 @@ void PropertyPanel::showAllLatencyHistogram()
                      for (int i = 0; i < count; ++i) {
                          auto it = horizontalSplitter->widget(i);
                          if (QCustomPlot * plot = qobject_cast<QCustomPlot*>(it)) {
@@ -327,7 +389,7 @@ index de903c6da3d..647c3cfb578 100644
                                  plot->show();
                                  updateLatencyHistogramStatus(customPlot, true);
                                  break;
-@@ -4619,7 +4804,7 @@ void PropertyPanel::movePlotUp()
+@@ -4619,7 +4818,7 @@ void PropertyPanel::movePlotUp()
          //        showHideLatencyHistogram(horizontalSplitter);
          for (auto const& it : horizontalSplitter->children()) {
              if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
@@ -336,7 +398,7 @@ index de903c6da3d..647c3cfb578 100644
                  auto graphSplitter = horizontalSplitter->parentWidget();
                  if (customPlot && graphSplitter) swapGraph(customPlot, graphSplitter);
                  break;
-@@ -4723,7 +4908,7 @@ void PropertyPanel::movePlotDown()
+@@ -4723,7 +4922,7 @@ void PropertyPanel::movePlotDown()
          //        showHideLatencyHistogram(horizontalSplitter);
          for (auto const& it : horizontalSplitter->children()) {
              if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
@@ -345,10 +407,10 @@ index de903c6da3d..647c3cfb578 100644
                  auto graphSplitter = horizontalSplitter->parentWidget();
                  if (customPlot && graphSplitter)  swapGraph(customPlot, graphSplitter);
                  break;
-diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
-index d8d9f99f9f5..bd0252371a0 100644
---- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
-+++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.h
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.h b/src/sw/noc_dev/prototype/Gui/propertypanel.h
+index d8d9f99f9f5..9c16fe72bad 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.h
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.h
 @@ -273,6 +273,16 @@ public:
      void updateLatencyHistogram(const EventGroup& eg, QCustomPlot* customplot, QSharedPointer<StatTab> st);
      void showHideLatencyHistogram(QWidget* gnowidget);
@@ -366,6 +428,15 @@ index d8d9f99f9f5..bd0252371a0 100644
      /**
       * @brief getButtonWidget
       * @return
+@@ -526,7 +536,7 @@ public:
+     QCPAxisRect* initPlotScale(QCustomPlot*);
+ 
+     //Create container for normal and merge plot
+-    GraphSplitter* createButtonPlotWidget(QCustomPlot*, const group_label gl, QString fullName = "", QSharedPointer<StatTab> = nullptr);
++    GraphSplitter* createButtonPlotWidget(QCustomPlot*, const group_label gl, QString fullName = "", QSharedPointer<StatTab> = nullptr, bool isMaster = false);
+ 
+     //Create container for comparison plot
+     GraphSplitter * createComparisonPlotWidget(QCustomPlot*, const comparison_label, QString fullName = "", QSharedPointer<StatTab> = nullptr);
 @@ -834,8 +844,10 @@ private:
      QString vcName;
      QCustomPlot * generateNormalPlot(QString lb);
