@@ -1351,6 +1351,7 @@ NS-69237:
 	- Cmd: 
 		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/source/siso.iptcl}
 		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/tutorials/example3_parameters_run.iptcl}
+		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/source/example5_configuration_run.iptcl}
 	- Distance between the pins is 20
 	- Hover:
 		Src:  QPointF(180,75.9883)
