@@ -136,19 +136,11 @@ while [[ $# -gt 0 ]]; do
 					remove
 				fi
 				cd ../
-				if [[ ! -d "prototype_qt6" ]]; then
-					echo "Dicectory prototype_qt6 not found."
-					exit 1
-				else
-					cd prototype_qt6
-					remove
-				fi
-				cd ../
-				if [[ ! -d "IPStudio_qt6" ]]; then
+				if [[ ! -d "IPStudio" ]]; then
 					echo "Dicectory IPStudio_qt6 not found."
 					exit 1
 				else
-					cd IPStudio_qt6
+					cd IPStudio
 					remove
 				fi
 				cd ../
