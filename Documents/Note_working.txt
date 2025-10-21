@@ -1446,3 +1446,14 @@ NS-69237:
 		subSrcInstanceTopLeft = QPointF(1010.75,-0.75)
 	
 ####################################################################################################################################################################################################################################
+NS-69581:
+	- Load file
+	- Filter data:
+		name: "Crd" ---count: 1341
+		name: "Drd_opt" ---count: 1210
+		name: "Drd_opt_pref" ---count: 4159
+		name: "Drd_pte" ---count: 30
+		name: "Rfo" ---count: 20
+		name: "Rfo_pref" ---count: 40
+		name: "Wil" ---count: 930
+	- Replot data
