@@ -1,0 +1,21 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index de903c6da3d..780b09795ce 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3689,10 +3689,12 @@ void PropertyPanel::updatePlotsStatTab(QWidget * splitter, QSharedPointer<StatTa
+         }
+ 
+         if (customPlotMap.find(name) == customPlotMap.end()) {
+-            g.get_graphs_points(statTab);
+             customPlotMap.insert(name, g);
+         }
+ 
++        /* Preparing data points and refresh legend table */
++        g.get_graphs_points(statTab);
++
+         if (init) {
+             customPlot->initVerticalLine();
+             customPlot->initMagnifyingFrame();

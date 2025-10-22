@@ -1,10 +1,10 @@
- src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp | 12 ++++++++++--
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 12 ++++++++++--
  1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
 index de903c6da3d..ffceb5c403c 100644
---- a/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
-+++ b/src/sw/noc_dev/prototype_qt6/Gui/propertypanel.cpp
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
 @@ -4584,10 +4584,14 @@ void PropertyPanel::movePlotUp()
          auto plot = generateNormalPlot(gname);
          plot->initVerticalLine();
