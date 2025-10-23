@@ -15,15 +15,25 @@ else:
 hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
 h, s, v = cv2.split(hsv)
 
-h_new = (h - 50) % 180
+h_new = (h - 90) % 180
+# s_new = np.clip(s.astype(np.float32) * 2, 0, 255).astype(np.uint8)
+# v_new = np.clip(v.astype(np.float32) * 0.7, 0, 255).astype(np.uint8)
 hsv_new = cv2.merge([h_new, s, v])
-bgr_red = cv2.cvtColor(hsv_new, cv2.COLOR_HSV2BGR)
+bgr_img = cv2.cvtColor(hsv_new, cv2.COLOR_HSV2BGR)
 
 if alpha is not None:
-    rgba_red = cv2.merge([bgr_red, alpha])
+    rgba_img = cv2.merge([bgr_img, alpha])
 else:
-    rgba_red = bgr_red
+    rgba_img = bgr_img
 
+# rgb_color = (6, 84, 40)
+# height, width = img.shape[:2]
+
+# rgb_img = np.full((height, width, 3), rgb_color, dtype=np.uint8)
+# if alpha.ndim == 2:
+#     alpha = alpha[:, :, np.newaxis]
+# alpha = alpha.astype(rgb_img.dtype)
+# rgba_img = cv2.merge([rgb_img, alpha])
 
 # if img.ndim == 3:
 #     img_gray = np.dot(img[..., :3], [0.2989, 0.5870, 0.1140])
@@ -41,9 +51,9 @@ plt.subplot(1, 2, 1)
 plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA))
 
 plt.subplot(1, 2, 2)
-plt.imshow(cv2.cvtColor(rgba_red, cv2.COLOR_BGRA2RGBA))
+plt.imshow(cv2.cvtColor(rgba_img, cv2.COLOR_BGRA2RGBA))
 
-# plt.imsave("show_op_histogram.png", cv2.cvtColor(rgba_red, cv2.COLOR_BGRA2RGBA))
+plt.imsave("show_op_histogram.png", cv2.cvtColor(rgba_img, cv2.COLOR_BGRA2RGBA))
 
 plt.show()
 
