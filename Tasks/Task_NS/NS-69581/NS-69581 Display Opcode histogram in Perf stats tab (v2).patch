@@ -1,0 +1,314 @@
+ src/sw/noc_dev/GUICore/dockresource.qrc        |   1 +
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 168 +++++++++++++++----------
+ src/sw/noc_dev/prototype/Gui/propertypanel.h   |   7 +-
+ 3 files changed, 104 insertions(+), 72 deletions(-)
+
+diff --git a/src/sw/noc_dev/GUICore/dockresource.qrc b/src/sw/noc_dev/GUICore/dockresource.qrc
+index f95c8a49ebf..fd07c6a8065 100644
+--- a/src/sw/noc_dev/GUICore/dockresource.qrc
++++ b/src/sw/noc_dev/GUICore/dockresource.qrc
+@@ -87,6 +87,7 @@
+         <file>images/icons/moveup.png</file>
+         <file>images/icons/movedown.png</file>
+         <file>images/icons/show_lat_histogram.png</file>
++		<file>images/icons/show_op_histogram.png</file>
+         <file>images/icons/show_all_lat_histogram.png</file>
+         <file>images/icons/links_blocked.png</file>
+         <file>images/icons/links_unblocked.png</file>
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index 97e3074fc05..604e0cafce7 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3929,7 +3929,7 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+ 
+     if (isMaster) {
+         ShowOpcode->setStyleSheet("QPushButton{background: transparent;border: 0px;margin:0px}");
+-        ShowOpcode->setIcon(QIcon("://images/icons/show_lat_histogram.png"));
++        ShowOpcode->setIcon(QIcon("://images/icons/show_op_histogram.png"));
+         ShowOpcode->setMaximumSize(maxBttSize);
+         ShowOpcode->setToolTip("Show/Hide opcode histogram");
+     }
+@@ -4246,41 +4246,75 @@ void PropertyPanel::updateHistogramStatus(QCustomPlot * customPlot, bool status)
+     else if (customPlot->windowTitle() == latencyHistogramName) eg.showLatencyHistogram = status;
+ }
+ 
+-void PropertyPanel::showLatencyFrequencyToolTip(QMouseEvent * event)
++void PropertyPanel::showHistogramToolTip(QMouseEvent * event)
+ {
+-    QCustomPlot* lat = dynamic_cast<QCustomPlot*>(QObject::sender());
+-    if (!lat || !lat->xAxis) return;
++    QCustomPlot* plot = dynamic_cast<QCustomPlot*>(QObject::sender());
++    if (!plot || !plot->xAxis) return;
+ 
+-    QCPBars * bar = dynamic_cast<QCPBars*>(lat->plottable(0));
++    QCPBars* bar = dynamic_cast<QCPBars*>(plot->plottable(0));
+     if (!bar || !bar->data()) return;
+     auto & bdata = *bar->data();
+ 
+-    // find which bar is under mouse
+-    auto x_coord = lat->xAxis->pixelToCoord(event->position().x());
+-    double min_delta = std::numeric_limits<double>::max();
+-    QMap<double, QCPBarData>::iterator preit = bdata.end();
+-
+-    for (auto it = bdata.begin(); it != bdata.end(); ++it) {
+-        QCPBarData data = it.value();
+-        double delta = abs(x_coord - data.key);
+-        if (min_delta > delta) {
+-            preit = it;
+-            min_delta = delta;
+-        }
+-    }
+-    if (preit == bdata.end()) return;
+-
+-    // set range of the bar under the mouse as tooltip
+-    const double bar_center = preit.value().key;
+-    const double count = preit.value().value;
+-    // Calculate range of latency bucket
+-    const double radius = lat->property("radius").toDouble();
+-    const double _min = bar_center - radius;
+-    const double _max = bar_center + radius;
+-    const QString msg = "Latency bucket: " + QString::number(_min) + " - " + QString::number(_max) +
+-        "\n" + "Frequency: " + QString::number(count);
+-    lat->setToolTip(msg);
+-    return;
++    if (plot->windowTitle() == latencyHistogramName) {
++        auto x_coord = plot->xAxis->pixelToCoord(event->position().x());
++        if (x_coord < plot->xAxis->tickVector().first()) {
++            plot->setToolTip(QString());
++            return;
++        }
++        double min_delta = std::numeric_limits<double>::max();
++        QMap<double, QCPBarData>::iterator preit = bdata.end();
++
++        for (auto it = bdata.begin(); it != bdata.end(); ++it) {
++            QCPBarData data = it.value();
++            double delta = abs(x_coord - data.key);
++            if (min_delta > delta) {
++                preit = it;
++                min_delta = delta;
++            }
++        }
++        if (preit == bdata.end()) {
++            plot->setToolTip(QString());
++            return;
++        }
++
++        const double bar_center = preit.value().key;
++        const double count = preit.value().value;
++
++        const double radius = plot->property("radius").toDouble();
++        const double _min = bar_center - radius;
++        const double _max = bar_center + radius;
++        const QString msg = "Latency bucket: " + QString::number(_min) + " - " + QString::number(_max) +
++                            "\n" + "Frequency: " + QString::number(count);
++        plot->setToolTip(msg);
++    } else if (plot->windowTitle() == opcodeHistogramName) {
++        auto x_coord = plot->xAxis->pixelToCoord(event->position().x());
++        if (x_coord < plot->xAxis->tickVector().first()) {
++            plot->setToolTip(QString());
++            return;
++        }
++
++        QMap<double, QCPBarData>::iterator mapDataAtMousePos = bdata.end();
++
++        for (auto it = bdata.begin(); it != bdata.end(); ++it) {
++            QCPBarData data = it.value();
++            if (x_coord < (data.key + 0.5)) {
++                mapDataAtMousePos = it;
++                break;
++            }
++        }
++        if (mapDataAtMousePos == bdata.end()) {
++            plot->setToolTip(QString());
++            return;
++        }
++
++        auto typeOpcode = plot->xAxis->tickVectorLabels().at(static_cast<qsizetype>(mapDataAtMousePos.value().key - 1));
++        auto countOpcode = mapDataAtMousePos.value().value;
++
++        QString msg = "Opcode type: " + typeOpcode + "\n" + "Count: " + QString::number(countOpcode);
++        plot->setToolTip(msg);
++    } else {
++        plot->setToolTip(QString());
++    }
+ }
+ 
+ void PropertyPanel::updateLatencyHistogram(const EventGroup & eg, QCustomPlot * customplot, QSharedPointer<StatTab> st)
+@@ -4383,7 +4417,7 @@ QCustomPlot* PropertyPanel::createLatencyHistogram(const EventGroup & eg, QShare
+     customPlot->yAxis->setLabelColor(Qt::blue);
+     customPlot->setWindowTitle(latencyHistogramName);
+     customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
+-    connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showLatencyFrequencyToolTip(QMouseEvent*)));
++    connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showHistogramToolTip(QMouseEvent*)));
+ 
+     //Create plottable
+     QCPBars * bar = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+@@ -4429,9 +4463,9 @@ void PropertyPanel::showHideLatencyHistogram(QWidget * splitter)
+     EventGroup & g = it->second;
+     g.showLatencyHistogram = true;
+     auto histogram = createLatencyHistogram(g, statTab);
+-    histogram->setMinimumWidth(270);
++    histogram->setMinimumWidth(280);
+     if (auto container = qobject_cast<QSplitter*>(splitter)) {
+-        container->insertWidget(1, histogram); 
++        container->insertWidget(1, histogram);
+     }
+ }
+ 
+@@ -4447,28 +4481,7 @@ void PropertyPanel::showLatencyButtonSlot()
+     }
+ }
+ 
+-void PropertyPanel::updateOpcodeHistogram(const EventGroup & eg, QCustomPlot * customplot, QSharedPointer<StatTab> st)
+-{
+-    if (!customplot || !customplot->parentWidget()) return;
+-    auto horizontalSplitter = qobject_cast<QSplitter*>(customplot->parentWidget());
+-    const int containsHistogram = 3;
+-    if (!horizontalSplitter || horizontalSplitter->count() < containsHistogram) return;
+-
+-    QCustomPlot * opcodehistogram = nullptr;
+-    for (auto& it : horizontalSplitter->children()) {
+-        // Find child with class name is QCustomPlot
+-        if (QCustomPlot * cusplot = qobject_cast<QCustomPlot*>(it)) {
+-            // If that child is a Latency historam
+-            if (cusplot && cusplot->windowTitle() == opcodeHistogramName) {
+-                opcodehistogram = qobject_cast<QCustomPlot*>(it);
+-                if (opcodehistogram) updateOpcodeData(eg, opcodehistogram, st);
+-                break;
+-            }
+-        }
+-    }
+-}
+-
+-void PropertyPanel::updateOpcodeData(const EventGroup & eg, QCustomPlot * customPlot, QSharedPointer<StatTab> statTab)
++void PropertyPanel::updateOpcodeData(const EventGroup & eg, QCustomPlot * customPlot)
+ {
+     auto masterName = QString::fromStdString(eg.name);
+     int posLastDot = masterName.lastIndexOf('.');
+@@ -4501,25 +4514,22 @@ void PropertyPanel::updateOpcodeData(const EventGroup & eg, QCustomPlot * custom
+     QStringList opcodeTypes;
+     for (int i = 0; i < opcode_datas.size(); i++) {
+         ticks << i + 1;
+-        auto opcodeType = opcode_datas.keys().at(i);
+-        opcodeTypes.append(opcodeType);
+-        opcodeCounts.append(opcode_datas[opcodeType]);
++        opcodeTypes.append(opcode_datas.keys().at(i));
++        opcodeCounts.append(opcode_datas[opcode_datas.keys().at(i)]);
+     }
+ 
+     // Find the range of the count of each opcode type
+-    const int min_count_opcode = *std::min_element(opcodeCounts.begin(), opcodeCounts.end());
+-    const int max_count_opcode = *std::max_element(opcodeCounts.begin(), opcodeCounts.end());
++    int min_count_opcode = *std::min_element(opcodeCounts.begin(), opcodeCounts.end());
++    int max_count_opcode = *std::max_element(opcodeCounts.begin(), opcodeCounts.end());
+ 
+     auto xAxis = customPlot->xAxis;
+     xAxis->setRange(min_count_opcode, max_count_opcode);
+     xAxis->setTickVector(ticks);
+     xAxis->setTickVectorLabels(opcodeTypes);
+     xAxis->grid()->setVisible(true);
+-    xAxis->rescale();
+ 
+     auto yAxis = customPlot->yAxis;
+-    yAxis->setRange(0, *std::max_element(opcodeCounts.begin(), opcodeCounts.end()) * 1.2);
+-    yAxis->setAutoTicks(true);
++    yAxis->setRange(0, max_count_opcode);
+     yAxis->grid()->setVisible(true);
+ 
+     int plotCount = customPlot->plottableCount();
+@@ -4531,11 +4541,31 @@ void PropertyPanel::updateOpcodeData(const EventGroup & eg, QCustomPlot * custom
+         plottable->setData(ticks, opcodeCounts);
+         break;
+     }
++
++    // Show the count of the opcode type in the above bar
++    for (int i = 0; i < ticks.size(); ++i) {
++        double key = ticks[i];
++        double value = opcodeCounts[i];
++        QCPItemText* textLabel = new QCPItemText(customPlot);
++        textLabel->setPositionAlignment(Qt::AlignHCenter | Qt::AlignBottom);
++        textLabel->position->setType(QCPItemPosition::ptPlotCoords);
++        textLabel->position->setCoords(key, value);
++        textLabel->setText(QString::number(value));
++        textLabel->setFont(QFont("Arial", 9));
++        textLabel->setPen(Qt::NoPen);
++        textLabel->setBrush(Qt::NoBrush);
++        textLabel->setColor(Qt::black);
++    }
++
+     customPlot->rescaleAxes();
++
++    // Increase the max value of the y axis by 10% to see the max count value of the opcode type
++    customPlot->yAxis->setRangeUpper(yAxis->range().upper * 1.1);
++
+     customPlot->replot();
+ }
+ 
+-QCustomPlot* PropertyPanel::createOpcodeHistogram(const EventGroup & eg, QSharedPointer<StatTab> st)
++QCustomPlot* PropertyPanel::createOpcodeHistogram(const EventGroup & eg)
+ {
+     //Create container
+     QCustomPlot* customPlot = new QCustomPlot;
+@@ -4551,8 +4581,10 @@ QCustomPlot* PropertyPanel::createOpcodeHistogram(const EventGroup & eg, QShared
+     customPlot->xAxis->setAutoTickLabels(false);
+     customPlot->yAxis->setLabel("Count");
+     customPlot->yAxis->setLabelColor(Qt::blue);
++    customPlot->yAxis->setAutoTicks(true);
+     customPlot->setWindowTitle(opcodeHistogramName);
+     customPlot->setInteractions(QCP::iRangeDrag | QCP::iNotDragVertically);
++    connect(customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(showHistogramToolTip(QMouseEvent*)));
+ 
+     //Create plottable
+     QCPBars * bar = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+@@ -4563,7 +4595,7 @@ QCustomPlot* PropertyPanel::createOpcodeHistogram(const EventGroup & eg, QShared
+     customPlot->addPlottable(bar);
+ 
+     //Update data
+-    updateOpcodeData(eg, customPlot, st);
++    updateOpcodeData(eg, customPlot);
+ 
+     return customPlot;
+ }
+@@ -4597,8 +4629,8 @@ void PropertyPanel::showHideOpcodeHistogram(QWidget * splitter)
+     if (it == statTab->groups.end()) return;
+     EventGroup & g = it->second;
+     g.showOpcodeHistogram = true;
+-    auto histogram = createOpcodeHistogram(g, statTab);
+-    histogram->setMinimumWidth(270);
++    auto histogram = createOpcodeHistogram(g);
++    histogram->setMinimumWidth(280);
+     if (auto container = qobject_cast<QSplitter*>(splitter)) {
+         container->insertWidget(1, histogram);
+     }
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.h b/src/sw/noc_dev/prototype/Gui/propertypanel.h
+index 7989ce156ca..14109bf5c5f 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.h
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.h
+@@ -279,8 +279,7 @@ public:
+      * @param opcode data count
+      * @return a graph
+      */
+-    QCustomPlot* createOpcodeHistogram(const EventGroup& eg, QSharedPointer<StatTab> st);
+-    void updateOpcodeHistogram(const EventGroup& eg, QCustomPlot* customplot, QSharedPointer<StatTab> st);
++    QCustomPlot* createOpcodeHistogram(const EventGroup& eg);
+     void showHideOpcodeHistogram(QWidget* gnowidget);
+     /**
+      * @brief getButtonWidget
+@@ -777,7 +776,7 @@ private:
+     void updateIntefacePropertyAfterCommand(NetSpeed::Interface * ifce, bool showTooltip = true);
+ 
+     void updateLatencyData(const EventGroup&, QCustomPlot*, QSharedPointer<StatTab>);
+-    void updateOpcodeData(const EventGroup&, QCustomPlot*, QSharedPointer<StatTab>);
++    void updateOpcodeData(const EventGroup&, QCustomPlot*);
+ 
+     QCustomPlot * findPlot(QSharedPointer<StatTab> statTab, QString name);
+     QCustomPlot* generateNormalPlot(QString lb);
+@@ -1125,7 +1124,7 @@ public slots:
+      */
+     void showPointToolTip(QMouseEvent * event);
+     void showComparePointToolTip(QMouseEvent * event);
+-    void showLatencyFrequencyToolTip(QMouseEvent * event);
++    void showHistogramToolTip(QMouseEvent* event);
+     void lintAct();
+     void closeWaiveTab();
+     void minimizeWaiveDialog();

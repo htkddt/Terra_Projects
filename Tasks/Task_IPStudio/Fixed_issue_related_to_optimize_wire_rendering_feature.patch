@@ -1,0 +1,58 @@
+ src/sw/noc_dev/IPStudio/GUI/MainWindow/IPDesign.cpp | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio/GUI/MainWindow/IPDesign.cpp b/src/sw/noc_dev/IPStudio/GUI/MainWindow/IPDesign.cpp
+index d20f75208b0..efc256ef874 100644
+--- a/src/sw/noc_dev/IPStudio/GUI/MainWindow/IPDesign.cpp
++++ b/src/sw/noc_dev/IPStudio/GUI/MainWindow/IPDesign.cpp
+@@ -569,7 +569,7 @@ QPair<QList<std::shared_ptr<Wire>>, QList<IPConnectivity*>> IPDesign::highlightW
+         }
+     }
+ 
+-    optimizeWiresRedering();
++    if (!wireList.isEmpty()) optimizeWiresRedering(wireList.last());
+ 
+     return qMakePair(wireList, connList);
+ }
+@@ -624,7 +624,7 @@ QList<std::shared_ptr<Wire>> IPDesign::renderWires(QString instName, QString& if
+         }
+     }
+ 
+-    optimizeWiresRedering();
++    if (!wireList.isEmpty()) optimizeWiresRedering(wireList.last());
+ 
+     return wireList;
+ }
+@@ -875,7 +875,7 @@ Avoid::ConnRef * IPDesign::computeWire(IPConnectivity * start, IPConnectivity *
+     return new Avoid::ConnRef(router, srcPt, dstPt);
+ }
+ 
+-void IPDesign::optimizeWiresRedering()
++void IPDesign::optimizeWiresRedering(std::shared_ptr<Wire> wire)
+ {
+     QList<QPointF> listDuplicatePoints;
+     QPoint pointMoveTo, pointCurrent;
+@@ -891,6 +891,7 @@ void IPDesign::optimizeWiresRedering()
+             }
+             for (auto& w : manager->wires()) {
+                 if (auto itemWire = std::dynamic_pointer_cast<Wire>(w)) {
++                    if (wire && (w != wire)) continue;
+                     itemWire->setSelected(true);
+                     listDuplicatePoints = itemWire->getDuplicatePoints();
+                     for (int i = 0; i < listDuplicatePoints.size(); i++) {
+ src/sw/noc_dev/IPStudio/include/IPDesign.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sw/noc_dev/IPStudio/include/IPDesign.h b/src/sw/noc_dev/IPStudio/include/IPDesign.h
+index 5c0d3ce1b1e..686767a4655 100644
+--- a/src/sw/noc_dev/IPStudio/include/IPDesign.h
++++ b/src/sw/noc_dev/IPStudio/include/IPDesign.h
+@@ -66,7 +66,7 @@ public:
+     int getWidthVerticalScrollbar() { return widthVerticalScrollbar; }
+     int getHeightHorizontalScrollBar() { return heightHorizontalScrollBar; }
+     ShowWiresDialog* getWiresDialog() { return wireDialog; }
+-    void optimizeWiresRedering();
++    void optimizeWiresRedering(std::shared_ptr<Wire> wire = nullptr);
+ 
+ protected:
+     bool event(QEvent* event);

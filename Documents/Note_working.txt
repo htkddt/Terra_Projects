@@ -1349,9 +1349,9 @@ GUI-2663:
 ####################################################################################################################################################################################################################################
 NS-69237:
 	- Cmd: 
-		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/source/siso.iptcl}
-		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/tutorials/example3_parameters_run.iptcl}
-		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/source/example5_configuration_run.iptcl}
+		+ source {C:/Users/tuanng4x/Workspace/scripts/iptests/siso.iptcl}
+		+ source {C:/Users/tuanng4x/Workspace/scripts/iptests/example5_configuration/example5_configuration_run.iptcl}
+		+ source {C:/Users/tuanng4x/Workspace/scripts/iptests/plds_atcb/plds_atcb_run.iptcl}
 	- Distance between the pins is 20
 	- Hover:
 		Src:  QPointF(180,75.9883)
@@ -1446,16 +1446,3 @@ NS-69237:
 		subSrcInstanceTopLeft = QPointF(1010.75,-0.75)
 	
 ####################################################################################################################################################################################################################################
-NS-69581:
-	- Load file
-	- Filter data:
-		name: "Crd" ---count: 1341
-		name: "Drd_opt" ---count: 1210
-		name: "Drd_opt_pref" ---count: 4159
-		name: "Drd_pte" ---count: 30
-		name: "Rfo" ---count: 20
-		name: "Rfo_pref" ---count: 40
-		name: "Wil" ---count: 930
-	- Replot data
-####################################################################################################################################################################################################################################
-NS-69582:

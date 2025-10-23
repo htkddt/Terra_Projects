@@ -1,0 +1,31 @@
+ src/sw/noc_dev/IPStudio/GUI/Item/IPConnectivity.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/sw/noc_dev/IPStudio/GUI/Item/IPConnectivity.cpp b/src/sw/noc_dev/IPStudio/GUI/Item/IPConnectivity.cpp
+index 326088dd5a0..b9c2f4afbe5 100644
+--- a/src/sw/noc_dev/IPStudio/GUI/Item/IPConnectivity.cpp
++++ b/src/sw/noc_dev/IPStudio/GUI/Item/IPConnectivity.cpp
+@@ -245,19 +245,19 @@ QPointF IPConnectivity::getConnectingScenePos() const
+     const QRectF& textRect = ifceLabel->textRect();
+     switch (_textDirection) {
+     case QSchematic::LeftToRight:
+-        pos.rx() = -textRect.width() - TEXT_PADDING;
++        pos.rx() = textRect.topLeft().x() - TEXT_PADDING;
+         break;
+ 
+     case QSchematic::RightToLeft:
+-        pos.rx() = textRect.width() + TEXT_PADDING;
++        pos.rx() = textRect.bottomRight().x() + TEXT_PADDING;
+         break;
+ 
+     case QSchematic::TopToBottom:
+-        pos.ry() = textRect.width() + TEXT_PADDING;
++        pos.ry() = textRect.bottomRight().x() + TEXT_PADDING;
+         break;
+ 
+     case QSchematic::BottomToTop:
+-        pos.ry() = -textRect.width() - TEXT_PADDING;
++        pos.ry() = textRect.topLeft().x() - TEXT_PADDING;
+         break;
+     }
+     return  mapToScene(mapFromItem(label().get(), label()->transform().map(pos)));
