@@ -1,0 +1,213 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 119 ++++++++++++++++++-------
+ 1 file changed, 89 insertions(+), 30 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index da765501b0c..d38e05062fb 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -4770,7 +4770,7 @@ void PropertyPanel::showAllLatencyHistogram()
+ 
+ void PropertyPanel::movePlotUp()
+ {
+-    auto swapGraph = [&](QCustomPlot * customPlot, QWidget * graphSplitter) {
++    auto swapGraph = [&](QCustomPlot * customPlot, QWidget * graphSplitter, bool latency, bool opcode) {
+         QString gname = customPlot->getEventGroupName();
+         // Get the current widget, statTab and plotmap for current tab
+         QWidget* w = graphSplitter->parentWidget()->parentWidget()->parentWidget();
+@@ -4828,10 +4828,24 @@ void PropertyPanel::movePlotUp()
+         auto plot = generateNormalPlot(gname);
+         plot->initVerticalLine();
+         plot->initMagnifyingFrame();
++        auto g = statTab->groups.at(gname.toStdString());
++        plot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
++                                g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
++                                g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+         plotMap->insert(gname, plot);
+         plotMap->insert(QString::fromStdString(beforeidx.name), plotAbove);
+-        auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+-        updateNormalPlot(statTab, statTab->groups.at(gname.toStdString()), plot, true);
++
++        bool isMaster = false;
++        for (auto const& parent : statTab->parents) {
++            QString itemName = QString::fromStdString(parent);
++            if (gname == itemName) {
++                isMaster = true;
++                break;
++            }
++        }
++
++        auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab, isMaster);
++        updateNormalPlot(statTab, g, plot, true);
+         plot->zoomFull();
+ 
+         //Add to display
+@@ -4839,33 +4853,48 @@ void PropertyPanel::movePlotUp()
+ 
+         //Add histogram if visible
+         auto gS = dynamic_cast<GraphSplitter*>(graphSplitter);
++        auto hS = splitter->getHorizontalSplitter();
+         if (gS && gS->histogramVisible()) {
+             auto eventGroup = customPlotMap.value(gname);
+-            if (auto histogram = createLatencyHistogram(eventGroup, statTab))
+-                if (auto hS = splitter->getHorizontalSplitter())
+-                    hS->insertWidget(1, histogram);
++            if (latency) {
++                if (auto histogram = createLatencyHistogram(eventGroup, statTab)) {
++                    histogram->setMinimumWidth(280);
++                    if (hS) {
++                        hS->insertWidget(1, histogram);
++                    }
++                }
++            }
++            if (opcode) {
++                if (auto histogram = createOpcodeHistogram(eventGroup)) {
++                    histogram->setMinimumWidth(280);
++                    if (hS) {
++                        hS->insertWidget(1, histogram);
++                    }
++                }
++            }
+         }
+ 
+         //Delete old graph
+         graphSplitter->hide();
+         delete graphSplitter;
+-
+-        //Scroll to new position
+-//        auto vScroll = scroll->verticalScrollBar();
+-//        if (!vScroll) return;
+-//        scroll->ensureWidgetVisible(splitter);
+     };
+ 
+     if (QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender()))
+     {
+         // Get the widget which contain customplot and reorder buttons
+         QWidget* horizontalSplitter = btn->parentWidget()->parentWidget();
+-        //        showHideLatencyHistogram(horizontalSplitter);
++        bool isOpcodeHistogram = false, isLatencyHistogram = false;
+         for (auto const& it : horizontalSplitter->children()) {
+             if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
+-                if (customPlot->windowTitle() == latencyHistogramName) continue;
++                if (customPlot->isVisible() && (customPlot->windowTitle() == latencyHistogramName)) {
++                    if (customPlot->isVisible()) isLatencyHistogram = true;
++                    continue;
++                } else if (customPlot->windowTitle() == opcodeHistogramName) {
++                    if (customPlot->isVisible()) isOpcodeHistogram = true;
++                    continue;
++                }
+                 auto graphSplitter = horizontalSplitter->parentWidget();
+-                if (customPlot && graphSplitter) swapGraph(customPlot, graphSplitter);
++                if (customPlot && graphSplitter) swapGraph(customPlot, graphSplitter, isLatencyHistogram, isOpcodeHistogram);
+                 break;
+             }
+         }
+@@ -4874,7 +4903,7 @@ void PropertyPanel::movePlotUp()
+ 
+ void PropertyPanel::movePlotDown()
+ {
+-    auto swapGraph = [&](QCustomPlot * customPlot, QWidget * graphSplitter) {
++    auto swapGraph = [&](QCustomPlot * customPlot, QWidget * graphSplitter, bool latency, bool opcode) {
+         QString gname = customPlot->getEventGroupName();
+         // Get the current widget, statTab and plotmap for current tab
+         QWidget* w = graphSplitter->parentWidget()->parentWidget()->parentWidget();
+@@ -4933,10 +4962,24 @@ void PropertyPanel::movePlotDown()
+         auto plot = generateNormalPlot(gname);
+         plot->initVerticalLine();
+         plot->initMagnifyingFrame();
++        auto g = statTab->groups.at(gname.toStdString());
++        plot->handleLegendTable(g.sumTable_minDataSize, g.sumTable_maxDataSize, g.sumTable_avgDataSize,
++                                g.sumTable_minLatency, g.sumTable_maxLatency, g.sumTable_avgLatency,
++                                g.sumTable_minThroughput, g.sumTable_maxThroughput, g.sumTable_avgThroughput);
+         plotMap->insert(QString::fromStdString(afteridx.name), plotBelow);
+         plotMap->insert(gname, plot);
+-        auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab);
+-        updateNormalPlot(statTab, statTab->groups.at(gname.toStdString()), plot, true);
++
++        bool isMaster = false;
++        for (auto const& parent : statTab->parents) {
++            QString itemName = QString::fromStdString(parent);
++            if (gname == itemName) {
++                isMaster = true;
++                break;
++            }
++        }
++
++        auto splitter = createButtonPlotWidget(plot, gname.toStdString(), gname, statTab, isMaster);
++        updateNormalPlot(statTab, g, plot, true);
+         plot->zoomFull();
+ 
+         //Add to display
+@@ -4944,32 +4987,47 @@ void PropertyPanel::movePlotDown()
+ 
+         //Add histogram if visible
+         auto gS = dynamic_cast<GraphSplitter*>(graphSplitter);
++        auto hS = splitter->getHorizontalSplitter();
+         if (gS && gS->histogramVisible()) {
+             auto eventGroup = customPlotMap.value(gname);
+-            if (auto histogram = createLatencyHistogram(eventGroup, statTab))
+-                if (auto hS = splitter->getHorizontalSplitter())
+-                    hS->insertWidget(1, histogram);
++            if (latency) {
++                if (auto histogram = createLatencyHistogram(eventGroup, statTab)) {
++                    histogram->setMinimumWidth(280);
++                    if (hS) {
++                        hS->insertWidget(1, histogram);
++                    }
++                }
++            }
++            if (opcode) {
++                if (auto histogram = createOpcodeHistogram(eventGroup)) {
++                    histogram->setMinimumWidth(280);
++                    if (hS) {
++                        hS->insertWidget(1, histogram);
++                    }
++                }
++            }
+         }
+ 
+         //Delete old graph
+         graphSplitter->hide();
+         delete graphSplitter;
+-
+-        //Scroll to new position
+-//        auto vScroll = scroll->verticalScrollBar();
+-//        if (!vScroll) return;
+-//        scroll->ensureWidgetVisible(splitter);
+     };
+ 
+     if (QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender())) {
+         // Get the widget which contain customplot and reorder buttons
+         QWidget* horizontalSplitter = btn->parentWidget()->parentWidget();
+-        //        showHideLatencyHistogram(horizontalSplitter);
++        bool isOpcodeHistogram = false, isLatencyHistogram = false;
+         for (auto const& it : horizontalSplitter->children()) {
+             if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
+-                if (customPlot->windowTitle() == latencyHistogramName) continue;
++                if (customPlot->windowTitle() == latencyHistogramName) {
++                    if (customPlot->isVisible()) isLatencyHistogram = true;
++                    continue;
++                } else if (customPlot->windowTitle() == opcodeHistogramName) {
++                    if (customPlot->isVisible()) isOpcodeHistogram = true;
++                    continue;
++                }
+                 auto graphSplitter = horizontalSplitter->parentWidget();
+-                if (customPlot && graphSplitter)  swapGraph(customPlot, graphSplitter);
++                if (customPlot && graphSplitter) swapGraph(customPlot, graphSplitter, isLatencyHistogram, isOpcodeHistogram);
+                 break;
+             }
+         }
+@@ -8323,11 +8381,12 @@ QSize GraphSplitter::minimumSizeHint() const
+     return QWidget::minimumSizeHint();
+ }
+ 
+-bool GraphSplitter::histogramVisible() {
++bool GraphSplitter::histogramVisible()
++{
+     if (!horizontalSplitter) return false;
+     int containsHistogram = 3;
+     if (horizontalSplitter->count() < containsHistogram) return false;
+-    return horizontalSplitter->widget(1)->isVisible();
++    return true;
+ }
+ 
+ void PropertyPanel::showButtonsAddConnection(bool state, bool src) {

@@ -1,0 +1,133 @@
+ src/sw/noc_dev/prototype/Gui/propertypanel.cpp | 77 +++++++++++++++++++-------
+ 1 file changed, 56 insertions(+), 21 deletions(-)
+
+diff --git a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+index bd69e7cb78d..ccbafa4108f 100644
+--- a/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
++++ b/src/sw/noc_dev/prototype/Gui/propertypanel.cpp
+@@ -3882,10 +3882,21 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+     EventGroup eg;
+     std::map<group_label, EventGroup>& statTab = stt ? stt->groups : statDashboard->getCurrentStatTab()->groups;
+ 
+-    for (auto const& it : statTab)
+-        if (it.first == gl) { eg = it.second; break; }
++    for (auto const& it : statTab) {
++        if (it.first == gl) {
++            eg = it.second;
++            break;
++        }
++    }
+     if (eg.name.empty()) return nullptr;
+ 
++    auto masterName = QString::fromStdString(eg.name);
++    int posLastDot = masterName.lastIndexOf('.');
++    masterName = masterName.left(posLastDot);
++    masterName.replace("/", "_");
++    masterName.replace(".", "_");
++
++    bool enableOpcodeButton = false;
+     if (isMaster) {
+         QString dir = QDir::currentPath() + "/" + mw->projectName;
+         if (!QDir(dir).exists()) {
+@@ -3896,6 +3907,25 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+                 isMaster = false;
+             } else {
+                 listTraceFiles = QDir(dir).entryList(QStringList() << "*.in", QDir::Files);
++                for (auto& nameFile : listTraceFiles) {
++                    if (!nameFile.contains(masterName)) continue;
++                    QString traceFile = QDir::currentPath() + "/" + mw->projectName + "/trace/" + nameFile;
++                    QFile file(traceFile);
++                    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
++                        QTextStream input(&file);
++                        while (!input.atEnd()) {
++                            auto line = input.readLine();
++                            if (line.contains("opcode")) {
++                                enableOpcodeButton = true;
++                                break;
++                            }
++                        }
++                        if (enableOpcodeButton) {
++                            file.close();
++                            break;
++                        }
++                    }
++                }
+             }
+         }
+     }
+@@ -3933,7 +3963,9 @@ GraphSplitter* PropertyPanel::createButtonPlotWidget(QCustomPlot * customPlot, c
+         ShowOpcode->setStyleSheet("QPushButton{background: transparent;border: 0px;margin:0px}");
+         ShowOpcode->setIcon(QIcon("://images/icons/show_op_histogram.png"));
+         ShowOpcode->setMaximumSize(maxBttSize);
+-        ShowOpcode->setToolTip("Show/Hide opcode histogram");
++        if (enableOpcodeButton) ShowOpcode->setToolTip("Show/Hide opcode histogram");
++        else ShowOpcode->setToolTip("Empty opcode");
++        ShowOpcode->setEnabled(enableOpcodeButton);
+     }
+ 
+     reOrderLayout->setAlignment(Qt::AlignTop);
+@@ -4730,35 +4762,38 @@ void PropertyPanel::showAllLatencyHistogram()
+                 }
+             }
+         }
+-    }
+-    else {
++    } else {
+         for (auto& customPlot : plotMap->values()) {
+             if (customPlot && customPlot->isVisible()) {
+                 if (auto horizontalSplitter = dynamic_cast<QSplitter*>(customPlot->parentWidget())) {
+                     int count = horizontalSplitter->count();
+-                    const int containsHistogram = 3;
++                    bool isDisplayingLatency = false;
++                    QCustomPlot* graph = nullptr;
+                     for (int i = 0; i < count; ++i) {
+                         auto it = horizontalSplitter->widget(i);
+                         if (QCustomPlot * plot = qobject_cast<QCustomPlot*>(it)) {
+                             if (plot->windowTitle() == latencyHistogramName) {
+                                 plot->show();
+                                 updateLatencyHistogramStatus(customPlot, true);
++                                isDisplayingLatency = true;
+                                 break;
++                            } else if (plot->windowTitle().isEmpty()) {
++                                graph = plot;
+                             }
+-                            if (count < containsHistogram) {
+-                                auto gname = plot->getEventGroupName();
+-                                if (gname.isEmpty()) break;
+-                                for (auto& it : statTab->groups) {
+-                                    EventGroup& g = it.second;
+-                                    if (g.name == gname.toStdString()) {
+-                                        g.showLatencyHistogram = true;
+-                                        auto histogram = createLatencyHistogram(g, statTab);
+-                                        histogram->setMinimumWidth(270);
+-                                        horizontalSplitter->insertWidget(1, histogram);
+-                                        updateLatencyHistogramStatus(customPlot, true);
+-                                        break;
+-                                    }
+-                                }
++                        }
++                    }
++                    if (!isDisplayingLatency) {
++                        auto gname = graph->getEventGroupName();
++                        if (gname.isEmpty()) break;
++                        for (auto& it : statTab->groups) {
++                            EventGroup& g = it.second;
++                            if (g.name == gname.toStdString()) {
++                                g.showLatencyHistogram = true;
++                                auto histogram = createLatencyHistogram(g, statTab);
++                                histogram->setMinimumWidth(280);
++                                horizontalSplitter->insertWidget(1, histogram);
++                                updateLatencyHistogramStatus(customPlot, true);
++                                break;
+                             }
+                         }
+                     }
+@@ -4886,7 +4921,7 @@ void PropertyPanel::movePlotUp()
+         bool isOpcodeHistogram = false, isLatencyHistogram = false;
+         for (auto const& it : horizontalSplitter->children()) {
+             if (auto customPlot = qobject_cast<QCustomPlot*>(it)) {
+-                if (customPlot->isVisible() && (customPlot->windowTitle() == latencyHistogramName)) {
++                if (customPlot->windowTitle() == latencyHistogramName) {
+                     if (customPlot->isVisible()) isLatencyHistogram = true;
+                     continue;
+                 } else if (customPlot->windowTitle() == opcodeHistogramName) {
