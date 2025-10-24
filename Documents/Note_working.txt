@@ -1348,7 +1348,8 @@ GUI-2663:
 			# Tức là độ phức tạp O(N^2) trong trường hợp cực đoan.
 ####################################################################################################################################################################################################################################
 NS-69237:
-	- Cmd: 
+	- Cmd:
+		+ source {C:/Users/tuanng4x/Workspace/cfg-netspeed/src/sw/noc_dev/iptests/source/siso.iptcl}
 		+ source {C:/Users/tuanng4x/Workspace/scripts/iptests/siso.iptcl}
 		+ source {C:/Users/tuanng4x/Workspace/scripts/iptests/example5_configuration/example5_configuration_run.iptcl}
 		+ source {C:/Users/tuanng4x/Workspace/scripts/iptests/plds_atcb/plds_atcb_run.iptcl}
